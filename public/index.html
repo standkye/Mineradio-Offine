@@ -17815,8 +17815,16 @@ function mergeSongSearchResults(neteaseSongs, qqSongs, limit, q) {
   return out.slice(0, limit);
 }
 async function fetchMusicSearchResults(q, mode) {
-  var localResult = await apiJson('/api/local/search?keywords=' + encodeURIComponent(q));
-  return (localResult.songs || []).map(function(s, i){ s._searchScore = 100 - i; return s; }).slice(0, 50);
+  try {
+    var controller = new AbortController();
+    var timer = setTimeout(function(){ controller.abort(); }, 5000);
+    var localResult = await apiJson('/api/local/search?keywords=' + encodeURIComponent(q), { signal: controller.signal });
+    clearTimeout(timer);
+    return (localResult.songs || []).map(function(s, i){ s._searchScore = 100 - i; return s; }).slice(0, 50);
+  } catch (err) {
+    console.error('[Search] fetch failed:', err);
+    return [];
+  }
 }
 function renderSongSearchResults(songs) {
   playlist = songs || [];
@@ -17844,6 +17852,10 @@ function renderSongSearchResults(songs) {
   $results.classList.add('show');
   syncLikeStatusForSongs(playlist);
   if (window.gsap) animateListItems($results, '.search-result', { x: 0, y: 6, stagger: 0.012, duration: 0.18, limit: 18 });
+}
+
+function searchResultKey(q, mode) {
+  return (mode || searchMode || 'song') + '|' + String(q || '').trim();
 }
 
 async function doSearch(q, opts) {
