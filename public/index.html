@@ -2111,6 +2111,54 @@ html.control-glass-svg-ok #visual-guide-btn:hover{
   <div class="fx-slider"><label>封面清晰�?/label><input id="fx-coverres" type="range" min="0.75" max="1.55" step="0.01"><output></output></div>
   <div class="fx-slider"><label>镜头晃动</label><input id="fx-cineshake" type="range" min="0" max="1.8" step="0.01"><output></output></div>
   <div class="fx-slider"><label>歌词溢光</label><input id="fx-lyricglow" type="range" min="0" max="0.85" step="0.01"><output></output></div>
+  <div class="fx-fold" id="fx-sonic-fold">
+    <div class="fx-fold-head" onclick="document.getElementById('fx-sonic-fold').classList.toggle('open')">
+      <span class="fx-fold-title"><strong>音域回响</strong><small>Sonic-Topography 地形 / 颜色 / 方块</small></span><span class="arrow">▶</span>
+    </div>
+    <div class="fx-fold-body">
+      <div class="fx-section-label" id="fx-sonic-ground-section">音域地形</div>
+      <div class="fx-slider"><label>地面起伏</label><input id="fx-sonicamp" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>起伏速度</label><input id="fx-sonicspeed" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>地形密度</label><input id="fx-sonicdensity" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>地面范围</label><input id="fx-sonicrange" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>歌词避让</label><input id="fx-soniclower" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>地面远近</label><input id="fx-sonicdepth" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>地形自转</label><input id="fx-sonicautorotate" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-section-label" id="fx-sonic-color-section">音域颜色</div>
+      <div class="lyric-color-row" id="sonic-ground-base-row">
+        <input id="sonic-ground-base-picker" class="lyric-color-picker" type="color" value="#05070c" title="地形暗部">
+        <div class="fx-color-row-label">地形暗部<small id="sonic-ground-base-value">#05070C</small></div>
+        <button class="fx-mini-btn ghost" type="button" onclick="resetSonicGroundColor('sonicGroundBaseColor')">默认</button>
+      </div>
+      <div class="lyric-color-row" id="sonic-ground-cool-row">
+        <input id="sonic-ground-cool-picker" class="lyric-color-picker" type="color" value="#0066ff" title="冷色峰值">
+        <div class="fx-color-row-label">冷色峰值<small id="sonic-ground-cool-value">#0066FF</small></div>
+        <button class="fx-mini-btn ghost" type="button" onclick="resetSonicGroundColor('sonicGroundCoolColor')">默认</button>
+      </div>
+      <div class="lyric-color-row" id="sonic-ground-warm-row">
+        <input id="sonic-ground-warm-picker" class="lyric-color-picker" type="color" value="#ff3c19" title="暖色峰值">
+        <div class="fx-color-row-label">暖色峰值<small id="sonic-ground-warm-value">#FF3C19</small></div>
+        <button class="fx-mini-btn ghost" type="button" onclick="resetSonicGroundColor('sonicGroundWarmColor')">默认</button>
+      </div>
+      <div class="lyric-color-row" id="sonic-ground-accent-row">
+        <input id="sonic-ground-accent-picker" class="lyric-color-picker" type="color" value="#33e6ff" title="涟漪高光">
+        <div class="fx-color-row-label">涟漪高光<small id="sonic-ground-accent-value">#33E6FF</small></div>
+        <button class="fx-mini-btn ghost" type="button" onclick="resetSonicGroundColor('sonicGroundAccentColor')">默认</button>
+      </div>
+      <div class="fx-slider"><label>音域光强</label><input id="fx-sonicglow" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-section-label" id="fx-sonic-floating-section">音域方块</div>
+      <div class="fx-toggle-grid">
+        <div class="fx-toggle" id="t-sonicGroundFloatingEnabled" onclick="toggleFx('sonicGroundFloatingEnabled')">
+          <span>浮空方块</span><span class="dot"></span>
+        </div>
+      </div>
+      <div class="fx-slider"><label>方块数量</label><input id="fx-sonicfloatcount" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>方块强度</label><input id="fx-sonicfloatintensity" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>方块小值</label><input id="fx-sonicfloatmin" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>方块大值</label><input id="fx-sonicfloatmax" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>方块速度</label><input id="fx-sonicfloatspeed" type="range" min="0" max="100" step="1"><output></output></div>
+    </div>
+  </div>
 
   <div class="fx-fold" id="fx-lyric-fold">
     <div class="fx-fold-head" onclick="document.getElementById('fx-lyric-fold').classList.toggle('open')">
@@ -3283,6 +3331,25 @@ function maybeAnnounceDjMode() {
   performanceQuality: 'high',
   liveBackgroundKeep: false,
   cam: 'off',
+  sonicGroundAmp: 50,
+  sonicGroundSpeed: 50,
+  sonicGroundDensity: 46,
+  sonicGroundRange: 82,
+  sonicGroundLower: 68,
+  sonicGroundDepth: 62,
+  sonicGroundAutoRotate: 50,
+  sonicGroundColorMode: 'cover',
+  sonicGroundBaseColor: '#05070c',
+  sonicGroundCoolColor: '#0066ff',
+  sonicGroundWarmColor: '#ff3c19',
+  sonicGroundAccentColor: '#33e6ff',
+  sonicGroundGlow: 20,
+  sonicGroundFloatingEnabled: true,
+  sonicGroundFloatingIntensity: 36,
+  sonicGroundFloatingMinSize: 9,
+  sonicGroundFloatingMaxSize: 12,
+  sonicGroundFloatingSpeed: 59,
+  sonicGroundFloatingCount: 80,
 };
 var PACKAGED_DEFAULT_USER_FX_ARCHIVE_NAME = '默认测试';
 var PACKAGED_DEFAULT_USER_FX_ARCHIVE_EXPORTED_AT = 1782276031784;
@@ -6529,6 +6596,7 @@ function destroyFloatLayer() {
 //  安魂 �?3D 粒子建模�?// ============================================================
 var SKULL_PRESET_INDEX = 6;
 var SONIC_PRESET_INDEX = 7;
+var SONIC_GROUND_DEFAULTS = { sonicGroundBaseColor: '#05070c', sonicGroundCoolColor: '#0066ff', sonicGroundWarmColor: '#ff3c19', sonicGroundAccentColor: '#33e6ff' };
 var SKULL_MODEL_BASE_ROTATION_X = -0.26;
 var SKULL_MODEL_BASE_ROTATION_Y = 0.00;
 var SKULL_MODEL_SCALE = 2.34;
@@ -21697,6 +21765,19 @@ function updateFxInputs() {
   setRange('fx-color', fx.color);
   setRange('fx-bloom', fx.bloomStrength);
   setRange('fx-scatter', fx.scatter);
+  setRange('fx-sonicamp', fx.sonicGroundAmp);
+  setRange('fx-sonicspeed', fx.sonicGroundSpeed);
+  setRange('fx-sonicdensity', fx.sonicGroundDensity);
+  setRange('fx-sonicrange', fx.sonicGroundRange);
+  setRange('fx-soniclower', fx.sonicGroundLower);
+  setRange('fx-sonicdepth', fx.sonicGroundDepth);
+  setRange('fx-sonicautorotate', fx.sonicGroundAutoRotate);
+  setRange('fx-sonicglow', fx.sonicGroundGlow);
+  setRange('fx-sonicfloatcount', fx.sonicGroundFloatingCount);
+  setRange('fx-sonicfloatintensity', fx.sonicGroundFloatingIntensity);
+  setRange('fx-sonicfloatmin', fx.sonicGroundFloatingMinSize);
+  setRange('fx-sonicfloatmax', fx.sonicGroundFloatingMaxSize);
+  setRange('fx-sonicfloatspeed', fx.sonicGroundFloatingSpeed);
   setRange('fx-bgfade', fx.bgFade);
   updateLyricGlowControls();
   // 同步开�?  document.getElementById('t-float').classList.toggle('on', fx.floatLayer);
@@ -22375,6 +22456,11 @@ function bindFxPanel() {
     ['fx-lyricscale','lyricScale'],['fx-lyricx','lyricOffsetX'],['fx-lyricy','lyricOffsetY'],['fx-lyricz','lyricOffsetZ'],['fx-lyrictiltx','lyricTiltX'],['fx-lyrictilty','lyricTiltY'],
     ['fx-point','point'],['fx-speed','speed'],['fx-twist','twist'],
     ['fx-color','color'],['fx-bloom','bloomStrength'],['fx-scatter','scatter'],['fx-bgfade','bgFade'],
+    ['fx-sonicamp','sonicGroundAmp'],['fx-sonicspeed','sonicGroundSpeed'],['fx-sonicdensity','sonicGroundDensity'],
+    ['fx-sonicrange','sonicGroundRange'],['fx-soniclower','sonicGroundLower'],['fx-sonicdepth','sonicGroundDepth'],['fx-sonicautorotate','sonicGroundAutoRotate'],
+    ['fx-sonicglow','sonicGroundGlow'],
+    ['fx-sonicfloatcount','sonicGroundFloatingCount'],['fx-sonicfloatintensity','sonicGroundFloatingIntensity'],
+    ['fx-sonicfloatmin','sonicGroundFloatingMinSize'],['fx-sonicfloatmax','sonicGroundFloatingMaxSize'],['fx-sonicfloatspeed','sonicGroundFloatingSpeed'],
   ];
   ids.forEach(function(pair){
     var el = document.getElementById(pair[0]);
@@ -22463,6 +22549,20 @@ function bindFxPanel() {
   var visualIconPicker = document.getElementById('visual-icon-picker');
   if (visualIconPicker) {
     visualIconPicker.addEventListener('input', function(){ setVisualIconColor(visualIconPicker.value, true); });
+    var sonicPickers = ['sonic-ground-base-picker','sonic-ground-cool-picker','sonic-ground-warm-picker','sonic-ground-accent-picker'];
+    var sonicKeys = ['sonicGroundBaseColor','sonicGroundCoolColor','sonicGroundWarmColor','sonicGroundAccentColor'];
+    sonicPickers.forEach(function(pid, idx){
+      var p = document.getElementById(pid);
+      if (p) p.addEventListener('input', function(){
+        fx[sonicKeys[idx]] = normalizeHexColor(p.value);
+        var label = document.getElementById(sonicKeys[idx].replace('sonicGround','sonic-ground-').replace(/([A-Z])/g,'-'+'').toLowerCase() + '-value');
+        if (label) label.textContent = fx[sonicKeys[idx]].toUpperCase();
+        var pp = document.getElementById(pid);
+        if (pp) pp.value = fx[sonicKeys[idx]];
+        syncFxUniforms();
+        saveLyricLayout();
+      });
+    });
     visualIconPicker.addEventListener('change', function(){ showToast('视觉图标: ' + normalizeHexColor(visualIconPicker.value, '#7fd8ff').toUpperCase()); });
   }
   var bgColorPicker = document.getElementById('bg-color-picker');
@@ -22578,6 +22678,36 @@ function bindFxPanel() {
   });
   updateFxInputs();
 }
+function resetSonicGroundColor(key) {
+  if (!fx || !SONIC_GROUND_DEFAULTS) return;
+  fx[key] = SONIC_GROUND_DEFAULTS[key];
+  var pickerMap = {
+    sonicGroundBaseColor: 'sonic-ground-base-picker',
+    sonicGroundCoolColor: 'sonic-ground-cool-picker',
+    sonicGroundWarmColor: 'sonic-ground-warm-picker',
+    sonicGroundAccentColor: 'sonic-ground-accent-picker'
+  };
+  var pickerId = pickerMap[key];
+  if (pickerId) {
+    var picker = document.getElementById(pickerId);
+    if (picker) { picker.value = fx[key]; }
+  }
+  var labelMap = {
+    sonicGroundBaseColor: 'sonic-ground-base-value',
+    sonicGroundCoolColor: 'sonic-ground-cool-value',
+    sonicGroundWarmColor: 'sonic-ground-warm-value',
+    sonicGroundAccentColor: 'sonic-ground-accent-value'
+  };
+  var labelId = labelMap[key];
+  if (labelId) {
+    var label = document.getElementById(labelId);
+    if (label) label.textContent = fx[key].toUpperCase();
+  }
+  syncFxUniforms();
+  saveLyricLayout();
+  showToast('音域回响颜色: ' + fx[key].toUpperCase());
+}
+
 function toggleFx(key) {
   if (isDevelopmentLockedFx(key)) {
     normalizeDevelopmentLockedFxState();
