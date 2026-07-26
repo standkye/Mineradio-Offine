@@ -4313,6 +4313,123 @@ const server = http.createServer(async (req, res) => {
     }
     return;
   }
+  // ---------- 本地音乐整理 (按歌手/专辑自动归类) ----------
+  if (pn === '/api/local/organize') {
+    const dir = url.searchParams.get('path') || '';
+    if (!dir) { sendJSON(res, { error: 'Missing path' }, 400); return; }
+    const startTime = Date.now();
+    const musicExts = new Set(['.mp3','.flac','.wav','.ogg','.m4a','.aac','.wma','.opus','.aiff','.ape']);
+    const audioFiles = [];
+    function walkCollect(dirPath, depth) {
+      try {
+        const entries = fs.readdirSync(dirPath, { withFileTypes: true });
+        for (const entry of entries) {
+          const fullPath = path.join(dirPath, entry.name);
+          if (entry.isDirectory()) {
+            walkCollect(fullPath, depth + 1);
+          } else if (entry.isFile()) {
+            const ext = path.extname(entry.name).toLowerCase();
+            if (musicExts.has(ext)) {
+              audioFiles.push({ path: fullPath, depth });
+            }
+          }
+        }
+      } catch (e) { /* skip unreadable dirs */ }
+    }
+    walkCollect(dir, 0);
+
+    let filesMoved = 0, filesSkipped = 0;
+    const errors = [];
+
+    for (const { path: filePath, depth } of audioFiles) {
+      try {
+        const relPath = path.relative(dir, filePath);
+        const parts = relPath.split(/[\\\/]/);
+        if (parts.length >= 3) {
+          filesSkipped++;
+          continue;
+        }
+        let artist = '未知艺人';
+        let album = '未知专辑';
+        try {
+          const mm = require('music-metadata');
+          const meta = await mm.parseFile(filePath, { duration: false, skipPostHeaders: true });
+          if (meta.common.albumartist) artist = meta.common.albumartist;
+          else if (meta.common.artist) artist = meta.common.artist;
+          if (meta.common.album) album = meta.common.album;
+        } catch (e2) {
+          try {
+            const jsmediatags = require('jsmediatags');
+            await new Promise((resolve) => {
+              try {
+                new jsmediatags.Reader(filePath)
+                  .setTagsToRead(['title', 'artist', 'album'])
+                  .read({
+                    onSuccess: (tag) => {
+                      const tags = tag.tags || {};
+                      if (tags.artist) artist = tags.artist;
+                      if (tags.album) album = tags.album;
+                      resolve();
+                    },
+                    onError: () => { resolve(); }
+                  });
+              } catch (e) { resolve(); }
+            });
+          } catch (e3) { /* keep defaults */ }
+        }
+        const sanitize = (s) => String(s).replace(/[<>:"\/\\|?*]/g, '_').replace(/\.+$/, '').trim() || '未知';
+        const artistDir = sanitize(artist);
+        const albumDir = sanitize(album);
+        const targetDir = path.join(dir, artistDir, albumDir);
+        if (!fs.existsSync(targetDir)) {
+          fs.mkdirSync(targetDir, { recursive: true });
+        }
+        const fileName = path.basename(filePath);
+        let targetPath = path.join(targetDir, fileName);
+        if (filePath === targetPath) {
+          filesSkipped++;
+          continue;
+        }
+        if (fs.existsSync(targetPath)) {
+          const ext = path.extname(fileName);
+          const base = path.basename(fileName, ext);
+          let counter = 1;
+          do {
+            targetPath = path.join(targetDir, base + ' (' + counter + ')' + ext);
+            counter++;
+          } while (fs.existsSync(targetPath));
+        }
+        fs.renameSync(filePath, targetPath);
+        filesMoved++;
+      } catch (e) {
+        errors.push('处理失败 ' + path.basename(filePath) + ': ' + e.message);
+        filesSkipped++;
+      }
+    }
+    // 清理空目录
+    try {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          const subDir = path.join(dir, entry.name);
+          try {
+            const subEntries = fs.readdirSync(subDir);
+            if (subEntries.length === 0) {
+              fs.rmdirSync(subDir);
+            }
+          } catch (e) { /* skip */ }
+        }
+      }
+    } catch (e) { /* skip */ }
+    console.log('[LocalOrganize] 整理了 ' + filesMoved + ' 个文件, 跳过 ' + filesSkipped + ' 个, 耗时 ' + (Date.now() - startTime) + 'ms');
+    sendJSON(res, {
+      filesMoved, filesSkipped, errors,
+      elapsed: Date.now() - startTime,
+    });
+    return;
+  }
+
+
 
   if (pn === '/api/local/search') {
     try {
@@ -4399,7 +4516,7 @@ const server = http.createServer(async (req, res) => {
       }
       // Otherwise try to extract embedded cover from audio file
       // Try music-metadata first (better FLAC/Vorbis support), fallback to jsmediatags
-      let sent = false;
+            let sent = false;
       try {
         const mm = require('music-metadata');
         const meta = await mm.parseFile(filePath, { duration: false, skipPostHeaders: true });
@@ -4470,7 +4587,7 @@ const server = http.createServer(async (req, res) => {
     }
     return;
   }
-
+  
   // ---------- 本地歌词 ----------
   if (pn === '/api/local/lyric') {
     try {
@@ -4543,7 +4660,81 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // ---------- 静态资源 ----------
+  // ---------- 本地歌词下载 (LRCLib + gequhai.com 备用) ----------
+  if (pn === '/api/local/download-lyrics') {
+    const songsParam = url.searchParams.get('songs') || '[]';
+    let songs;
+    try { songs = JSON.parse(songsParam); } catch (e) { songs = []; }
+    if (!Array.isArray(songs)) songs = [];
+    if (songs.length === 0 && localMusicCache && localMusicCache.length) {
+      songs = localMusicCache;
+    }
+    if (songs.length === 0) {
+      sendJSON(res, { total: 0, completed: 0, failed: 0, results: [] });
+      return;
+    }
+    console.log('[LocalLyricsDL] 开始下载 ' + songs.length + ' 首歌的歌词');
+    const results = [];
+    let completed = 0, failed = 0;
+    for (const song of songs) {
+      const fp = song.localPath || song.localUrl || '';
+      if (!fp || !fs.existsSync(fp)) { failed++; results.push({ song: song.name || '?', status: 'skipped', reason: '文件不存在' }); continue; }
+      const dir = path.dirname(fp);
+      const extName = path.extname(fp);
+      const baseName = path.basename(fp, extName);
+      const lrcPath = path.join(dir, baseName + '.lrc');
+      if (fs.existsSync(lrcPath)) { completed++; results.push({ song: song.name || '?', status: 'exists', lrcPath }); continue; }
+      const artist = encodeURIComponent(song.artist || '');
+      const track = encodeURIComponent(song.name || song.title || baseName);
+      const album = encodeURIComponent(song.album || '');
+      const lrclibUrl = 'https://lrclib.net/api/get?artist_name=' + artist + '&track_name=' + track + '&album_name=' + album;
+      let lrcContent = '';
+      // Try LRCLib
+      try {
+        const resp = await fetch(lrclibUrl);
+        if (resp.ok) {
+          const data = await resp.json();
+          lrcContent = data.syncedLyrics || data.plainLyrics || '';
+          if (!data.syncedLyrics && data.plainLyrics) {
+            lrcContent = '[00:00.00]' + data.plainLyrics.replace(/\n/g, '\n[00:00.00]');
+          }
+        }
+      } catch (e) { /* LRCLib failed */ }
+      // Fallback: gequhai.com
+      if (!lrcContent) {
+        try {
+          const q = encodeURIComponent((song.name || song.title || baseName) + ' ' + (song.artist || ''));
+          const sr = await fetch('https://www.gequhai.com/s/' + q);
+          if (sr.ok) {
+            const sh = await sr.text();
+            const pm = sh.match(/\/play\/(\d+)/);
+            if (pm) {
+              const pr = await fetch('https://www.gequhai.com/play/' + pm[1]);
+              if (pr.ok) {
+                const ph = await pr.text();
+                const lm = ph.match(/(\[[\d.:]+\].*?(?:\r?\n|$)){3,}/);
+                if (lm) lrcContent = lm[0].trim();
+              }
+            }
+          }
+        } catch (e2) { /* gequhai fallback failed */ }
+      }
+      if (!lrcContent) {
+        failed++;
+        results.push({ song: song.name || '?', status: 'no_lyrics' });
+      } else {
+        fs.writeFileSync(lrcPath, lrcContent, 'utf8');
+        completed++;
+        results.push({ song: song.name || '?', status: 'downloaded', lrcPath });
+      }
+      await new Promise(r => setTimeout(r, 500));
+    }
+    console.log('[LocalLyricsDL] 完成: ' + completed + ' 成功, ' + failed + ' 失败');
+    sendJSON(res, { total: songs.length, completed, failed, results });
+    return;
+  }
+
+  // ---------- 静态资源 ----------// ---------- 静态资源 ----------
   if (pn === '/favicon.ico') {
     serveStatic(res, path.join(__dirname, 'build', 'icon.ico'));
     return;
