@@ -38,6 +38,26 @@ yarn-error.log*
 public/index.*.html
 !public/index.html
 
+# AI tooling / IDE config
+.reasonix/
+
+# Backup / dump / patch files
+*.backup
+*.diff
+*.patch
+raw-output*
+data/
+
+# Generated documents
+*.docx
+
+# Ad-hoc test/utility scripts (not part of the app)
+fix_album_tag.js
+check_cover.js
+test_cover*.js
+generate-doc.js
+test_result.json
+
 # Local sync script (dev repo → running Mineradio.exe)
 sync-to-runner.bat
 
