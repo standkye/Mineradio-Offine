@@ -22977,36 +22977,7 @@ function renderTopAccountPill(provider) {
     vipTag +
   '</span>';
 }
-async function refreshLoginStatus(force) {
-  return { loggedIn: false, userId: 0, nickname: '', avatar: '', vipType: 0, vipLevel: 'none', isVip: false, isSvip: false, vipLabel: '无VIP' };
-}
-    loginStatusChecked = true;
-    loginStatusCheckFailed = false;
-    loginStatus = info || { loggedIn: false };
-    if (loginStatus.loggedIn && !hasPlatformLogin(activeAccountProvider)) activeAccountProvider = 'netease';
-    renderUserBtn();
-    if (info && info.loggedIn) {
-      homeDiscoverState.loaded = false;
-      homeDiscoverState.loggedIn = true;
-      refreshUserPlaylists(true);
-      loadHomeDiscover(true);
-      syncLikeStatusForSongs(playQueue.concat(playlist || []));
-    } else {
-      userPlaylists = qqPlaylists.slice();
-      myPodcastCollections = [];
-      myPodcastItems = {};
-      likedSongMap = {};
-      updateLikeButtons();
-    }
-    return info;
-  } catch (e) {
-    console.warn(e);
-    loginStatusChecked = true;
-    loginStatusCheckFailed = true;
-    renderUserBtn();
-    return null;
-  }
-}
+async function refreshLoginStatus(force) { return { loggedIn: false, userId: 0 }; }
 function normalizeQQLoginStatus(info) {
   var fallback = { provider: 'qq', loggedIn: false, preview: false, nickname: 'QQ 音乐', userId: '', avatar: '', vipType: 0, stale: false, playbackKeyReady: false };
   if (!info || !info.loggedIn) return Object.assign({}, fallback, info || {}, {
@@ -23029,35 +23000,7 @@ function normalizeQQLoginStatus(info) {
     stale: !!info.stale || !!(info.profileUnavailable && !(info.nickname && info.avatar))
   });
 }
-async function refreshQQLoginStatus() {
-  return { provider: 'qq', loggedIn: false, preview: false, nickname: 'QQ 音乐', userId: '', avatar: '', vipType: 0, vipLevel: 'none', isVip: false, isSvip: false, vipLabel: '无VIP' };
-}
-    var prevLogged = !!qqLoginStatus.loggedIn;
-    qqLoginStatus = normalizeQQLoginStatus(info);
-    if (!qqLoginStatus.loggedIn) {
-      if (prevLogged || qqLoginWasLoggedIn) showToast(qqLoginStatus.stale ? 'QQ 音乐登录已失效' : 'QQ 音乐已掉登录');
-      qqPlaylists = [];
-      userPlaylists = userPlaylists.filter(function(pl){ return pl.provider !== 'qq'; });
-      homeDiscoverState.loaded = false;
-    } else if (!userPlaylists.some(function(pl){ return pl && pl.provider === 'qq'; })) {
-      homeDiscoverState.loaded = false;
-      homeDiscoverState.loggedIn = true;
-      loadHomeDiscover(true);
-      refreshUserPlaylists(true);
-    } else if (qqLoginStatus.stale) {
-      showToast('QQ 音乐登录状态可能已失效');
-    }
-    qqLoginWasLoggedIn = !!qqLoginStatus.loggedIn;
-    if (!hasPlatformLogin(activeAccountProvider)) activeAccountProvider = firstLoggedProvider();
-    renderUserBtn();
-    return qqLoginStatus;
-  } catch (e) {
-    console.warn('QQ login status failed:', e);
-    qqLoginStatus = normalizeQQLoginStatus(null);
-    renderUserBtn();
-    return qqLoginStatus;
-  }
-}
+async function refreshQQLoginStatus() { return { provider: 'qq', loggedIn: false }; }
 function startQQLoginStatusAutoRefresh() {
   if (qqLoginAutoRefreshTimer) clearInterval(qqLoginAutoRefreshTimer);
   qqLoginAutoRefreshTimer = setInterval(function(){
