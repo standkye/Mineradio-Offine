@@ -6,17 +6,18 @@
 // ====================================================================
 // ====================================================================
 const http = require('http');
-const fs   = require('fs');
+const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
-const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
-const BEATMAP_CACHE_DIR = process.env.MINERADIO_BEAT_CACHE_DIR || path.join(__dirname, '..', 'MineradioCache', 'beatmaps');
+const UA =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+const BEATMAP_CACHE_DIR =
+  process.env.MINERADIO_BEAT_CACHE_DIR || path.join(__dirname, '..', 'MineradioCache', 'beatmaps');
 const APP_PACKAGE = readPackageInfo();
 const APP_VERSION = process.env.MINERADIO_VERSION || APP_PACKAGE.version || '0.9.11';
-
 
 // 本地音乐缓存
 let localMusicCache = [];
@@ -24,21 +25,24 @@ let localMusicScanBusy = false;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
-  '.js':   'application/javascript',
-  '.css':  'text/css',
+  '.js': 'application/javascript',
+  '.css': 'text/css',
   '.json': 'application/json',
-  '.png':  'image/png',
-  '.jpg':  'image/jpeg',
-  '.ico':  'image/x-icon',
-  '.svg':  'image/svg+xml',
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.ico': 'image/x-icon',
+  '.svg': 'image/svg+xml',
 };
-
 
 // ---------- 工具 ----------
 function serveStatic(res, filePath) {
   const ext = path.extname(filePath);
   fs.readFile(filePath, (err, data) => {
-    if (err) { res.writeHead(404); res.end('Not Found'); return; }
+    if (err) {
+      res.writeHead(404);
+      res.end('Not Found');
+      return;
+    }
     res.writeHead(200, { 'Content-Type': MIME[ext] || 'text/plain' });
     res.end(data);
   });
@@ -48,8 +52,8 @@ function sendJSON(res, data, status) {
     'Content-Type': 'application/json; charset=utf-8',
     'Access-Control-Allow-Origin': '*',
     'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-    'Pragma': 'no-cache',
-    'Expires': '0',
+    Pragma: 'no-cache',
+    Expires: '0',
   });
   res.end(JSON.stringify(data));
 }
@@ -90,11 +94,15 @@ function safeBeatMapCacheFile(key) {
   const raw = String(key || '').trim();
   if (!raw || raw.length > 240) return null;
   const hash = crypto.createHash('sha1').update(raw).digest('hex');
-  const label = raw.replace(/[^a-z0-9_.-]+/gi, '_').replace(/^_+|_+$/g, '').slice(0, 48) || 'beatmap';
+  const label =
+    raw
+      .replace(/[^a-z0-9_.-]+/gi, '_')
+      .replace(/^_+|_+$/g, '')
+      .slice(0, 48) || 'beatmap';
   return path.join(ensureBeatMapCacheDir(), `${label}-${hash}.json`);
 }
 function compactBeatMapCachePayload(body) {
-  const key = String(body && body.key || '').trim();
+  const key = String((body && body.key) || '').trim();
   const map = body && body.map;
   if (!key || !map || typeof map !== 'object') return null;
   return {
@@ -127,26 +135,30 @@ function writeBeatMapCache(body) {
   return { ok: true, key: payload.key, savedAt: payload.savedAt, dir: path.dirname(file) };
 }
 function readRequestBody(req) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     let raw = '';
-    req.on('data', chunk => {
+    req.on('data', (chunk) => {
       raw += chunk;
       if (raw.length > 8 * 1024 * 1024) req.destroy();
     });
     req.on('end', () => {
-      if (!raw) { resolve({}); return; }
-      try { resolve(JSON.parse(raw)); }
-      catch (e) {
+      if (!raw) {
+        resolve({});
+        return;
+      }
+      try {
+        resolve(JSON.parse(raw));
+      } catch (e) {
         const params = new URLSearchParams(raw);
         const out = {};
-        params.forEach((v, k) => { out[k] = v; });
+        params.forEach((v, k) => {
+          out[k] = v;
+        });
         resolve(out);
       }
     });
   });
 }
-
-
 
 // ====================================================================
 //  HTTP Server
@@ -155,14 +167,13 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost:' + PORT);
   const pn = url.pathname;
 
-
   if (pn === '/api/beatmap/cache/status') {
     const info = beatCacheRootInfo();
     sendJSON(res, {
       enabled: info.allowed && info.available,
       dir: info.dir,
       drive: info.drive,
-      reason: !info.allowed ? 'C_DRIVE_DISABLED' : (!info.available ? 'TARGET_DRIVE_UNAVAILABLE' : ''),
+      reason: !info.allowed ? 'C_DRIVE_DISABLED' : !info.available ? 'TARGET_DRIVE_UNAVAILABLE' : '',
       mode: info.allowed && info.available ? 'disk' : 'memory-only',
     });
     return;
@@ -173,9 +184,19 @@ const server = http.createServer(async (req, res) => {
       const key = url.searchParams.get('key') || '';
       try {
         const entry = readBeatMapCache(key);
-        sendJSON(res, entry
-          ? { ok: true, hit: true, key: entry.key || key, map: entry.map, meta: entry.meta || {}, savedAt: entry.savedAt || 0 }
-          : { ok: true, hit: false, key });
+        sendJSON(
+          res,
+          entry
+            ? {
+                ok: true,
+                hit: true,
+                key: entry.key || key,
+                map: entry.map,
+                meta: entry.meta || {},
+                savedAt: entry.savedAt || 0,
+              }
+            : { ok: true, hit: false, key },
+        );
       } catch (err) {
         const info = err.info || beatCacheRootInfo();
         sendJSON(res, {
@@ -212,19 +233,35 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-
   // ---------- 本地音乐 ----------
   if (pn === '/api/local/scan') {
     try {
       const dir = url.searchParams.get('path') || '';
-      if (!dir) { sendJSON(res, { error: 'Missing path', songs: [] }, 400); return; }
-      if (localMusicScanBusy) { sendJSON(res, { error: 'Scan already in progress', songs: [] }, 429); return; }
+      if (!dir) {
+        sendJSON(res, { error: 'Missing path', songs: [] }, 400);
+        return;
+      }
+      if (localMusicScanBusy) {
+        sendJSON(res, { error: 'Scan already in progress', songs: [] }, 429);
+        return;
+      }
       localMusicScanBusy = true;
       const startTime = Date.now();
-      const musicExts = new Set(['.mp3','.flac','.wav','.ogg','.m4a','.aac','.wma']);
-      const imageExts = new Set(['.jpg','.jpeg','.png','.webp']);
-      const coverFileNames = new Set(['cover','folder','album','front','artwork','thumb','thumbnail','scan','图片','封面']);
-      const artistFileNames = new Set(['artist','author','singer']);
+      const musicExts = new Set(['.mp3', '.flac', '.wav', '.ogg', '.m4a', '.aac', '.wma']);
+      const imageExts = new Set(['.jpg', '.jpeg', '.png', '.webp']);
+      const coverFileNames = new Set([
+        'cover',
+        'folder',
+        'album',
+        'front',
+        'artwork',
+        'thumb',
+        'thumbnail',
+        'scan',
+        '图片',
+        '封面',
+      ]);
+      const artistFileNames = new Set(['artist', 'author', 'singer']);
       const files = [];
       const imageFiles = {}; // dirPath -> { cover: [...], artist: [...] }
       function walkDir(dirPath) {
@@ -254,7 +291,9 @@ const server = http.createServer(async (req, res) => {
           }
           // Always record dir even if no standard-named images found yet
           imageFiles[dirPath] = dirImages;
-        } catch (e) { /* skip unreadable dirs */ }
+        } catch (e) {
+          /* skip unreadable dirs */
+        }
       }
       walkDir(dir);
       // Second pass: look for album-named / song-named images in each dir
@@ -305,7 +344,8 @@ const server = http.createServer(async (req, res) => {
               if (meta.common.artist) artist = meta.common.artist;
               if (meta.common.album) album = meta.common.album;
               if (meta.common.picture && meta.common.picture.length > 0 && !coverPath) {
-                hasCover = true; coverPath = filePath;
+                hasCover = true;
+                coverPath = filePath;
               }
             } catch (e2) {
               console.error('[LocalScan:mm]', filePath, e2.message);
@@ -315,20 +355,25 @@ const server = http.createServer(async (req, res) => {
             // Fallback to jsmediatags
             await new Promise((resolve) => {
               try {
-                new jsmediatags.Reader(filePath)
-                  .setTagsToRead(['title', 'artist', 'album', 'picture'])
-                  .read({
-                    onSuccess: (tag) => {
-                      const tags = tag.tags || {};
-                      if (tags.title) title = tags.title;
-                      if (tags.artist) artist = tags.artist;
-                      if (tags.album) album = tags.album;
-                      if (tags.picture && !coverPath) { hasCover = true; coverPath = filePath; }
-                      resolve();
-                    },
-                    onError: () => { resolve(); }
-                  });
-              } catch (e) { resolve(); }
+                new jsmediatags.Reader(filePath).setTagsToRead(['title', 'artist', 'album', 'picture']).read({
+                  onSuccess: (tag) => {
+                    const tags = tag.tags || {};
+                    if (tags.title) title = tags.title;
+                    if (tags.artist) artist = tags.artist;
+                    if (tags.album) album = tags.album;
+                    if (tags.picture && !coverPath) {
+                      hasCover = true;
+                      coverPath = filePath;
+                    }
+                    resolve();
+                  },
+                  onError: () => {
+                    resolve();
+                  },
+                });
+              } catch (e) {
+                resolve();
+              }
             });
           }
           // Find artist image from same or parent directory
@@ -381,11 +426,15 @@ const server = http.createServer(async (req, res) => {
             size: stat.size,
             mtime: stat.mtimeMs,
           });
-        } catch (e) { /* skip problematic files */ }
+        } catch (e) {
+          /* skip problematic files */
+        }
       }
       localMusicCache = songs;
       localMusicScanBusy = false;
-      console.log('[LocalScan] Scanned ' + songs.length + ' files from ' + dir + ' in ' + (Date.now() - startTime) + 'ms');
+      console.log(
+        '[LocalScan] Scanned ' + songs.length + ' files from ' + dir + ' in ' + (Date.now() - startTime) + 'ms',
+      );
       sendJSON(res, { provider: 'local', path: dir, songs, count: songs.length, elapsed: Date.now() - startTime });
     } catch (err) {
       localMusicScanBusy = false;
@@ -397,9 +446,12 @@ const server = http.createServer(async (req, res) => {
   // ---------- 本地音乐整理 (按歌手/专辑自动归类) ----------
   if (pn === '/api/local/organize') {
     const dir = url.searchParams.get('path') || '';
-    if (!dir) { sendJSON(res, { error: 'Missing path' }, 400); return; }
+    if (!dir) {
+      sendJSON(res, { error: 'Missing path' }, 400);
+      return;
+    }
     const startTime = Date.now();
-    const musicExts = new Set(['.mp3','.flac','.wav','.ogg','.m4a','.aac','.wma','.opus','.aiff','.ape']);
+    const musicExts = new Set(['.mp3', '.flac', '.wav', '.ogg', '.m4a', '.aac', '.wma', '.opus', '.aiff', '.ape']);
     const audioFiles = [];
     function walkCollect(dirPath, depth) {
       try {
@@ -415,14 +467,17 @@ const server = http.createServer(async (req, res) => {
             }
           }
         }
-      } catch (e) { /* skip unreadable dirs */ }
+      } catch (e) {
+        /* skip unreadable dirs */
+      }
     }
     walkCollect(dir, 0);
 
-    let filesMoved = 0, filesSkipped = 0;
+    let filesMoved = 0,
+      filesSkipped = 0;
     const errors = [];
 
-    for (const { path: filePath, depth } of audioFiles) {
+    for (const { path: filePath } of audioFiles) {
       try {
         const relPath = path.relative(dir, filePath);
         const parts = relPath.split(/[\\\/]/);
@@ -443,22 +498,30 @@ const server = http.createServer(async (req, res) => {
             const jsmediatags = require('jsmediatags');
             await new Promise((resolve) => {
               try {
-                new jsmediatags.Reader(filePath)
-                  .setTagsToRead(['title', 'artist', 'album'])
-                  .read({
-                    onSuccess: (tag) => {
-                      const tags = tag.tags || {};
-                      if (tags.artist) artist = tags.artist;
-                      if (tags.album) album = tags.album;
-                      resolve();
-                    },
-                    onError: () => { resolve(); }
-                  });
-              } catch (e) { resolve(); }
+                new jsmediatags.Reader(filePath).setTagsToRead(['title', 'artist', 'album']).read({
+                  onSuccess: (tag) => {
+                    const tags = tag.tags || {};
+                    if (tags.artist) artist = tags.artist;
+                    if (tags.album) album = tags.album;
+                    resolve();
+                  },
+                  onError: () => {
+                    resolve();
+                  },
+                });
+              } catch (e) {
+                resolve();
+              }
             });
-          } catch (e3) { /* keep defaults */ }
+          } catch (e3) {
+            /* keep defaults */
+          }
         }
-        const sanitize = (s) => String(s).replace(/[<>:"\/\\|?*]/g, '_').replace(/\.+$/, '').trim() || '未知';
+        const sanitize = (s) =>
+          String(s)
+            .replace(/[<>:"\/\\|?*]/g, '_')
+            .replace(/\.+$/, '')
+            .trim() || '未知';
         const artistDir = sanitize(artist);
         const albumDir = sanitize(album);
         const targetDir = path.join(dir, artistDir, albumDir);
@@ -498,29 +561,47 @@ const server = http.createServer(async (req, res) => {
             if (subEntries.length === 0) {
               fs.rmdirSync(subDir);
             }
-          } catch (e) { /* skip */ }
+          } catch (e) {
+            /* skip */
+          }
         }
       }
-    } catch (e) { /* skip */ }
-    console.log('[LocalOrganize] 整理了 ' + filesMoved + ' 个文件, 跳过 ' + filesSkipped + ' 个, 耗时 ' + (Date.now() - startTime) + 'ms');
+    } catch (e) {
+      /* skip */
+    }
+    console.log(
+      '[LocalOrganize] 整理了 ' +
+        filesMoved +
+        ' 个文件, 跳过 ' +
+        filesSkipped +
+        ' 个, 耗时 ' +
+        (Date.now() - startTime) +
+        'ms',
+    );
     sendJSON(res, {
-      filesMoved, filesSkipped, errors,
+      filesMoved,
+      filesSkipped,
+      errors,
       elapsed: Date.now() - startTime,
     });
     return;
   }
 
-
-
   if (pn === '/api/local/search') {
     try {
       const q = (url.searchParams.get('keywords') || url.searchParams.get('q') || '').toLowerCase().trim();
-      if (!q) { sendJSON(res, { provider: 'local', songs: localMusicCache.slice(0, 50) }); return; }
-      const results = localMusicCache.filter(s =>
-        s.name.toLowerCase().includes(q) ||
-        (s.artist && s.artist.toLowerCase().includes(q)) ||
-        (s.album && s.album.toLowerCase().includes(q))
-      ).slice(0, 50);
+      if (!q) {
+        sendJSON(res, { provider: 'local', songs: localMusicCache.slice(0, 50) });
+        return;
+      }
+      const results = localMusicCache
+        .filter(
+          (s) =>
+            s.name.toLowerCase().includes(q) ||
+            (s.artist && s.artist.toLowerCase().includes(q)) ||
+            (s.album && s.album.toLowerCase().includes(q)),
+        )
+        .slice(0, 50);
       sendJSON(res, { provider: 'local', songs: results });
     } catch (err) {
       console.error('[LocalSearch]', err);
@@ -532,13 +613,29 @@ const server = http.createServer(async (req, res) => {
   if (pn === '/api/local/audio') {
     try {
       const filePath = url.searchParams.get('path');
-      if (!filePath) { res.writeHead(400); res.end('Missing path'); return; }
-      if (!fs.existsSync(filePath)) { res.writeHead(404); res.end('File not found'); return; }
+      if (!filePath) {
+        res.writeHead(400);
+        res.end('Missing path');
+        return;
+      }
+      if (!fs.existsSync(filePath)) {
+        res.writeHead(404);
+        res.end('File not found');
+        return;
+      }
       const stat = fs.statSync(filePath);
       const fileSize = stat.size;
       const range = req.headers.range || '';
       const ext = path.extname(filePath).toLowerCase();
-      const mimeMap = { '.mp3': 'audio/mpeg', '.flac': 'audio/flac', '.wav': 'audio/wav', '.ogg': 'audio/ogg', '.m4a': 'audio/mp4', '.aac': 'audio/aac', '.wma': 'audio/x-ms-wma' };
+      const mimeMap = {
+        '.mp3': 'audio/mpeg',
+        '.flac': 'audio/flac',
+        '.wav': 'audio/wav',
+        '.ogg': 'audio/ogg',
+        '.m4a': 'audio/mp4',
+        '.aac': 'audio/aac',
+        '.wma': 'audio/x-ms-wma',
+      };
       const contentType = mimeMap[ext] || 'audio/mpeg';
       if (range) {
         const parts = range.replace(/bytes=/, '').split('-');
@@ -582,8 +679,8 @@ const server = http.createServer(async (req, res) => {
       }
       const ext = path.extname(filePath).toLowerCase();
       // If it's a JPG/PNG/WEBP file directly, serve it
-      if (['.jpg','.jpeg','.png','.webp'].includes(ext)) {
-        const mimeMap = { '.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.webp':'image/webp' };
+      if (['.jpg', '.jpeg', '.png', '.webp'].includes(ext)) {
+        const mimeMap = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' };
         const stat = fs.statSync(filePath);
         res.writeHead(200, {
           'Content-Type': mimeMap[ext] || 'image/jpeg',
@@ -597,7 +694,7 @@ const server = http.createServer(async (req, res) => {
       }
       // Otherwise try to extract embedded cover from audio file
       // Try music-metadata first (better FLAC/Vorbis support), fallback to jsmediatags
-            let sent = false;
+      let sent = false;
       try {
         const mm = require('music-metadata');
         const meta = await mm.parseFile(filePath, { duration: false, skipPostHeaders: true });
@@ -614,46 +711,50 @@ const server = http.createServer(async (req, res) => {
           res.end(pic.data);
           sent = true;
         }
-      } catch (e) { console.error('[LocalCover:mm]', filePath, e.message); }
+      } catch (e) {
+        console.error('[LocalCover:mm]', filePath, e.message);
+      }
       if (!sent) {
         try {
           const jsmediatags = require('jsmediatags');
           await new Promise((resolve) => {
             try {
-              new jsmediatags.Reader(filePath)
-                .setTagsToRead(['picture'])
-                .read({
-                  onSuccess: (tag) => {
-                    const picture = tag.tags && tag.tags.picture;
-                    if (picture) {
-                      const raw = picture.data;
-                      let imgBuffer;
-                      if (typeof raw === 'string') {
-                        imgBuffer = Buffer.from(raw.replace(/\s/g, ''), 'base64');
-                      } else if (raw instanceof Array || raw instanceof Uint8Array) {
-                        imgBuffer = Buffer.from(raw);
-                      } else if (raw.buffer instanceof ArrayBuffer) {
-                        imgBuffer = Buffer.from(raw.buffer);
-                      } else {
-                        imgBuffer = null;
-                      }
-                      if (imgBuffer) {
-                        const mime = picture.format || 'image/jpeg';
-                        res.writeHead(200, {
-                          'Content-Type': mime,
-                          'Content-Length': imgBuffer.length,
-                          'Cache-Control': 'public, max-age=86400',
-                          'Access-Control-Allow-Origin': '*',
-                        });
-                        res.end(imgBuffer);
-                        sent = true;
-                      }
+              new jsmediatags.Reader(filePath).setTagsToRead(['picture']).read({
+                onSuccess: (tag) => {
+                  const picture = tag.tags && tag.tags.picture;
+                  if (picture) {
+                    const raw = picture.data;
+                    let imgBuffer;
+                    if (typeof raw === 'string') {
+                      imgBuffer = Buffer.from(raw.replace(/\s/g, ''), 'base64');
+                    } else if (raw instanceof Array || raw instanceof Uint8Array) {
+                      imgBuffer = Buffer.from(raw);
+                    } else if (raw.buffer instanceof ArrayBuffer) {
+                      imgBuffer = Buffer.from(raw.buffer);
+                    } else {
+                      imgBuffer = null;
                     }
-                    resolve();
-                  },
-                  onError: () => { resolve(); }
-                });
-            } catch (e) { resolve(); }
+                    if (imgBuffer) {
+                      const mime = picture.format || 'image/jpeg';
+                      res.writeHead(200, {
+                        'Content-Type': mime,
+                        'Content-Length': imgBuffer.length,
+                        'Cache-Control': 'public, max-age=86400',
+                        'Access-Control-Allow-Origin': '*',
+                      });
+                      res.end(imgBuffer);
+                      sent = true;
+                    }
+                  }
+                  resolve();
+                },
+                onError: () => {
+                  resolve();
+                },
+              });
+            } catch (e) {
+              resolve();
+            }
           });
         } catch (e) {}
       }
@@ -668,7 +769,7 @@ const server = http.createServer(async (req, res) => {
     }
     return;
   }
-  
+
   // ---------- 本地歌词 ----------
   if (pn === '/api/local/lyric') {
     try {
@@ -691,19 +792,21 @@ const server = http.createServer(async (req, res) => {
       let lyric = '';
       await new Promise((resolve) => {
         try {
-          new (require('jsmediatags')).Reader(filePath)
-            .setTagsToRead(['lyrics'])
-            .read({
-              onSuccess: (tag) => {
-                if (tag.tags && tag.tags.lyrics) {
-                  const l = tag.tags.lyrics;
-                  lyric = typeof l === 'string' ? l : (l.lyrics || l.text || '');
-                }
-                resolve();
-              },
-              onError: () => { resolve(); }
-            });
-        } catch (e) { resolve(); }
+          new (require('jsmediatags').Reader)(filePath).setTagsToRead(['lyrics']).read({
+            onSuccess: (tag) => {
+              if (tag.tags && tag.tags.lyrics) {
+                const l = tag.tags.lyrics;
+                lyric = typeof l === 'string' ? l : l.lyrics || l.text || '';
+              }
+              resolve();
+            },
+            onError: () => {
+              resolve();
+            },
+          });
+        } catch (e) {
+          resolve();
+        }
       });
       sendJSON(res, { lyric, yrc: '' });
     } catch (err) {
@@ -723,7 +826,7 @@ const server = http.createServer(async (req, res) => {
         return;
       }
       const ext = path.extname(artistImagePath).toLowerCase();
-      const mimeMap = { '.jpg':'image/jpeg','.jpeg':'image/jpeg','.png':'image/png','.webp':'image/webp' };
+      const mimeMap = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' };
       const stat = fs.statSync(artistImagePath);
       res.writeHead(200, {
         'Content-Type': mimeMap[ext] || 'image/jpeg',
@@ -745,7 +848,11 @@ const server = http.createServer(async (req, res) => {
   if (pn === '/api/local/download-lyrics') {
     const songsParam = url.searchParams.get('songs') || '[]';
     let songs;
-    try { songs = JSON.parse(songsParam); } catch (e) { songs = []; }
+    try {
+      songs = JSON.parse(songsParam);
+    } catch (e) {
+      songs = [];
+    }
     if (!Array.isArray(songs)) songs = [];
     if (songs.length === 0 && localMusicCache && localMusicCache.length) {
       songs = localMusicCache;
@@ -756,19 +863,29 @@ const server = http.createServer(async (req, res) => {
     }
     console.log('[LocalLyricsDL] 开始下载 ' + songs.length + ' 首歌的歌词');
     const results = [];
-    let completed = 0, failed = 0;
+    let completed = 0,
+      failed = 0;
     for (const song of songs) {
       const fp = song.localPath || song.localUrl || '';
-      if (!fp || !fs.existsSync(fp)) { failed++; results.push({ song: song.name || '?', status: 'skipped', reason: '文件不存在' }); continue; }
+      if (!fp || !fs.existsSync(fp)) {
+        failed++;
+        results.push({ song: song.name || '?', status: 'skipped', reason: '文件不存在' });
+        continue;
+      }
       const dir = path.dirname(fp);
       const extName = path.extname(fp);
       const baseName = path.basename(fp, extName);
       const lrcPath = path.join(dir, baseName + '.lrc');
-      if (fs.existsSync(lrcPath)) { completed++; results.push({ song: song.name || '?', status: 'exists', lrcPath }); continue; }
+      if (fs.existsSync(lrcPath)) {
+        completed++;
+        results.push({ song: song.name || '?', status: 'exists', lrcPath });
+        continue;
+      }
       const artist = encodeURIComponent(song.artist || '');
       const track = encodeURIComponent(song.name || song.title || baseName);
       const album = encodeURIComponent(song.album || '');
-      const lrclibUrl = 'https://lrclib.net/api/get?artist_name=' + artist + '&track_name=' + track + '&album_name=' + album;
+      const lrclibUrl =
+        'https://lrclib.net/api/get?artist_name=' + artist + '&track_name=' + track + '&album_name=' + album;
       let lrcContent = '';
       // Try LRCLib
       try {
@@ -780,7 +897,9 @@ const server = http.createServer(async (req, res) => {
             lrcContent = '[00:00.00]' + data.plainLyrics.replace(/\n/g, '\n[00:00.00]');
           }
         }
-      } catch (e) { /* LRCLib failed */ }
+      } catch (e) {
+        /* LRCLib failed */
+      }
       // Fallback: gequhai.com
       if (!lrcContent) {
         try {
@@ -798,7 +917,9 @@ const server = http.createServer(async (req, res) => {
               }
             }
           }
-        } catch (e2) { /* gequhai fallback failed */ }
+        } catch (e2) {
+          /* gequhai fallback failed */
+        }
       }
       if (!lrcContent) {
         failed++;
@@ -808,7 +929,7 @@ const server = http.createServer(async (req, res) => {
         completed++;
         results.push({ song: song.name || '?', status: 'downloaded', lrcPath });
       }
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise((r) => setTimeout(r, 500));
     }
     console.log('[LocalLyricsDL] 完成: ' + completed + ' 成功, ' + failed + ' 失败');
     sendJSON(res, { total: songs.length, completed, failed, results });

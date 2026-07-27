@@ -135,7 +135,9 @@ function sendGlobalHotkeyAction(action) {
 
 function unregisterMineradioGlobalHotkeys() {
   for (const accelerator of registeredGlobalHotkeys.keys()) {
-    try { globalShortcut.unregister(accelerator); } catch (e) {}
+    try {
+      globalShortcut.unregister(accelerator);
+    } catch (e) {}
   }
   registeredGlobalHotkeys.clear();
 }
@@ -195,22 +197,24 @@ function rectsOverlapOnY(a, b) {
 function getDisplayState(win) {
   const displays = screen.getAllDisplays();
   const primary = screen.getPrimaryDisplay();
-  const display = win && !win.isDestroyed()
-    ? screen.getDisplayMatching(win.getBounds())
-    : primary;
+  const display = win && !win.isDestroyed() ? screen.getDisplayMatching(win.getBounds()) : primary;
   const bounds = display && display.bounds ? display.bounds : primary.bounds;
   const displayId = display && display.id;
   const primaryId = primary && primary.id;
   const edgeTolerance = 2;
   const hasDisplayOnLeft = displays.some((candidate) => {
     if (!candidate || candidate.id === displayId || !candidate.bounds) return false;
-    return rectsOverlapOnY(bounds, candidate.bounds)
-      && Math.abs((candidate.bounds.x + candidate.bounds.width) - bounds.x) <= edgeTolerance;
+    return (
+      rectsOverlapOnY(bounds, candidate.bounds) &&
+      Math.abs(candidate.bounds.x + candidate.bounds.width - bounds.x) <= edgeTolerance
+    );
   });
   const hasDisplayOnRight = displays.some((candidate) => {
     if (!candidate || candidate.id === displayId || !candidate.bounds) return false;
-    return rectsOverlapOnY(bounds, candidate.bounds)
-      && Math.abs((bounds.x + bounds.width) - candidate.bounds.x) <= edgeTolerance;
+    return (
+      rectsOverlapOnY(bounds, candidate.bounds) &&
+      Math.abs(bounds.x + bounds.width - candidate.bounds.x) <= edgeTolerance
+    );
   });
   return {
     displayId,
@@ -218,30 +222,33 @@ function getDisplayState(win) {
     isPrimaryDisplay: !!(display && primary && display.id === primary.id),
     hasDisplayOnLeft,
     hasDisplayOnRight,
-    displayBounds: bounds ? {
-      x: bounds.x,
-      y: bounds.y,
-      width: bounds.width,
-      height: bounds.height,
-    } : null,
+    displayBounds: bounds
+      ? {
+          x: bounds.x,
+          y: bounds.y,
+          width: bounds.width,
+          height: bounds.height,
+        }
+      : null,
   };
 }
 
 function getWindowState(win) {
-  if (!win || win.isDestroyed()) return {
-    isMaximized: false,
-    isNativeFullScreen: false,
-    isHtmlFullScreen: false,
-    isWindowFullScreen: false,
-    isFullScreen: false,
-    isMinimized: false,
-    isVisible: false,
-    isFocused: false,
-    isPrimaryDisplay: true,
-    hasDisplayOnLeft: false,
-    hasDisplayOnRight: false,
-    displayBounds: null,
-  };
+  if (!win || win.isDestroyed())
+    return {
+      isMaximized: false,
+      isNativeFullScreen: false,
+      isHtmlFullScreen: false,
+      isWindowFullScreen: false,
+      isFullScreen: false,
+      isMinimized: false,
+      isVisible: false,
+      isFocused: false,
+      isPrimaryDisplay: true,
+      hasDisplayOnLeft: false,
+      hasDisplayOnRight: false,
+      displayBounds: null,
+    };
   return {
     isMaximized: win.isMaximized(),
     isNativeFullScreen: win.isFullScreen(),
@@ -296,7 +303,11 @@ function ensureDesktopShortcut() {
     if (fs.existsSync(shortcutPath) && shell.readShortcutLink) {
       try {
         const existing = shell.readShortcutLink(shortcutPath);
-        if (existing && path.resolve(existing.target || '') === path.resolve(target) && String(existing.args || '') === '') {
+        if (
+          existing &&
+          path.resolve(existing.target || '') === path.resolve(target) &&
+          String(existing.args || '') === ''
+        ) {
           return { ok: true, path: shortcutPath, existing: true };
         }
       } catch (_) {}
@@ -313,32 +324,45 @@ function ensureDesktopShortcut() {
 
 function parseCookieHeader(cookieText) {
   const out = {};
-  String(cookieText || '').split(';').forEach((part) => {
-    const raw = String(part || '').trim();
-    if (!raw) return;
-    const idx = raw.indexOf('=');
-    if (idx <= 0) return;
-    out[raw.slice(0, idx).trim()] = raw.slice(idx + 1).trim();
-  });
+  String(cookieText || '')
+    .split(';')
+    .forEach((part) => {
+      const raw = String(part || '').trim();
+      if (!raw) return;
+      const idx = raw.indexOf('=');
+      if (idx <= 0) return;
+      out[raw.slice(0, idx).trim()] = raw.slice(idx + 1).trim();
+    });
   return out;
 }
 
 function qqCookieHasLogin(cookieText) {
   const obj = parseCookieHeader(cookieText);
-  const rawUin = Number(obj.login_type) === 2
-    ? (obj.wxuin || obj.uin || obj.p_uin || '')
-    : (obj.uin || obj.qqmusic_uin || obj.wxuin || obj.p_uin || '');
+  const rawUin =
+    Number(obj.login_type) === 2
+      ? obj.wxuin || obj.uin || obj.p_uin || ''
+      : obj.uin || obj.qqmusic_uin || obj.wxuin || obj.p_uin || '';
   const uin = String(rawUin).replace(/\D/g, '');
-  const musicKey = obj.qm_keyst || obj.qqmusic_key || obj.music_key || obj.p_skey || obj.skey ||
-    obj.psrf_qqaccess_token || obj.psrf_qqrefresh_token || obj.wxrefresh_token || obj.wxskey || '';
+  const musicKey =
+    obj.qm_keyst ||
+    obj.qqmusic_key ||
+    obj.music_key ||
+    obj.p_skey ||
+    obj.skey ||
+    obj.psrf_qqaccess_token ||
+    obj.psrf_qqrefresh_token ||
+    obj.wxrefresh_token ||
+    obj.wxskey ||
+    '';
   return !!(uin && musicKey);
 }
 
 function qqCookieHasPlaybackLogin(cookieText) {
   const obj = parseCookieHeader(cookieText);
-  const rawUin = Number(obj.login_type) === 2
-    ? (obj.wxuin || obj.uin || obj.p_uin || '')
-    : (obj.uin || obj.qqmusic_uin || obj.wxuin || obj.p_uin || '');
+  const rawUin =
+    Number(obj.login_type) === 2
+      ? obj.wxuin || obj.uin || obj.p_uin || ''
+      : obj.uin || obj.qqmusic_uin || obj.wxuin || obj.p_uin || '';
   const uin = String(rawUin).replace(/\D/g, '');
   const playbackKey = obj.qm_keyst || obj.qqmusic_key || obj.music_key || obj.wxskey || '';
   return !!(uin && playbackKey);
@@ -350,15 +374,24 @@ function neteaseCookieHasLogin(cookieText) {
 }
 
 function isQQCookieDomain(domain) {
-  const normalized = String(domain || '').replace(/^\./, '').toLowerCase();
+  const normalized = String(domain || '')
+    .replace(/^\./, '')
+    .toLowerCase();
   return normalized === 'qq.com' || normalized.endsWith('.qq.com') || normalized.endsWith('qqmusic.qq.com');
 }
 
 function isNeteaseCookieDomain(domain) {
-  const normalized = String(domain || '').replace(/^\./, '').toLowerCase();
-  return normalized === '163.com' || normalized.endsWith('.163.com') ||
-    normalized === 'music.163.com' || normalized.endsWith('.music.163.com') ||
-    normalized === 'netease.com' || normalized.endsWith('.netease.com');
+  const normalized = String(domain || '')
+    .replace(/^\./, '')
+    .toLowerCase();
+  return (
+    normalized === '163.com' ||
+    normalized.endsWith('.163.com') ||
+    normalized === 'music.163.com' ||
+    normalized.endsWith('.music.163.com') ||
+    normalized === 'netease.com' ||
+    normalized.endsWith('.netease.com')
+  );
 }
 
 function buildCookieHeaderFor(cookies, isAllowedDomain, priority) {
@@ -458,7 +491,9 @@ async function openNeteaseMusicLoginWindow(owner) {
 
     loginWindow.webContents.on('did-finish-load', () => {
       checkCookies();
-      loginWindow.webContents.executeJavaScript(`
+      loginWindow.webContents
+        .executeJavaScript(
+          `
         setTimeout(() => {
           const docs = [document];
           document.querySelectorAll('iframe').forEach((frame) => {
@@ -476,7 +511,10 @@ async function openNeteaseMusicLoginWindow(owner) {
           }
           return false;
         }, 900);
-      `, true).catch(() => {});
+      `,
+          true,
+        )
+        .catch(() => {});
     });
 
     loginWindow.on('ready-to-show', () => loginWindow.show());
@@ -485,9 +523,11 @@ async function openNeteaseMusicLoginWindow(owner) {
       if (pollTimer) clearInterval(pollTimer);
       try {
         const cookie = await readNeteaseLoginCookieHeader(cookieSession);
-        resolve(neteaseCookieHasLogin(cookie)
-          ? { ok: true, cookie, partial: !qqCookieHasPlaybackLogin(cookie) }
-          : { ok: false, cancelled: true, message: '网易云登录窗口已关闭' });
+        resolve(
+          neteaseCookieHasLogin(cookie)
+            ? { ok: true, cookie, partial: !qqCookieHasPlaybackLogin(cookie) }
+            : { ok: false, cancelled: true, message: '网易云登录窗口已关闭' },
+        );
       } catch (e) {
         resolve({ ok: false, error: e.message || '网易云登录窗口已关闭' });
       }
@@ -547,7 +587,9 @@ async function openQQMusicLoginWindow(owner) {
           warmupStarted = true;
           setTimeout(() => {
             if (!settled && loginWindow && !loginWindow.isDestroyed()) {
-              loginWindow.loadURL('https://y.qq.com/n/ryqq/player').catch((e) => console.warn('QQ login warmup navigation failed:', e.message));
+              loginWindow
+                .loadURL('https://y.qq.com/n/ryqq/player')
+                .catch((e) => console.warn('QQ login warmup navigation failed:', e.message));
             }
           }, 900);
         }
@@ -567,7 +609,9 @@ async function openQQMusicLoginWindow(owner) {
 
     loginWindow.webContents.on('did-finish-load', () => {
       checkCookies();
-      loginWindow.webContents.executeJavaScript(`
+      loginWindow.webContents
+        .executeJavaScript(
+          `
         setTimeout(() => {
           const nodes = Array.from(document.querySelectorAll('a, button, span, div'));
           const loginNode = nodes.find((node) => {
@@ -578,7 +622,10 @@ async function openQQMusicLoginWindow(owner) {
           });
           if (loginNode) loginNode.click();
         }, 700);
-      `, true).catch(() => {});
+      `,
+          true,
+        )
+        .catch(() => {});
     });
 
     loginWindow.on('ready-to-show', () => loginWindow.show());
@@ -587,9 +634,11 @@ async function openQQMusicLoginWindow(owner) {
       if (pollTimer) clearInterval(pollTimer);
       try {
         const cookie = await readQQLoginCookieHeader(cookieSession);
-        resolve(qqCookieHasLogin(cookie)
-          ? { ok: true, cookie }
-          : { ok: false, cancelled: true, message: 'QQ 登录窗口已关闭' });
+        resolve(
+          qqCookieHasLogin(cookie)
+            ? { ok: true, cookie }
+            : { ok: false, cancelled: true, message: 'QQ 登录窗口已关闭' },
+        );
       } catch (e) {
         resolve({ ok: false, error: e.message || 'QQ 登录窗口已关闭' });
       }
@@ -617,9 +666,7 @@ async function clearNeteaseMusicLoginSession() {
 }
 
 function getWindowedBounds(win) {
-  const display = win && !win.isDestroyed()
-    ? screen.getDisplayMatching(win.getBounds())
-    : screen.getPrimaryDisplay();
+  const display = win && !win.isDestroyed() ? screen.getDisplayMatching(win.getBounds()) : screen.getPrimaryDisplay();
   const area = display.workArea;
   const basis = display.bounds || area;
   const maxWidth = Math.max(640, area.width - WINDOWED_MARGIN);
@@ -746,10 +793,10 @@ function setDesktopLyricsBounds(bounds) {
   const nextBounds = constrainDesktopLyricsBounds(bounds);
   const currentBounds = desktopLyricsWindow.getBounds();
   if (
-    currentBounds.x === nextBounds.x
-    && currentBounds.y === nextBounds.y
-    && currentBounds.width === nextBounds.width
-    && currentBounds.height === nextBounds.height
+    currentBounds.x === nextBounds.x &&
+    currentBounds.y === nextBounds.y &&
+    currentBounds.width === nextBounds.width &&
+    currentBounds.height === nextBounds.height
   ) {
     return;
   }
@@ -789,10 +836,12 @@ function desktopLyricsHotBoundsOnScreen() {
 
 function pointInBounds(point, bounds) {
   if (!point || !bounds) return false;
-  return point.x >= bounds.x
-    && point.x <= bounds.x + bounds.width
-    && point.y >= bounds.y
-    && point.y <= bounds.y + bounds.height;
+  return (
+    point.x >= bounds.x &&
+    point.x <= bounds.x + bounds.width &&
+    point.y >= bounds.y &&
+    point.y <= bounds.y + bounds.height
+  );
 }
 
 function handleDesktopLyricsGlobalMiddleClick() {
@@ -833,10 +882,14 @@ while ($true) {
 }
 `;
   try {
-    desktopLyricsMousePoller = spawn('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', script], {
-      windowsHide: true,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
+    desktopLyricsMousePoller = spawn(
+      'powershell.exe',
+      ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', script],
+      {
+        windowsHide: true,
+        stdio: ['ignore', 'pipe', 'pipe'],
+      },
+    );
     desktopLyricsMousePoller.stdout.on('data', (chunk) => {
       desktopLyricsMousePollerBuffer += chunk.toString('utf8');
       const lines = desktopLyricsMousePollerBuffer.split(/\r?\n/);
@@ -902,9 +955,12 @@ function createDesktopLyricsWindow(payload = {}) {
   desktopLyricsState = { ...desktopLyricsState, ...payload, enabled: true };
   const hasY = Object.prototype.hasOwnProperty.call(payload || {}, 'y');
   const nextY = clampNumber(desktopLyricsState.y, 0.08, 0.92, 0.76);
-  const yChanged = hasY && Number.isFinite(Number(previousY)) && Math.abs(nextY - clampNumber(previousY, 0.08, 0.92, 0.76)) > 0.001;
-  const opacityChanged = Object.prototype.hasOwnProperty.call(payload || {}, 'opacity')
-    && Math.abs(clampNumber(desktopLyricsState.opacity, 0.28, 1, 0.92) - clampNumber(previousOpacity, 0.28, 1, 0.92)) > 0.001;
+  const yChanged =
+    hasY && Number.isFinite(Number(previousY)) && Math.abs(nextY - clampNumber(previousY, 0.08, 0.92, 0.76)) > 0.001;
+  const opacityChanged =
+    Object.prototype.hasOwnProperty.call(payload || {}, 'opacity') &&
+    Math.abs(clampNumber(desktopLyricsState.opacity, 0.28, 1, 0.92) - clampNumber(previousOpacity, 0.28, 1, 0.92)) >
+      0.001;
   if (yChanged) desktopLyricsUserBounds = null;
   if (desktopLyricsWindow && !desktopLyricsWindow.isDestroyed()) {
     if (yChanged) {
@@ -958,7 +1014,9 @@ function createDesktopLyricsWindow(payload = {}) {
     desktopLyricsMouseIgnored = null;
   });
   desktopLyricsWindow.on('moved', rememberDesktopLyricsBounds);
-  desktopLyricsWindow.loadURL(overlayUrl('desktop-lyrics.html')).catch((e) => console.warn('Desktop lyrics load failed:', e.message));
+  desktopLyricsWindow
+    .loadURL(overlayUrl('desktop-lyrics.html'))
+    .catch((e) => console.warn('Desktop lyrics load failed:', e.message));
   return desktopLyricsWindow;
 }
 
@@ -1020,12 +1078,17 @@ $target = [IntPtr]::new([Int64]${hwnd})
 [MineradioNativeWin]::SetParent($target, $script:workerw) | Out-Null
 [MineradioNativeWin]::SetWindowPos($target, [IntPtr]::Zero, 0, 0, 0, 0, 0x0013) | Out-Null
 `;
-  execFile('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', script], {
-    windowsHide: true,
-    timeout: 5000,
-  }, (error) => {
-    if (error) console.warn('Wallpaper WorkerW attach failed:', error.message);
-  });
+  execFile(
+    'powershell.exe',
+    ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', script],
+    {
+      windowsHide: true,
+      timeout: 5000,
+    },
+    (error) => {
+      if (error) console.warn('Wallpaper WorkerW attach failed:', error.message);
+    },
+  );
 }
 
 function positionWallpaperWindow() {
@@ -1273,7 +1336,8 @@ ipcMain.handle('mineradio-desktop-lyrics-set-lock-state', async (_event, locked)
 
 ipcMain.handle('mineradio-desktop-lyrics-move-by', async (_event, dx, dy) => {
   try {
-    if (!desktopLyricsWindow || desktopLyricsWindow.isDestroyed()) return { ok: false, error: 'NO_DESKTOP_LYRICS_WINDOW' };
+    if (!desktopLyricsWindow || desktopLyricsWindow.isDestroyed())
+      return { ok: false, error: 'NO_DESKTOP_LYRICS_WINDOW' };
     if (desktopLyricsState.clickThrough !== false) return { ok: false, error: 'DESKTOP_LYRICS_LOCKED' };
     const bounds = desktopLyricsWindow.getBounds();
     const next = {
@@ -1434,7 +1498,10 @@ if (!gotSingleInstanceLock) {
 } else {
   app.on('second-instance', () => {
     if (!focusMainWindow()) {
-      app.whenReady().then(() => createWindow()).catch((e) => console.error('Second instance window restore failed:', e));
+      app
+        .whenReady()
+        .then(() => createWindow())
+        .catch((e) => console.error('Second instance window restore failed:', e));
     }
   });
 

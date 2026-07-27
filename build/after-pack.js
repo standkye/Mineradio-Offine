@@ -9,8 +9,12 @@ function findNewestRceditInCache(cacheRoot) {
   while (stack.length) {
     var dir = stack.pop();
     var entries = [];
-    try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch (e) { continue; }
-    entries.forEach(function(entry) {
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch (e) {
+      continue;
+    }
+    entries.forEach(function (entry) {
       var fullPath = path.join(dir, entry.name);
       if (entry.isDirectory()) {
         stack.push(fullPath);
@@ -26,16 +30,16 @@ function findNewestRceditInCache(cacheRoot) {
 }
 
 function resolveRcedit(projectDir) {
-  var candidates = [
-    path.join(projectDir, 'node_modules', 'rcedit', 'bin', 'rcedit-x64.exe')
-  ];
+  var candidates = [path.join(projectDir, 'node_modules', 'rcedit', 'bin', 'rcedit-x64.exe')];
   var localAppData = process.env.LOCALAPPDATA;
   if (localAppData) {
     var cached = findNewestRceditInCache(path.join(localAppData, 'electron-builder', 'Cache', 'winCodeSign'));
     if (cached) candidates.push(cached);
   }
   candidates.push(path.join(projectDir, 'node_modules', 'electron-winstaller', 'vendor', 'rcedit.exe'));
-  var hit = candidates.find(function(candidate) { return candidate && fs.existsSync(candidate); });
+  var hit = candidates.find(function (candidate) {
+    return candidate && fs.existsSync(candidate);
+  });
   if (!hit) throw new Error('No usable rcedit executable was found for Mineradio icon injection.');
   return hit;
 }
@@ -53,14 +57,29 @@ module.exports = async function afterPack(context) {
 
   const version = context.packager.appInfo.version;
   console.log(`  • injecting Mineradio resources  rcedit=${rceditPath}`);
-  execFileSync(rceditPath, [
-    exePath,
-    '--set-icon', iconPath,
-    '--set-version-string', 'FileDescription', 'Mineradio',
-    '--set-version-string', 'ProductName', 'Mineradio',
-    '--set-version-string', 'CompanyName', 'Mineradio',
-    '--set-version-string', 'OriginalFilename', `${appName}.exe`,
-    '--set-file-version', version,
-    '--set-product-version', version
-  ], { stdio: 'inherit' });
+  execFileSync(
+    rceditPath,
+    [
+      exePath,
+      '--set-icon',
+      iconPath,
+      '--set-version-string',
+      'FileDescription',
+      'Mineradio',
+      '--set-version-string',
+      'ProductName',
+      'Mineradio',
+      '--set-version-string',
+      'CompanyName',
+      'Mineradio',
+      '--set-version-string',
+      'OriginalFilename',
+      `${appName}.exe`,
+      '--set-file-version',
+      version,
+      '--set-product-version',
+      version,
+    ],
+    { stdio: 'inherit' },
+  );
 };
