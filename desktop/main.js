@@ -600,21 +600,7 @@ async function openQQMusicLoginWindow(owner) {
   });
 }
 
-async function clearQQMusicLoginSession() {
-  const cookieSession = session.fromPartition(QQ_LOGIN_PARTITION);
-  await cookieSession.clearStorageData({
-    storages: ['cookies', 'localstorage', 'indexdb', 'cachestorage'],
-  });
-  return { ok: true };
-}
 
-async function clearNeteaseMusicLoginSession() {
-  const cookieSession = session.fromPartition(NETEASE_LOGIN_PARTITION);
-  await cookieSession.clearStorageData({
-    storages: ['cookies', 'localstorage', 'indexdb', 'cachestorage'],
-  });
-  return { ok: true };
-}
 
 function getWindowedBounds(win) {
   const display = win && !win.isDestroyed()
@@ -1160,21 +1146,7 @@ ipcMain.handle('mineradio-import-json-file', async (event) => {
   }
 });
 
-ipcMain.handle('netease-music-open-login', async (event) => {
-  return openNeteaseMusicLoginWindow(getSenderWindow(event));
-});
 
-ipcMain.handle('netease-music-clear-login', async () => {
-  return clearNeteaseMusicLoginSession();
-});
-
-ipcMain.handle('qq-music-open-login', async (event) => {
-  return openQQMusicLoginWindow(getSenderWindow(event));
-});
-
-ipcMain.handle('qq-music-clear-login', async () => {
-  return clearQQMusicLoginSession();
-});
 
 ipcMain.handle('mineradio-open-update-installer', async (_event, filePath) => {
   try {
