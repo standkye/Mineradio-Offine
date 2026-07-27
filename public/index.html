@@ -25818,6 +25818,21 @@ function enterLocalMode() {
 var localMode = false;
 
 function exitLocalMode() { localMode = false; document.body.classList.remove('local-mode'); }
+
+
+function shouldShowEmptyHome() { return shouldShowEmptyHomeCore(false); }
+
+function initLocalStore() { try { localLikedSongs = JSON.parse(localStorage.getItem('ll') || '{}'); } catch(e) { localLikedSongs = {}; } }
+
+function addExitBtn() { /* exit button removed - permanently local */ }
+
+function loadLocalData() {
+  var hero = document.querySelector('.home-hero');
+  if (!hero) return;
+  renderLocalSongs();
+  renderLocalPlaylists();
+  renderLocalArtists();
+}
 </script>
 </body>
 </html>
