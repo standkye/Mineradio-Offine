@@ -21409,6 +21409,8 @@ var LSERVER = 'http://localhost:3000';
 
 function initLocalStore() {
   try { localLikedSongs = JSON.parse(localStorage.getItem('ll') || '{}'); } catch(e) {}
+  // 清理旧版本遗留的 false 值
+  for (var k in localLikedSongs) { if (localLikedSongs[k] === false) delete localLikedSongs[k]; }
   try { localPlaylists = JSON.parse(localStorage.getItem('lp') || '{}'); } catch(e) {}
   try { localRecentPlays = JSON.parse(localStorage.getItem('lr') || '[]'); } catch(e) {}
 }
