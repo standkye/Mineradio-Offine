@@ -25342,6 +25342,14 @@ if (fx.floatLayer) createFloatLayer();
 if (fx.particleLyrics) createLyricsParticles();
 if (fx.backCover) createBackCoverLayer();
 initIdleGuideCanvas();
+function refreshLoginStatus(force) { return { loggedIn: false, userId: 0 }; }
+function refreshQQLoginStatus() { return { provider: 'qq', loggedIn: false }; }
+function startQQLoginStatusAutoRefresh() {}
+function hasAnyPlatformLogin() { return false; }
+function refreshUserPlaylists(force) {}
+function loadHomeDiscover(force) {}
+function maybeRunStartupLoginGuide(source) {}
+function hasPlatformLogin(p) { return false; }
 var startupLoginStatusPromise = Promise.all([refreshLoginStatus(), refreshQQLoginStatus()]);
 startQQLoginStatusAutoRefresh();
 if (startupLoginStatusPromise && startupLoginStatusPromise.then) {
