@@ -11288,7 +11288,7 @@ function makeShelfManager() {
     tx.minFilter = THREE.LinearFilter; tx.magFilter = THREE.LinearFilter;
     tx.generateMipmaps = false;
     tx.anisotropy = 4;
-    var mat = new THREE.MeshBasicMaterial({ map: tx, transparent: true, opacity: 0.96, depthWrite: false, depthTest: false, side: THREE.DoubleSide });
+    var mat = new THREE.MeshBasicMaterial({ map: tx, transparent: true, opacity: 0.96, depthWrite: false, depthTest: true, side: THREE.DoubleSide });
     var geo = new THREE.PlaneGeometry(2.05, 1.025, 1, 1);
     var mesh = new THREE.Mesh(geo, mat);
     mesh.renderOrder = 50 + i;
