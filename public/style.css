@@ -501,7 +501,6 @@ body.home-controls-locked #bottom-bar{opacity:0!important;pointer-events:none!im
 .ctrl-btn:focus{outline:none}
 .ctrl-btn:focus-visible{outline:1px solid rgba(var(--fc-accent-rgb),.34);outline-offset:2px}
 .ctrl-btn svg{width:21px;height:21px}
-#mini-queue-btn svg{margin-left:-1px}
 .ctrl-btn:hover{color:#fff;background:rgba(255,255,255,.045);transform:translateY(-1px);text-shadow:0 0 10px rgba(0,245,212,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.045)}
 .ctrl-btn:active{transform:translateY(0) scale(.96)}
 .ctrl-btn.active{color:rgba(210,244,241,.90);text-shadow:0 0 12px rgba(0,245,212,.16)}
