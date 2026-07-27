@@ -25794,6 +25794,30 @@ function maybeRunStartupLoginGuide(source) {}
 
 function openLocalMusicPanel() {} /* stub - function was never defined */
 
+
+function enterLocalMode() {
+  localMode = true;
+  document.body.classList.add('local-mode');
+  document.body.classList.add('empty-home-active');
+  var sa = document.getElementById('search-area');
+  if (sa) sa.style.display = 'none';
+  initLocalStore();
+  addExitBtn();
+  loadLocalData();
+  // Block playlist panel while home is visible
+  var ps = document.getElementById('local-panel-style');
+  if (!ps) { ps = document.createElement('style'); ps.id = 'local-panel-style'; document.head.appendChild(ps); }
+  ps.textContent = 'body.local-mode.empty-home-active #playlist-panel:not(.show):not(.peek){display:none!important}';
+  // Show search area for local music search
+  var sa = document.getElementById('search-area');
+  if (sa) { sa.style.display = ''; setPeek(sa, true, 'search'); }
+  var inp = document.getElementById('search-input');
+  if (inp) inp.value = '';
+}
+
+var localMode = false;
+
+function exitLocalMode() { localMode = false; document.body.classList.remove('local-mode'); }
 </script>
 </body>
 </html>
