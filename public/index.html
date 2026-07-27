@@ -11184,15 +11184,8 @@ function makeShelfManager() {
     grad.addColorStop(1, 'rgba(255,255,255,0.018)');
     ctx.fillStyle = grad; ctx.fill();
 
-    if (isNow) {
-      ctx.strokeStyle = shelfAccentRgba(0.72);
-      ctx.lineWidth = 1.8 + Math.sin(uniforms.uTime.value * 3) * 0.28 + bass * 1.2;
-    } else {
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 2.5;
-    }
-    ctx.stroke();
-
+    // 白边已移除
+    
     if (card.selected) {
       ctx.save();
       makeRoundRect(ctx, pad + 2, pad + 2, W - pad*2 - 4, H - pad*2 - 4, 30);
