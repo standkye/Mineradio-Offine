@@ -37,7 +37,6 @@
       "public/index.html"
     ],
     "asar": false,
-    "locales": ["zh-CN", "en-US"],
     "win": {
       "executableName": "Mineradio",
       "icon": "build/icon.ico",
