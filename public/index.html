@@ -22817,7 +22817,7 @@ function shouldShowIdleGuide() {
   if (document.body.classList.contains('splash-active')) return false;
   if (immersiveMode) return false;
   if (playing) return false;
-  if (loginGuideAnimating) return false;
+
   if (document.querySelector('.modal-mask.show')) return false;
   if (uniforms && uniforms.uHasCover && uniforms.uHasCover.value > 0.5) return false;
   return true;
@@ -24139,7 +24139,7 @@ function maybeShowUploadTipOnce() {
     setTimeout(maybeShowUploadTipOnce, 1800);
     return;
   }
-  if (document.body.classList.contains('splash-active') || loginGuideAnimating) {
+
     setTimeout(maybeShowUploadTipOnce, 900);
     return;
   }
@@ -25784,25 +25784,9 @@ function closeGsapModal(mask, afterClose) {
   }
 }
 
-function hasProviderSvip(provider, status) {
-  return provider === 'netease' && providerVipLevel(provider, status) === 'svip';
-}
+function hasProviderSvip(provider, status) { return false; }
 
-function maybeRunStartupLoginGuide(source) {
-  if (startupLoginGuideShown || loginGuideAnimating) return;
-  if (visualGuideActive) return;
-  if (document.body.classList.contains('splash-active')) return;
-  if (immersiveMode) return;
-  if (!loginStatusChecked || loginStatusCheckFailed || loginStatus.loggedIn || playing) return;
-  var loginModal = document.getElementById('login-modal');
-  var userModal = document.getElementById('user-modal');
-  if ((loginModal && loginModal.classList.contains('show')) || (userModal && userModal.classList.contains('show'))) return;
-  startupLoginGuideShown = true;
-  setTimeout(function(){
-    if (loginStatus.loggedIn || playing || immersiveMode || document.body.classList.contains('splash-active')) return;
-    runLoginGuideParticles(function(){ showLoginModal({ guided: true, source: source || 'startup' }); });
-  }, source === 'splash' ? 6200 : 2600);
-}
+function maybeRunStartupLoginGuide(source) {}
 
 function openLocalMusicPanel() {} /* stub - function was never defined */
 
