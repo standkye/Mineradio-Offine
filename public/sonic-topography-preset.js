@@ -1041,7 +1041,7 @@
     var scene = ctx.scene;
     var active = isActive(fx);
     var target = active ? 1 : 0;
-    state.opacity += (target - state.opacity) * Math.min(1, dt * (active ? 3.0 : 2.2));
+    state.opacity += (target - state.opacity) * Math.min(1, dt * (active ? 3.0 : 12));
     if (!active && state.opacity < 0.01) {
       if (state.root) state.root.visible = false;
       return;
