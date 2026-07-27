@@ -1040,12 +1040,13 @@
     var fx = ctx.fx || {};
     var scene = ctx.scene;
     var active = isActive(fx);
-    var target = active ? 1 : 0;
-    state.opacity += (target - state.opacity) * Math.min(1, dt * (active ? 3.0 : 12));
-    if (!active && state.opacity < 0.01) {
+    if (!active) {
       if (state.root) state.root.visible = false;
+      state.opacity = 0;
       return;
     }
+    var target = 1;
+    state.opacity += (target - state.opacity) * Math.min(1, dt * 3.0);
     ensureLayer(scene, fx);
     if (!state.root) return;
     updateSonicRotation(fx, dt, ctx);
