@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm run lint
+      - run: node --check server.js
+      - run: node --check dj-analyzer.js
+      - run: node --check desktop/main.js
+      - run: node --check desktop/preload.js
+      - run: node --check desktop/overlay-preload.js
+      - run: node --check build/after-pack.js
