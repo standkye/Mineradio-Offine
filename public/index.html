@@ -15601,7 +15601,7 @@ async function loadHomeWeatherRadio(force, opts) {
   renderHomeDiscover();
   var loadPromise = (async function(){
     try {
-      var data = await apiJson(homeWeatherRadioUrl(opts), { timeoutMs: 14000 });
+      var data = null; /* weather API removed */
       if (token !== homeWeatherToken) return homeWeatherRadioState;
       homeWeatherRadioState.weather = data && data.weather || null;
       homeWeatherRadioState.radio = data && data.radio || null;
@@ -22978,8 +22978,8 @@ function renderTopAccountPill(provider) {
   '</span>';
 }
 async function refreshLoginStatus(force) {
-  try {
-    var info = await apiJson('/api/login/status?t=' + Date.now());
+  return { loggedIn: false, userId: 0, nickname: '', avatar: '', vipType: 0, vipLevel: 'none', isVip: false, isSvip: false, vipLabel: '无VIP' };
+}
     loginStatusChecked = true;
     loginStatusCheckFailed = false;
     loginStatus = info || { loggedIn: false };
@@ -23030,8 +23030,8 @@ function normalizeQQLoginStatus(info) {
   });
 }
 async function refreshQQLoginStatus() {
-  try {
-    var info = await apiJson('/api/qq/login/status?t=' + Date.now());
+  return { provider: 'qq', loggedIn: false, preview: false, nickname: 'QQ 音乐', userId: '', avatar: '', vipType: 0, vipLevel: 'none', isVip: false, isSvip: false, vipLabel: '无VIP' };
+}
     var prevLogged = !!qqLoginStatus.loggedIn;
     qqLoginStatus = normalizeQQLoginStatus(info);
     if (!qqLoginStatus.loggedIn) {
