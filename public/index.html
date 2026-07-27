@@ -14831,7 +14831,8 @@ async function toggleLikeSong(song) {
       var key = song.localPath || song.localUrl || '';
       if (!key) { showToast('无法识别此歌曲'); return; }
       var next = !localLikedSongs[key];
-      localLikedSongs[key] = next;
+      if (next) localLikedSongs[key] = true;
+      else delete localLikedSongs[key];
       saveLL();
       updateLikeButtons(song);
       // 手动更新队列中红心按钮样式
