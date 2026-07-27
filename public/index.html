@@ -14992,6 +14992,7 @@ async function apiJson(url, opts) {
   }
   try {
     var res = await fetch(url, fetchOpts);
+    if (!res.ok) return null;
     return res.json();
   } finally {
     if (timer) clearTimeout(timer);
@@ -15302,9 +15303,9 @@ function updateListenStatsTick(force) {
 }
 function finalizeListenSession(completed) {
   if (!listenSession) return;
-  updateListenStatsTick(true);
   var session = listenSession;
   listenSession = null;
+  updateListenStatsTick(true);
   var effective = completed || session.listenMs >= 45000 || session.maxProgress >= 0.5 || (!audio || !audio.duration ? session.listenMs >= 30000 : false);
   if (!effective) return;
   var now = Date.now();
