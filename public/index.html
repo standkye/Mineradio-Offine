@@ -55,14 +55,6 @@ body.desktop-shell #desktop-titlebar::after{content:none}
 .desktop-mode-btn.on{color:#fff;border-color:rgba(255,83,103,.50);background:rgba(255,83,103,.13);box-shadow:0 12px 34px rgba(255,83,103,.09),inset 0 1px 0 rgba(255,255,255,.08)}
 .desktop-mode-btn.on::before{background:#ff5367;box-shadow:0 0 16px rgba(255,83,103,.56)}
 body.desktop-shell #desktop-titlebar #visual-guide-btn,
-body.desktop-shell #desktop-titlebar #update-entry{width:30px;height:30px;border-radius:10px;box-shadow:none;background:rgba(4,8,10,.42);border-color:rgba(255,255,255,.08);color:rgba(224,250,255,.70);backdrop-filter:none;-webkit-backdrop-filter:none}
-body.desktop-shell #desktop-titlebar #visual-guide-btn{font-size:14px}
-body.desktop-shell #desktop-titlebar #update-entry.available{display:flex}
-body.desktop-shell #desktop-titlebar #update-entry svg{width:18px;height:18px}
-body.desktop-shell #desktop-titlebar #update-entry::before,
-body.desktop-shell #desktop-titlebar #update-entry::after{display:none}
-body.desktop-shell #desktop-titlebar #visual-guide-btn:hover,
-body.desktop-shell #desktop-titlebar #update-entry:hover{background:rgba(255,83,103,.10);border-color:rgba(255,83,103,.32);color:#fff;transform:translateY(-1px)}
 
 body.local-mode #search-mode-tabs{display:none!important}
 
@@ -471,48 +463,6 @@ body.desktop-shell.empty-home-active.controls-visible #empty-home{bottom:126px}
 .top-account-name{max-width:96px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:650;color:rgba(255,255,255,.92)}
 .top-account-vip{font-size:9px;padding:2px 6px;border-radius:3px;background:linear-gradient(135deg,#fff3c2,var(--champagne),#c9963d);color:#201303;font-weight:800;letter-spacing:.5px;box-shadow:0 0 12px rgba(244,210,138,.24);flex-shrink:0}
 .top-account-vip.qq{background:linear-gradient(135deg,#e7fff9,#00f5d4,#61a8ff);color:#03100f;box-shadow:0 0 12px rgba(0,245,212,.22)}
-.update-entry{position:relative;display:none;width:44px;height:44px;border-radius:50%;border:1px solid rgba(244,210,138,.26);background:radial-gradient(circle at 50% 36%,rgba(244,210,138,.14),rgba(255,255,255,.030) 58%,rgba(157,184,207,.020));color:rgba(255,239,190,.94);align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(22px) saturate(1.25);-webkit-backdrop-filter:blur(22px) saturate(1.25);box-shadow:0 14px 38px rgba(0,0,0,.30),0 0 22px rgba(244,210,138,.08),0 0 0 1px rgba(255,255,255,.026),inset 0 1px 0 rgba(255,255,255,.09);transition:border-color .22s,background .22s,color .22s,box-shadow .22s,transform .22s;overflow:visible}
-.update-entry.available{display:flex}
-.update-entry:hover{color:#fff8df;border-color:rgba(244,210,138,.58);background:radial-gradient(circle at 50% 34%,rgba(244,210,138,.22),rgba(255,255,255,.045) 58%,rgba(157,184,207,.028));box-shadow:0 16px 44px rgba(0,0,0,.34),0 0 26px rgba(244,210,138,.18),0 0 18px rgba(157,184,207,.08),inset 0 1px 0 rgba(255,255,255,.13)}
-.update-entry svg{width:23px;height:23px;display:block;overflow:visible}
-.update-ring{stroke:rgba(255,226,162,.84);stroke-width:1.65;fill:none;stroke-linecap:round;stroke-dasharray:48 18;transform-origin:12px 12px;filter:drop-shadow(0 0 5px rgba(244,210,138,.18))}
-.update-arrow{stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.update-entry::before{content:'';position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(244,210,138,.15);opacity:.70;filter:blur(.2px);pointer-events:none}
-.update-entry::after{content:'';position:absolute;right:5px;top:6px;width:6px;height:6px;border-radius:50%;background:rgba(255,236,184,.96);box-shadow:0 0 12px rgba(244,210,138,.76),0 0 24px rgba(244,210,138,.34);pointer-events:none}
-.update-entry.downloading::after{opacity:.42}
-.update-entry.ready::after{background:rgba(244,210,138,.95);box-shadow:0 0 12px rgba(244,210,138,.58),0 0 26px rgba(244,210,138,.22)}
-.update-progress-ring{opacity:0;stroke:rgba(255,228,170,.92);stroke-width:1.95;fill:none;stroke-linecap:round;stroke-dasharray:55.29;stroke-dashoffset:55.29;transform:rotate(-90deg);transform-origin:12px 12px;transition:opacity .2s;filter:drop-shadow(0 0 5px rgba(244,210,138,.22))}
-.update-entry.downloading .update-progress-ring{opacity:1}
-.update-entry.downloading .update-ring{opacity:.28}
-#update-modal.modal-mask{background:rgba(0,0,0,.74);backdrop-filter:blur(12px) saturate(1.08);-webkit-backdrop-filter:blur(12px) saturate(1.08)}
-.modal.update-modal{width:min(408px,92vw);max-width:min(408px,92vw);padding:0;text-align:left;border-radius:18px;overflow:hidden;background:rgba(8,8,9,.965);border-color:rgba(255,255,255,.10);box-shadow:0 32px 96px rgba(0,0,0,.66),0 0 0 1px rgba(244,210,138,.055),inset 0 1px 0 rgba(255,255,255,.08)}
-.modal.update-modal::before{content:'';position:absolute;top:0;left:24px;right:24px;height:1px;background:linear-gradient(90deg,transparent,rgba(244,210,138,.58),rgba(255,255,255,.20),transparent);opacity:.72;pointer-events:none}
-.update-panel-inner{position:relative;z-index:1;padding:28px 30px 24px}
-.update-panel-head{display:block;margin-bottom:17px;padding:0 0 17px;border-bottom:1px solid rgba(255,255,255,.075)}
-.update-kicker{font-size:9.5px;font-weight:760;letter-spacing:.18em;color:rgba(244,210,138,.62);text-transform:uppercase;margin-bottom:11px}
-.update-title{display:none}
-.update-version{margin-top:0;font-size:38px;line-height:.95;font-weight:760;color:rgba(255,246,225,.97);letter-spacing:0}
-.update-hero{position:relative;margin:0 0 10px;padding:0 0 15px;border-bottom:1px solid rgba(255,255,255,.065)}
-.update-hero-main{max-width:none;font-size:13.5px;font-weight:560;color:rgba(255,244,218,.82);line-height:1.55;letter-spacing:0}
-.update-hero-sub{display:none}
-.update-list{display:flex;flex-direction:column;margin:0 0 19px;border-top:0}
-.update-item{display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.055);background:transparent}
-.update-item-dot{width:auto;height:auto;margin:0;border-radius:0;background:transparent;box-shadow:none;flex-shrink:0;font-size:10px;font-weight:760;letter-spacing:.08em;color:rgba(244,210,138,.58);font-variant-numeric:tabular-nums}
-.update-item-dot::before{content:attr(data-index)}
-.update-item-text{font-size:13px;font-weight:560;line-height:1.45;color:rgba(255,255,255,.76)}
-.update-actions{display:grid;grid-template-columns:1fr 76px;gap:10px;align-items:center;padding-top:0}
-.update-primary-btn{position:relative;height:44px;border-radius:13px;border:1px solid rgba(244,210,138,.34);background:rgba(244,210,138,.105);color:rgba(255,244,214,.96);font-family:inherit;font-size:13px;font-weight:760;letter-spacing:.2px;cursor:pointer;overflow:hidden;box-shadow:0 14px 36px rgba(0,0,0,.28),0 0 22px rgba(244,210,138,.060),inset 0 1px 0 rgba(255,255,255,.10);transition:background .22s,border-color .22s,transform .22s,color .22s,box-shadow .22s}
-.update-primary-btn:hover{border-color:rgba(244,210,138,.58);background:rgba(244,210,138,.15);box-shadow:0 16px 42px rgba(0,0,0,.30),0 0 28px rgba(244,210,138,.11),inset 0 1px 0 rgba(255,255,255,.12);transform:translateY(-1px)}
-.update-primary-btn:disabled{cursor:default;transform:none;color:rgba(255,255,255,.64);border-color:rgba(255,255,255,.12);background:rgba(255,255,255,.045)}
-.update-btn-fill{position:absolute;left:0;top:0;bottom:0;width:0;background:linear-gradient(90deg,rgba(244,210,138,.30),rgba(255,239,193,.18));opacity:.95;transition:width .22s ease;pointer-events:none}
-.update-btn-label{position:relative;z-index:1}
-.update-secondary-btn{height:44px;padding:0;border-radius:13px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.035);color:rgba(255,255,255,.55);font-family:inherit;font-size:12px;cursor:pointer;transition:background .18s,border-color .18s,color .18s,transform .18s}
-.update-secondary-btn:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.18);color:rgba(255,255,255,.82);transform:translateY(-1px)}
-.update-footnote{display:block;margin-top:12px;min-height:17px;font-size:11.5px;line-height:1.45;color:rgba(255,244,214,.54)}
-.modal.update-modal.ready .update-primary-btn{border-color:rgba(244,210,138,.46);background:rgba(244,210,138,.13);color:#fff0bf}
-.modal.update-modal.error .update-primary-btn{border-color:rgba(255,190,126,.46);background:rgba(255,158,86,.12);color:#ffe3c2}
-.modal.update-modal.error .update-footnote{color:rgba(255,212,170,.82)}
-
 /* ---------- 左下小封面 ---------- */
 #thumb-wrap{position:fixed;z-index:6;left:24px;bottom:24px;display:none;align-items:center;gap:14px;opacity:0;pointer-events:none;transition:opacity .8s ease}
 #thumb-wrap.visible{opacity:1;pointer-events:auto}
@@ -1390,14 +1340,14 @@ body.desktop-shell.diy-mode #bottom-bar.stage-mode{left:50%;width:min(1080px,cal
 body.empty-home-active #home-btn{border-color:rgba(var(--fc-accent-rgb),.42)!important;background:rgba(var(--fc-accent-rgb),.14)!important}
 
 /* Unified saved glass: keep panels in the same texture as the player bar. */
-#search-box,#search-results,.search-mode-tabs,#fx-panel,#playlist-panel,#upload-tip,#trial-banner,#toast,#source-fallback-notice,#ai-depth-chip,#beat-chip,.modal,.modal.update-modal,.track-detail-modal,.cover-color-pop,.color-lab-pop,.visual-guide-card,.volume-popover,.quality-popover,.mini-queue-popover,.home-hero,.home-card,.home-tile,.home-mosaic-cell,.pl-inline-detail,.local-beat-track,.custom-lyric-track,.cover-crop-stage,#drop-overlay .drop-text{
+#search-box,#search-results,.search-mode-tabs,#fx-panel,#playlist-panel,#upload-tip,#trial-banner,#toast,#source-fallback-notice,#ai-depth-chip,#beat-chip,.modal,.track-detail-modal,.cover-color-pop,.color-lab-pop,.visual-guide-card,.volume-popover,.quality-popover,.mini-queue-popover,.home-hero,.home-card,.home-tile,.home-mosaic-cell,.pl-inline-detail,.local-beat-track,.custom-lyric-track,.cover-crop-stage,#drop-overlay .drop-text{
   background:var(--saved-panel-glass-bg)!important;
   border-color:transparent!important;
   box-shadow:var(--saved-panel-glass-shadow)!important;
   backdrop-filter:var(--saved-panel-glass-filter)!important;
   -webkit-backdrop-filter:var(--saved-panel-glass-filter)!important;
 }
-html.control-glass-svg-ok #search-box,html.control-glass-svg-ok #search-results,html.control-glass-svg-ok .search-mode-tabs,html.control-glass-svg-ok #fx-panel,html.control-glass-svg-ok #playlist-panel,html.control-glass-svg-ok #upload-tip,html.control-glass-svg-ok #trial-banner,html.control-glass-svg-ok #toast,html.control-glass-svg-ok #source-fallback-notice,html.control-glass-svg-ok #ai-depth-chip,html.control-glass-svg-ok #beat-chip,html.control-glass-svg-ok .modal,html.control-glass-svg-ok .modal.update-modal,html.control-glass-svg-ok .track-detail-modal,html.control-glass-svg-ok .cover-color-pop,html.control-glass-svg-ok .color-lab-pop,html.control-glass-svg-ok .visual-guide-card,html.control-glass-svg-ok .volume-popover,html.control-glass-svg-ok .quality-popover,html.control-glass-svg-ok .mini-queue-popover,html.control-glass-svg-ok .home-hero,html.control-glass-svg-ok .home-card,html.control-glass-svg-ok .home-tile,html.control-glass-svg-ok .home-mosaic-cell,html.control-glass-svg-ok .pl-inline-detail,html.control-glass-svg-ok .local-beat-track,html.control-glass-svg-ok .custom-lyric-track,html.control-glass-svg-ok .cover-crop-stage,html.control-glass-svg-ok #drop-overlay .drop-text{
+html.control-glass-svg-ok #search-box,html.control-glass-svg-ok #search-results,html.control-glass-svg-ok .search-mode-tabs,html.control-glass-svg-ok #fx-panel,html.control-glass-svg-ok #playlist-panel,html.control-glass-svg-ok #upload-tip,html.control-glass-svg-ok #trial-banner,html.control-glass-svg-ok #toast,html.control-glass-svg-ok #source-fallback-notice,html.control-glass-svg-ok #ai-depth-chip,html.control-glass-svg-ok #beat-chip,html.control-glass-svg-ok .modal,html.control-glass-svg-ok .track-detail-modal,html.control-glass-svg-ok .cover-color-pop,html.control-glass-svg-ok .color-lab-pop,html.control-glass-svg-ok .visual-guide-card,html.control-glass-svg-ok .volume-popover,html.control-glass-svg-ok .quality-popover,html.control-glass-svg-ok .mini-queue-popover,html.control-glass-svg-ok .home-hero,html.control-glass-svg-ok .home-card,html.control-glass-svg-ok .home-tile,html.control-glass-svg-ok .home-mosaic-cell,html.control-glass-svg-ok .pl-inline-detail,html.control-glass-svg-ok .local-beat-track,html.control-glass-svg-ok .custom-lyric-track,html.control-glass-svg-ok .cover-crop-stage,html.control-glass-svg-ok #drop-overlay .drop-text{
   backdrop-filter:var(--saved-panel-glass-svg-filter)!important;
   -webkit-backdrop-filter:var(--saved-panel-glass-svg-filter)!important;
 }
@@ -1418,7 +1368,7 @@ html.control-glass-svg-ok .icon-btn,html.control-glass-svg-ok #fx-fab,html.contr
   box-shadow:var(--saved-button-glass-hover-shadow)!important;
   color:#fff!important;
 }
-.home-hero::before,.home-card::before,.home-card::after,.home-tile::before,.home-tile::after,.home-mosaic-cell::before,.home-mosaic-cell::after,.modal.update-modal::before,.visual-guide-card::before,#upload-tip::before{
+.home-hero::before,.home-card::before,.home-card::after,.home-tile::before,.home-tile::after,.home-mosaic-cell::before,.home-mosaic-cell::after,.visual-guide-card::before,#upload-tip::before{
   content:none!important;
   background:none!important;
   box-shadow:none!important;
@@ -1482,14 +1432,14 @@ html.control-glass-svg-ok .home-hero,html.control-glass-svg-ok .home-card,html.c
   --panel-glass-shadow:0 24px 78px rgba(0,0,0,.44),0 0 0 1px rgba(255,255,255,.045),inset 0 1px 0 rgba(255,255,255,.18),inset 0 -18px 42px rgba(0,0,0,.16);
   --panel-button-bg:linear-gradient(145deg,rgba(255,255,255,.075),rgba(var(--home-accent-rgb),.060) 46%,rgba(0,0,0,.14));
 }
-#search-box,#search-results,.search-mode-tabs,#fx-panel,#upload-tip,#trial-banner,#toast,#source-fallback-notice,#ai-depth-chip,#beat-chip,.modal,.modal.update-modal,.track-detail-modal,.cover-color-pop,.color-lab-pop,.visual-guide-card,.home-hero,.home-card,.home-tile,.home-mosaic-cell,.pl-inline-detail,.local-beat-track,.custom-lyric-track,.cover-crop-stage,#drop-overlay .drop-text{
+#search-box,#search-results,.search-mode-tabs,#fx-panel,#upload-tip,#trial-banner,#toast,#source-fallback-notice,#ai-depth-chip,#beat-chip,.modal,.track-detail-modal,.cover-color-pop,.color-lab-pop,.visual-guide-card,.home-hero,.home-card,.home-tile,.home-mosaic-cell,.pl-inline-detail,.local-beat-track,.custom-lyric-track,.cover-crop-stage,#drop-overlay .drop-text{
   background:var(--panel-glass-bg)!important;
   border-color:rgba(255,255,255,.075)!important;
   box-shadow:var(--panel-glass-shadow)!important;
   backdrop-filter:var(--panel-glass-filter)!important;
   -webkit-backdrop-filter:var(--panel-glass-filter)!important;
 }
-html.control-glass-svg-ok #search-box,html.control-glass-svg-ok #search-results,html.control-glass-svg-ok .search-mode-tabs,html.control-glass-svg-ok #fx-panel,html.control-glass-svg-ok #upload-tip,html.control-glass-svg-ok #trial-banner,html.control-glass-svg-ok #toast,html.control-glass-svg-ok #source-fallback-notice,html.control-glass-svg-ok #ai-depth-chip,html.control-glass-svg-ok #beat-chip,html.control-glass-svg-ok .modal,html.control-glass-svg-ok .modal.update-modal,html.control-glass-svg-ok .track-detail-modal,html.control-glass-svg-ok .cover-color-pop,html.control-glass-svg-ok .color-lab-pop,html.control-glass-svg-ok .visual-guide-card,html.control-glass-svg-ok .home-hero,html.control-glass-svg-ok .home-card,html.control-glass-svg-ok .home-tile,html.control-glass-svg-ok .home-mosaic-cell,html.control-glass-svg-ok .pl-inline-detail,html.control-glass-svg-ok .local-beat-track,html.control-glass-svg-ok .custom-lyric-track,html.control-glass-svg-ok .cover-crop-stage,html.control-glass-svg-ok #drop-overlay .drop-text{
+html.control-glass-svg-ok #search-box,html.control-glass-svg-ok #search-results,html.control-glass-svg-ok .search-mode-tabs,html.control-glass-svg-ok #fx-panel,html.control-glass-svg-ok #upload-tip,html.control-glass-svg-ok #trial-banner,html.control-glass-svg-ok #toast,html.control-glass-svg-ok #source-fallback-notice,html.control-glass-svg-ok #ai-depth-chip,html.control-glass-svg-ok #beat-chip,html.control-glass-svg-ok .modal,html.control-glass-svg-ok .track-detail-modal,html.control-glass-svg-ok .cover-color-pop,html.control-glass-svg-ok .color-lab-pop,html.control-glass-svg-ok .visual-guide-card,html.control-glass-svg-ok .home-hero,html.control-glass-svg-ok .home-card,html.control-glass-svg-ok .home-tile,html.control-glass-svg-ok .home-mosaic-cell,html.control-glass-svg-ok .pl-inline-detail,html.control-glass-svg-ok .local-beat-track,html.control-glass-svg-ok .custom-lyric-track,html.control-glass-svg-ok .cover-crop-stage,html.control-glass-svg-ok #drop-overlay .drop-text{
   backdrop-filter:var(--panel-glass-filter)!important;
   -webkit-backdrop-filter:var(--panel-glass-filter)!important;
 }
@@ -1885,14 +1835,6 @@ html.control-glass-svg-ok #visual-guide-btn:hover{
     <div class="desktop-app-title" aria-hidden="true"></div>
   </div>
   <div class="desktop-window-controls">
-    <button id="update-entry" class="update-entry" type="button" onclick="openUpdatePanel()" title="发现新版本" aria-label="发现新版本">
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <circle class="update-ring" cx="12" cy="12" r="8.8"></circle>
-        <circle id="update-progress-ring" class="update-progress-ring" cx="12" cy="12" r="8.8"></circle>
-        <path class="update-arrow" d="M12 16.5V7.5"></path>
-        <path class="update-arrow" d="M8.7 10.7 12 7.4l3.3 3.3"></path>
-      </svg>
-    </button>
     <button id="diy-mode-btn" class="desktop-mode-btn" type="button" onclick="toggleDiyMode()" title="开启 DIY 玩家模式" aria-label="开启 DIY 玩家模式" aria-pressed="false">DIY</button>
     <button class="desktop-window-btn" data-window-action="minimize" title="最小化" aria-label="最小化">
       <svg viewBox="0 0 16 16"><path d="M3 8h10"/></svg>
@@ -2639,32 +2581,6 @@ html.control-glass-svg-ok #visual-guide-btn:hover{
   </div>
 </div>
 
-<div id="update-modal" class="modal-mask">
-  <div class="modal update-modal">
-    <div class="update-panel-inner">
-      <div class="update-panel-head">
-        <div>
-          <div class="update-kicker">MINERADIO</div>
-          <div id="update-modal-title" class="update-title">New release</div>
-          <div id="update-modal-version" class="update-version">v1.0.10</div>
-        </div>
-      </div>
-      <div class="update-hero">
-        <div id="update-hero-main" class="update-hero-main">电影镜头更稳，音源兜底更顺。</div>
-        <div id="update-hero-sub" class="update-hero-sub"></div>
-      </div>
-      <div id="update-list" class="update-list"></div>
-      <div class="update-actions">
-        <button id="update-primary-btn" class="update-primary-btn" type="button" onclick="startUpdatePreviewDownload()">
-          <span id="update-btn-fill" class="update-btn-fill"></span>
-          <span id="update-btn-label" class="update-btn-label">立即更新</span>
-        </button>
-        <button class="update-secondary-btn" type="button" onclick="closeUpdatePanel()">取消</button>
-      </div>
-      <div id="update-footnote" class="update-footnote">预览版只演示更新手感，不会真的下载安装。</div>
-    </div>
-  </div>
-</div>
 
 <div id="toast"></div>
 <div id="source-fallback-notice" aria-live="polite">
@@ -2836,48 +2752,6 @@ var smoothWheelScrollBound = false;
 var coverProcessToken = 0, aiDepthPipeline = null, aiDepthReady = false, aiDepthBusy = false, aiDepthFailUntil = 0;
 var coverDepthCache = Object.create(null), coverDepthCacheKeys = [];
 var aiDepthLastRunAt = 0, aiDepthMinGapMs = 18000;
-var updatePreviewState = {
-  visible: false,
-  open: false,
-  status: 'idle',
-  progress: 0,
-  timer: null,
-  pollTimer: null,
-  downloadJobId: '',
-  patchJobId: '',
-  mode: 'installer',
-  installerPath: '',
-  installerOpened: false,
-  cached: false,
-  currentVersion: '0.9.11',
-  version: '1.1.0',
-  configured: false,
-  preview: true,
-  updateAvailable: false,
-  releaseUrl: '',
-  downloadUrl: '',
-  patchAvailable: false,
-  patchUrl: '',
-  received: 0,
-  total: 0,
-  speedBps: 0,
-  etaSeconds: 0,
-  sourceLabel: '',
-  attempt: 0,
-  attempts: 0,
-  errorReason: '',
-  errorDetail: '',
-  failedAttempts: [],
-  message: '',
-  restartRequired: false,
-  patchFallbackTried: false,
-  hero: '当前版本，更新检测已就绪。',
-  notes: [
-    '安装包文字对比修复',
-    '安装目录可自由选择',
-    '单实例与快捷方式修复'
-  ]
-};
 function readSavedVolume() {
   try {
     var v = parseFloat(localStorage.getItem('apex-player-volume'));
@@ -22955,525 +22829,6 @@ function setCamMode(m) {
 }
 
 // ============================================================
-//  更新提示预览
-// ============================================================
-function formatUpdateBytes(bytes) {
-  bytes = Number(bytes) || 0;
-  if (bytes >= 1024 * 1024 * 1024) return (bytes / (1024 * 1024 * 1024)).toFixed(2).replace(/\.00$/, '') + ' GB';
-  if (bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1).replace(/\.0$/, '') + ' MB';
-  if (bytes >= 1024) return Math.round(bytes / 1024) + ' KB';
-  return bytes + ' B';
-}
-function formatUpdateSpeed(bytesPerSecond) {
-  bytesPerSecond = Number(bytesPerSecond) || 0;
-  return bytesPerSecond > 0 ? (formatUpdateBytes(bytesPerSecond) + '/s') : '';
-}
-function updateProgressDetailText() {
-  var parts = [];
-  if (updatePreviewState.attempts > 1 && updatePreviewState.attempt > 0) {
-    parts.push('线路 ' + updatePreviewState.attempt + '/' + updatePreviewState.attempts);
-  }
-  if (updatePreviewState.sourceLabel) parts.push(updatePreviewState.sourceLabel);
-  if (updatePreviewState.received > 0) {
-    parts.push(updatePreviewState.total > 0
-      ? (formatUpdateBytes(updatePreviewState.received) + ' / ' + formatUpdateBytes(updatePreviewState.total))
-      : ('已下载 ' + formatUpdateBytes(updatePreviewState.received)));
-  }
-  var speed = formatUpdateSpeed(updatePreviewState.speedBps);
-  if (speed) parts.push(speed);
-  if (updatePreviewState.etaSeconds > 0 && updatePreviewState.etaSeconds < 3600) parts.push('约 ' + updatePreviewState.etaSeconds + ' 秒');
-  return parts.join(' · ');
-}
-function initUpdatePreview() {
-  renderUpdatePreviewPanel();
-  setUpdatePreviewVisible(true);
-  checkLatestUpdate();
-  setTimeout(startUpdateIconBreathing, 760);
-}
-
-function setUpdatePreviewVisible(visible) {
-  updatePreviewState.visible = !!visible;
-  var entry = document.getElementById('update-entry');
-  if (!entry) return;
-  entry.classList.toggle('available', updatePreviewState.visible);
-  if (!updatePreviewState.visible && window.gsap) {
-    window.gsap.killTweensOf(entry);
-    window.gsap.set(entry, { autoAlpha: 0, y: 0, clearProps: 'boxShadow,filter,scale' });
-    return;
-  }
-  if (updatePreviewState.visible && window.gsap) {
-    window.gsap.fromTo(entry,
-      { autoAlpha: 0, y: -6, scale: 0.92, filter: 'blur(6px)' },
-      { autoAlpha: 1, y: 0, scale: 1, filter: 'blur(0px)', duration: 0.62, delay: 0.18, ease: 'expo.out', overwrite: true }
-    );
-  }
-}
-
-async function checkLatestUpdate() {
-  try {
-    var data = await apiJson('/api/update/latest?t=' + Date.now());
-    applyLatestUpdateInfo(data);
-  } catch (e) {
-    updatePreviewState.preview = true;
-    updatePreviewState.updateAvailable = false;
-    updatePreviewState.hero = '当前版本，更新检测已就绪。';
-    renderUpdatePreviewPanel();
-    setUpdatePreviewVisible(true);
-  }
-}
-
-function applyLatestUpdateInfo(data) {
-  data = data || {};
-  var release = data.release || {};
-  updatePreviewState.currentVersion = data.currentVersion || updatePreviewState.currentVersion;
-  updatePreviewState.version = data.latestVersion || release.version || updatePreviewState.currentVersion;
-  updatePreviewState.configured = !!data.configured;
-  updatePreviewState.preview = !!data.preview;
-  updatePreviewState.updateAvailable = !!data.updateAvailable;
-  updatePreviewState.releaseUrl = release.htmlUrl || data.htmlUrl || '';
-  updatePreviewState.downloadUrl = release.downloadUrl || data.downloadUrl || '';
-  updatePreviewState.patchAvailable = !!(release.patchAvailable && release.patch && release.patch.downloadUrl);
-  updatePreviewState.patchUrl = updatePreviewState.patchAvailable ? release.patch.downloadUrl : '';
-  updatePreviewState.patchFallbackTried = false;
-  updatePreviewState.hero = release.summary || (updatePreviewState.updateAvailable ? '发现新版本，建议更新。' : '当前版本，更新检测已就绪。');
-  if (Array.isArray(release.notes) && release.notes.length) {
-    updatePreviewState.notes = release.notes.slice(0, 4);
-  }
-  renderUpdatePreviewPanel();
-  setUpdatePreviewVisible(updatePreviewState.updateAvailable || updatePreviewState.preview);
-}
-
-function startUpdateIconBreathing() {
-  var entry = document.getElementById('update-entry');
-  if (!entry || !window.gsap) return;
-  var ring = entry.querySelector('.update-ring');
-  window.gsap.killTweensOf(entry, 'y,boxShadow');
-  window.gsap.set(entry, { autoAlpha: 1 });
-  if (ring) window.gsap.killTweensOf(ring);
-  window.gsap.to(entry, {
-    y: -1.4,
-    boxShadow: '0 16px 44px rgba(0,0,0,.32),0 0 24px rgba(244,210,138,.18),0 0 13px rgba(157,184,207,.06),inset 0 1px 0 rgba(255,255,255,.11)',
-    duration: 2.6,
-    repeat: -1,
-    yoyo: true,
-    ease: 'sine.inOut'
-  });
-  if (ring) {
-    window.gsap.to(ring, {
-      rotate: 18,
-      duration: 3.8,
-      repeat: -1,
-      yoyo: true,
-      ease: 'sine.inOut',
-      transformOrigin: '50% 50%'
-    });
-  }
-}
-
-function renderUpdatePreviewPanel() {
-  var version = document.getElementById('update-modal-version');
-  var hero = document.getElementById('update-hero-main');
-  var list = document.getElementById('update-list');
-  if (version) version.textContent = 'v' + updatePreviewState.version;
-  if (hero) hero.textContent = updatePreviewState.hero || '当前版本，更新检测已就绪。';
-  if (list) {
-    var notes = Array.isArray(updatePreviewState.notes) && updatePreviewState.notes.length ? updatePreviewState.notes : ['更新检测已就绪'];
-    list.innerHTML = notes.map(function(text, i){
-      return '<div class="update-item"><span class="update-item-dot" data-index="' + String(i + 1).padStart(2, '0') + '"></span><div class="update-item-text">' + escHtml(text) + '</div></div>';
-    }).join('');
-  }
-  updateUpdatePreviewProgress(updatePreviewState.progress);
-  syncUpdatePreviewStateClass();
-}
-
-function syncUpdatePreviewStateClass() {
-  var entry = document.getElementById('update-entry');
-  var modal = document.querySelector('#update-modal .update-modal');
-  var isDownloading = updatePreviewState.status === 'downloading';
-  var isReady = updatePreviewState.status === 'ready';
-  var isError = updatePreviewState.status === 'error';
-  var isOpening = updatePreviewState.status === 'opening';
-  var isPatch = updatePreviewState.mode === 'patch';
-  if (entry) {
-    entry.classList.toggle('downloading', isDownloading || isOpening);
-    entry.classList.toggle('ready', isReady);
-  }
-  if (modal) {
-    modal.classList.toggle('ready', isReady);
-    modal.classList.toggle('error', isError);
-  }
-  var label = document.getElementById('update-btn-label');
-  var btn = document.getElementById('update-primary-btn');
-  var canDownloadUpdate = updatePreviewState.configured && updatePreviewState.updateAvailable && updatePreviewState.downloadUrl;
-  var canOpenRelease = updatePreviewState.configured && updatePreviewState.updateAvailable && !updatePreviewState.downloadUrl && updatePreviewState.releaseUrl;
-  if (label) {
-    if (isDownloading) label.textContent = (isPatch ? '快速补丁 ' : '正在下载 ') + Math.round(updatePreviewState.progress) + '%';
-    else if (isOpening) label.textContent = '正在打开安装包';
-    else if (isError && updatePreviewState.mode === 'patch' && updatePreviewState.downloadUrl) label.textContent = '下载完整安装包';
-    else if (isError) label.textContent = updatePreviewState.mode === 'installer' ? '重试下载' : '重试更新';
-    else if (isReady && isPatch && updatePreviewState.restartRequired) label.textContent = '重启生效';
-    else if (isReady && isPatch) label.textContent = '补丁已应用';
-    else if (isReady && updatePreviewState.installerOpened) label.textContent = '安装包已打开';
-    else if (isReady && updatePreviewState.installerPath) label.textContent = updatePreviewState.cached ? '打开已下载安装包' : '打开安装包';
-    else if (isReady) label.textContent = updatePreviewState.configured ? '打开安装包' : '预览完成';
-    else label.textContent = updatePreviewState.patchAvailable ? '安装快速补丁' : ((canDownloadUpdate || canOpenRelease) ? '下载完整安装包' : '立即更新');
-  }
-  if (btn) btn.disabled = false;
-  var foot = document.getElementById('update-footnote');
-  if (foot) {
-    if (isDownloading) foot.textContent = (updatePreviewState.message || (isPatch ? '正在下载快速补丁' : '正在下载完整安装包')) + (updateProgressDetailText() ? ' · ' + updateProgressDetailText() : '');
-    else if (isError) foot.textContent = '下载失败：' + (updatePreviewState.errorReason || updatePreviewState.errorDetail || updatePreviewState.message || '请稍后重试') + (updatePreviewState.failedAttempts && updatePreviewState.failedAttempts.length ? ' · 已尝试 ' + updatePreviewState.failedAttempts.length + ' 条线路' : '');
-    else if (isReady && isPatch) foot.textContent = updatePreviewState.restartRequired ? '快速补丁已应用，重启 Mineradio 后生效。' : '快速补丁已应用。';
-    else if (isReady) foot.textContent = updatePreviewState.cached ? '已复用上次校验通过的安装包，不会重复下载。' : '安装包已准备好，点击按钮后再打开安装。';
-    else if (updatePreviewState.patchAvailable) foot.textContent = '优先使用轻量补丁，只更新缺失或变更的资源文件；不适用时可下载完整安装包。';
-    else foot.textContent = updatePreviewState.updateAvailable ? '没有可用快速补丁时会下载完整安装包。' : '当前版本已是最新。';
-  }
-}
-
-function updateUpdatePreviewProgress(progress) {
-  updatePreviewState.progress = clampRange(Number(progress) || 0, 0, 100);
-  var fill = document.getElementById('update-btn-fill');
-  if (fill) fill.style.width = updatePreviewState.progress + '%';
-  var ring = document.getElementById('update-progress-ring');
-  if (ring) {
-    var circumference = 55.29;
-    ring.style.strokeDashoffset = (circumference * (1 - updatePreviewState.progress / 100)).toFixed(2);
-  }
-  syncUpdatePreviewStateClass();
-}
-
-function openUpdatePanel() {
-  var mask = document.getElementById('update-modal');
-  var entry = document.getElementById('update-entry');
-  if (!mask) return;
-  renderUpdatePreviewPanel();
-  if (entry && window.gsap) {
-    window.gsap.fromTo(entry, { scale: 0.93 }, { scale: 1, duration: 0.42, ease: 'back.out(1.7)', overwrite: 'auto' });
-  }
-  openGsapModal(mask);
-  updatePreviewState.open = true;
-  animateUpdatePanelContents();
-}
-
-function closeUpdatePanel() {
-  closeGsapModal(document.getElementById('update-modal'), function(){
-    updatePreviewState.open = false;
-  });
-}
-
-function animateUpdatePanelContents() {
-  if (!window.gsap) return;
-  var modal = document.querySelector('#update-modal .update-modal');
-  if (!modal) return;
-  var parts = [
-    modal.querySelector('.update-kicker'),
-    modal.querySelector('.update-version'),
-    modal.querySelector('.update-hero')
-  ].filter(Boolean);
-  var items = Array.prototype.slice.call(modal.querySelectorAll('.update-item'));
-  var actions = modal.querySelector('.update-actions');
-  window.gsap.fromTo(parts,
-    { autoAlpha: 0, x: -7, filter: 'blur(5px)' },
-    { autoAlpha: 1, x: 0, filter: 'blur(0px)', duration: 0.50, ease: 'power3.out', stagger: 0.045, delay: 0.10, overwrite: true }
-  );
-  window.gsap.fromTo(items,
-    { autoAlpha: 0, x: -8 },
-    { autoAlpha: 1, x: 0, duration: 0.34, ease: 'power3.out', stagger: 0.055, delay: 0.25, overwrite: true }
-  );
-  if (actions) {
-    window.gsap.fromTo(actions,
-      { autoAlpha: 0, y: 8 },
-      { autoAlpha: 1, y: 0, duration: 0.36, ease: 'power3.out', delay: 0.42, overwrite: true }
-    );
-  }
-}
-
-async function startRealUpdateDownload() {
-  if (updatePreviewState.status === 'downloading' || updatePreviewState.status === 'opening') return;
-  if (updatePreviewState.status === 'ready' && updatePreviewState.installerPath) {
-    openDownloadedUpdateInstaller(updatePreviewState.installerPath);
-    return;
-  }
-  if (updatePreviewState.timer) clearInterval(updatePreviewState.timer);
-  if (updatePreviewState.pollTimer) clearInterval(updatePreviewState.pollTimer);
-  updatePreviewState.status = 'downloading';
-  updatePreviewState.progress = 0;
-  updatePreviewState.mode = 'installer';
-  updatePreviewState.downloadJobId = '';
-  updatePreviewState.installerPath = '';
-  updatePreviewState.installerOpened = false;
-  updatePreviewState.cached = false;
-  updatePreviewState.received = 0;
-  updatePreviewState.total = 0;
-  updatePreviewState.speedBps = 0;
-  updatePreviewState.etaSeconds = 0;
-  updatePreviewState.sourceLabel = '';
-  updatePreviewState.attempt = 0;
-  updatePreviewState.attempts = 0;
-  updatePreviewState.errorReason = '';
-  updatePreviewState.errorDetail = '';
-  updatePreviewState.failedAttempts = [];
-  updatePreviewState.message = '正在下载完整安装包';
-  updateUpdatePreviewProgress(0);
-  try {
-    var job = await apiJson('/api/update/download', { method: 'POST' });
-    if (!job || job.ok === false || !job.id) throw new Error((job && job.error) || 'UPDATE_DOWNLOAD_START_FAILED');
-    updatePreviewState.downloadJobId = job.id;
-    applyUpdateDownloadJob(job);
-    updatePreviewState.pollTimer = setInterval(function(){
-      pollUpdateDownloadJob(job.id);
-    }, 360);
-  } catch (e) {
-    updatePreviewState.status = 'error';
-    updatePreviewState.errorReason = (e && e.message) || '更新下载启动失败';
-    updatePreviewState.errorDetail = updatePreviewState.errorReason;
-    updatePreviewState.message = updatePreviewState.errorReason;
-    updateUpdatePreviewProgress(0);
-    showToast('更新下载启动失败：' + updatePreviewState.errorReason);
-  }
-}
-async function startRealUpdatePatch() {
-  if (updatePreviewState.status === 'downloading' || updatePreviewState.status === 'opening') return;
-  if (updatePreviewState.status === 'ready' && updatePreviewState.mode === 'patch') {
-    restartForAppliedPatch();
-    return;
-  }
-  if (updatePreviewState.timer) clearInterval(updatePreviewState.timer);
-  if (updatePreviewState.pollTimer) clearInterval(updatePreviewState.pollTimer);
-  updatePreviewState.status = 'downloading';
-  updatePreviewState.mode = 'patch';
-  updatePreviewState.progress = 0;
-  updatePreviewState.patchJobId = '';
-  updatePreviewState.installerPath = '';
-  updatePreviewState.installerOpened = false;
-  updatePreviewState.cached = false;
-  updatePreviewState.received = 0;
-  updatePreviewState.total = 0;
-  updatePreviewState.speedBps = 0;
-  updatePreviewState.etaSeconds = 0;
-  updatePreviewState.sourceLabel = '';
-  updatePreviewState.attempt = 0;
-  updatePreviewState.attempts = 0;
-  updatePreviewState.errorReason = '';
-  updatePreviewState.errorDetail = '';
-  updatePreviewState.failedAttempts = [];
-  updatePreviewState.patchFallbackTried = false;
-  updatePreviewState.message = '正在下载快速补丁';
-  updateUpdatePreviewProgress(0);
-  try {
-    var job = await apiJson('/api/update/patch', { method: 'POST' });
-    if (!job || job.ok === false || !job.id) throw new Error((job && job.error) || 'UPDATE_PATCH_START_FAILED');
-    updatePreviewState.patchJobId = job.id;
-    applyUpdateDownloadJob(job);
-    updatePreviewState.pollTimer = setInterval(function(){
-      pollUpdatePatchJob(job.id);
-    }, 320);
-  } catch (e) {
-    updatePreviewState.status = 'error';
-    updatePreviewState.errorReason = (e && e.message) || '快速补丁不可用';
-    updatePreviewState.errorDetail = updatePreviewState.errorReason;
-    updatePreviewState.message = updatePreviewState.errorReason;
-    updateUpdatePreviewProgress(0);
-    updatePreviewState.patchFallbackTried = true;
-    showToast('快速补丁不可用，可手动下载完整安装包');
-  }
-}
-
-async function pollUpdateDownloadJob(id) {
-  if (!id) return;
-  try {
-    var job = await apiJson('/api/update/download/status?id=' + encodeURIComponent(id) + '&t=' + Date.now());
-    applyUpdateDownloadJob(job);
-  } catch (e) {
-    if (updatePreviewState.pollTimer) clearInterval(updatePreviewState.pollTimer);
-    updatePreviewState.pollTimer = null;
-    updatePreviewState.status = 'error';
-    updatePreviewState.errorReason = '更新下载状态读取失败';
-    updatePreviewState.errorDetail = (e && e.message) || updatePreviewState.errorReason;
-    updatePreviewState.message = updatePreviewState.errorReason;
-    updateUpdatePreviewProgress(updatePreviewState.progress || 0);
-    showToast('更新下载状态读取失败');
-  }
-}
-async function pollUpdatePatchJob(id) {
-  if (!id) return;
-  try {
-    var job = await apiJson('/api/update/patch/status?id=' + encodeURIComponent(id) + '&t=' + Date.now());
-    applyUpdateDownloadJob(job);
-  } catch (e) {
-    if (updatePreviewState.pollTimer) clearInterval(updatePreviewState.pollTimer);
-    updatePreviewState.pollTimer = null;
-    updatePreviewState.status = 'error';
-    updatePreviewState.errorReason = '快速补丁状态读取失败';
-    updatePreviewState.errorDetail = (e && e.message) || updatePreviewState.errorReason;
-    updatePreviewState.message = updatePreviewState.errorReason;
-    updateUpdatePreviewProgress(updatePreviewState.progress || 0);
-    showToast('快速补丁状态读取失败');
-  }
-}
-
-function applyUpdateDownloadJob(job) {
-  if (!job || job.ok === false || job.status === 'error') {
-    if (updatePreviewState.pollTimer) clearInterval(updatePreviewState.pollTimer);
-    updatePreviewState.pollTimer = null;
-    updatePreviewState.mode = (job && job.mode) || updatePreviewState.mode || 'installer';
-    updatePreviewState.received = Number(job && job.received || 0);
-    updatePreviewState.total = Number(job && job.total || 0);
-    updatePreviewState.speedBps = Number(job && job.speedBps || 0);
-    updatePreviewState.etaSeconds = Number(job && job.etaSeconds || 0);
-    updatePreviewState.sourceLabel = (job && job.sourceLabel) || updatePreviewState.sourceLabel || '';
-    updatePreviewState.attempt = Number(job && job.attempt || 0);
-    updatePreviewState.attempts = Number(job && job.attempts || 0);
-    updatePreviewState.errorReason = (job && (job.errorReason || job.message || job.error)) || '请稍后重试';
-    updatePreviewState.errorDetail = (job && job.errorDetail) || '';
-    updatePreviewState.failedAttempts = Array.isArray(job && job.failedAttempts) ? job.failedAttempts : [];
-    updatePreviewState.message = (job && job.message) || updatePreviewState.errorReason;
-    updatePreviewState.status = 'error';
-    updateUpdatePreviewProgress(job && job.progress || updatePreviewState.progress || 0);
-    if (updatePreviewState.mode === 'patch' && updatePreviewState.downloadUrl && !updatePreviewState.patchFallbackTried) {
-      updatePreviewState.patchFallbackTried = true;
-      showToast('快速补丁失败，可手动下载完整安装包：' + updatePreviewState.errorReason);
-      return;
-    }
-    showToast('更新下载失败：' + updatePreviewState.errorReason);
-    return;
-  }
-  if (job.id) updatePreviewState.downloadJobId = job.id;
-  updatePreviewState.mode = job.mode || updatePreviewState.mode || 'installer';
-  if (updatePreviewState.mode === 'patch') updatePreviewState.patchJobId = job.id || updatePreviewState.patchJobId;
-  updatePreviewState.received = Number(job.received || 0);
-  updatePreviewState.total = Number(job.total || 0);
-  updatePreviewState.speedBps = Number(job.speedBps || 0);
-  updatePreviewState.etaSeconds = Number(job.etaSeconds || 0);
-  updatePreviewState.sourceLabel = job.sourceLabel || '';
-  updatePreviewState.attempt = Number(job.attempt || 0);
-  updatePreviewState.attempts = Number(job.attempts || 0);
-  updatePreviewState.errorReason = job.errorReason || '';
-  updatePreviewState.errorDetail = job.errorDetail || '';
-  updatePreviewState.failedAttempts = Array.isArray(job.failedAttempts) ? job.failedAttempts : [];
-  updatePreviewState.message = job.message || '';
-  updatePreviewState.restartRequired = !!job.restartRequired;
-  updatePreviewState.cached = !!job.cached;
-  if (job.status === 'downloading' || job.status === 'queued') {
-    updatePreviewState.status = 'downloading';
-    updateUpdatePreviewProgress(job.progress || 0);
-    return;
-  }
-  if (job.status === 'ready') {
-    if (updatePreviewState.pollTimer) clearInterval(updatePreviewState.pollTimer);
-    updatePreviewState.pollTimer = null;
-    updatePreviewState.status = 'ready';
-    updatePreviewState.installerPath = job.filePath || '';
-    updateUpdatePreviewProgress(100);
-    pulseUpdateReady();
-    if (updatePreviewState.mode === 'patch') {
-      showToast(updatePreviewState.restartRequired ? '快速补丁已应用，重启后生效' : '快速补丁已应用');
-    } else if (updatePreviewState.installerPath) {
-      showToast(updatePreviewState.cached ? '已复用上次下载的安装包' : '安装包已下载，点击按钮打开');
-    }
-  }
-}
-async function restartForAppliedPatch() {
-  if (!updatePreviewState.restartRequired) return;
-  try {
-    if (window.desktopWindow && typeof window.desktopWindow.restartApp === 'function') {
-      await window.desktopWindow.restartApp();
-      return;
-    }
-  } catch (e) {}
-  showToast('请手动重启 Mineradio 让补丁生效');
-}
-
-async function openDownloadedUpdateInstaller(filePath) {
-  if (!filePath) return;
-  if (updatePreviewState.installerOpened) return;
-  updatePreviewState.status = 'opening';
-  syncUpdatePreviewStateClass();
-  try {
-    if (window.desktopWindow && window.desktopWindow.openUpdateInstaller) {
-      var result = await window.desktopWindow.openUpdateInstaller(filePath);
-      if (!result || result.ok === false) throw new Error((result && result.error) || 'OPEN_UPDATE_FAILED');
-      updatePreviewState.installerOpened = true;
-      updatePreviewState.status = 'ready';
-      syncUpdatePreviewStateClass();
-      showToast('安装包已打开');
-      return;
-    }
-    throw new Error('DESKTOP_BRIDGE_MISSING');
-  } catch (e) {
-    updatePreviewState.status = 'ready';
-    syncUpdatePreviewStateClass();
-    if (updatePreviewState.releaseUrl) window.open(updatePreviewState.releaseUrl, '_blank');
-    showToast('无法自动打开安装包，已尝试打开更新页面');
-  }
-}
-
-function startUpdatePreviewDownload() {
-  var releaseLink = updatePreviewState.downloadUrl || updatePreviewState.releaseUrl;
-  if (updatePreviewState.status === 'ready' && updatePreviewState.mode === 'patch') {
-    restartForAppliedPatch();
-    return;
-  }
-  if (updatePreviewState.configured && updatePreviewState.updateAvailable) {
-    if (updatePreviewState.patchAvailable && updatePreviewState.patchUrl && !updatePreviewState.patchFallbackTried) {
-      startRealUpdatePatch();
-    } else if (updatePreviewState.downloadUrl) {
-      startRealUpdateDownload();
-    } else if (releaseLink) {
-      window.open(releaseLink, '_blank');
-      showToast('已打开更新页面');
-    } else {
-      showToast('这个版本还没有可用下载链接');
-    }
-    return;
-  }
-  if (updatePreviewState.status === 'ready') {
-    if (window.gsap) {
-      var modal = document.querySelector('#update-modal .update-modal');
-      if (modal) window.gsap.fromTo(modal, { boxShadow: '0 30px 100px rgba(0,0,0,.62),0 0 0 1px rgba(244,210,138,.16)' }, { boxShadow: '0 30px 100px rgba(0,0,0,.62),0 0 34px rgba(244,210,138,.18)', duration: 0.52, yoyo: true, repeat: 1, ease: 'sine.inOut' });
-    }
-    showToast('正式接入后将重启并安装新版');
-    return;
-  }
-  if (updatePreviewState.status === 'downloading') return;
-  if (updatePreviewState.timer) clearInterval(updatePreviewState.timer);
-  updatePreviewState.status = 'downloading';
-  updateUpdatePreviewProgress(0);
-  var btn = document.getElementById('update-primary-btn');
-  if (btn && window.gsap) window.gsap.fromTo(btn, { scale: 0.985 }, { scale: 1, duration: 0.34, ease: 'back.out(1.45)', overwrite: true });
-  updatePreviewState.timer = setInterval(function(){
-    var next = updatePreviewState.progress + 3.2 + Math.random() * 7.5;
-    if (next >= 100) {
-      clearInterval(updatePreviewState.timer);
-      updatePreviewState.timer = null;
-      updatePreviewState.status = 'ready';
-      updateUpdatePreviewProgress(100);
-      pulseUpdateReady();
-    } else {
-      updateUpdatePreviewProgress(next);
-    }
-  }, 260);
-}
-
-function pulseUpdateReady() {
-  var entry = document.getElementById('update-entry');
-  var btn = document.getElementById('update-primary-btn');
-  if (!window.gsap) return;
-  if (entry) {
-    window.gsap.fromTo(entry,
-      { scale: 0.96, filter: 'drop-shadow(0 0 0 rgba(244,210,138,0))' },
-      { scale: 1.04, filter: 'drop-shadow(0 0 14px rgba(244,210,138,.28))', duration: 0.34, yoyo: true, repeat: 1, ease: 'sine.inOut', overwrite: 'auto' }
-    );
-  }
-  if (btn) {
-    window.gsap.fromTo(btn,
-      { boxShadow: '0 0 0 rgba(244,210,138,0), inset 0 1px 0 rgba(255,255,255,.09)' },
-      { boxShadow: '0 0 24px rgba(244,210,138,.16), inset 0 1px 0 rgba(255,255,255,.11)', duration: 0.42, yoyo: true, repeat: 1, ease: 'sine.inOut', overwrite: true }
-    );
-  }
-}
-
-// ============================================================
 //  登录系统
 // ============================================================
 function openGsapModal(mask) {
@@ -23535,7 +22890,6 @@ function bindModalBackdropClose() {
     ['login-modal', closeLoginModal],
     ['user-modal', closeUserModal],
     ['custom-lyric-modal', closeCustomLyricModal],
-    ['update-modal', closeUpdatePanel]
   ].forEach(function(pair){
     var mask = document.getElementById(pair[0]);
     var close = pair[1];
@@ -27302,7 +26656,7 @@ safeRenderQueuePanel('startup');
 updateCustomCoverButton();
 updateCustomLyricControls();
 updateLikeButtons();
-setTimeout(initUpdatePreview, 9000);
+
 // Auto-enter local mode after splash
 setTimeout(function(){
   if (typeof enterLocalMode === 'function' && !localMode) enterLocalMode();
