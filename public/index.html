@@ -2722,7 +2722,7 @@ function markAppPerf(name) {
     var value = performance.now();
     appPerfMarks.push({ name: name, value: Math.round(value) });
     if (performance && performance.mark) performance.mark('mineradio:' + name);
-    if (appPerfMarks.length <= 16) console.debug('[MineradioPerf]', name, Math.round(value) + 'ms');
+    // (removed perf debug)
   } catch (e) {}
 }
 markAppPerf('script-start');
@@ -2732,7 +2732,7 @@ function installStartupLongTaskObserver() {
     var observer = new PerformanceObserver(function(list){
       list.getEntries().forEach(function(entry){
         if (entry.startTime > 15000) return;
-        console.debug('[MineradioPerf] longtask', Math.round(entry.startTime) + 'ms', Math.round(entry.duration) + 'ms');
+        // (removed perf debug)
       });
     });
     observer.observe({ entryTypes: ['longtask'] });
@@ -6295,7 +6295,7 @@ var particles = new THREE.Points(geo, material);
 particles.frustumCulled = false;
 particles.renderOrder = 1;
 scene.add(particles);
-console.log('v7 shell loaded, JS pending');
+// (removed log)
 
 // ============================================================
 //  浮空粒子层 (独立 Points)
@@ -9702,7 +9702,7 @@ function forceLoadingSettled(reason) {
   }
   uniforms.uLoading.value = 0;
   loadingShownAt = 0;
-  if (reason && window.__mineradioDebugLoading) console.log('[LoadingSettled]', reason);
+  // (removed debug log)
 }
 function recoverVisualsAfterBackground(reason) {
   applyRendererPowerMode();
@@ -10118,7 +10118,7 @@ function updateBeatDiskCacheStatus(data) {
   beatDiskCacheStatus.reason = data.reason || '';
   if (!beatDiskCacheStatus.enabled && !beatDiskCacheNoticeLogged) {
     beatDiskCacheNoticeLogged = true;
-    console.log('节拍磁盘缓存不可用，已降级为本次运行内存缓存:', beatDiskCacheStatus.reason || 'unknown');
+    // (removed log)
   }
 }
 
@@ -10254,7 +10254,7 @@ async function runQueueBeatPrefetch(fromIdx, token, seq, state) {
     if (token !== beatMapToken || seq !== beatPrefetchToken) return;
     var diskMap = await readBeatDiskCache(key);
     if (diskMap) {
-      console.log('队列节奏D盘缓存命中:', song.name || key, diskMap.visualBeatCount || 0);
+      // (removed log)
       return;
     }
     var audioUrl = await fetchBeatPrefetchAudioUrl(song);
@@ -10275,7 +10275,7 @@ async function runQueueBeatPrefetch(fromIdx, token, seq, state) {
     if (token !== beatMapToken || seq !== beatPrefetchToken || !map) return;
     beatMapCache[key] = map;
     writeBeatDiskCache(key, map, song, 'mr');
-    console.log('队列节奏预热完成:', song.name || key, map.visualBeatCount || 0);
+    // (removed log)
   } catch (err) {
     console.warn('queue beat prefetch failed:', err && err.message ? err.message : err);
   } finally {
@@ -10650,7 +10650,7 @@ async function analyzeAudioBeats(audioUrl, durationSec, token, options) {
           if (gi > 800) break;
         }
         for (var si = 0; si < selected.length; si++) delete selected[si]._sparseScore;
-        console.log('soft-groove intro pattern camera:', selected.length, 'gaps:', pattern.gaps.map(function(v){ return v.toFixed(2); }).join('/'), 'anchor:', pattern.anchor.toFixed(2), 'introHits:', pattern.introHitCount);
+        // (removed debug log)
         return selected.length >= 8 ? selected : null;
       }
       var introPatternBeats = buildIntroPatternBeats();
@@ -10710,7 +10710,7 @@ async function analyzeAudioBeats(audioUrl, durationSec, token, options) {
         for (var fi = 0; fi < fallback.length; fi++) pushSparse(fallback[fi], moodScore(fallback[fi]), false);
         for (var di = 0; di < selected.length; di++) delete selected[di]._sparseScore;
       }
-      console.log('soft-groove sparse camera:', selected.length, 'of', events.length, 'railStep:', railStep.toFixed(2), 'phase:', bestPhase + '/' + railMultiple);
+      // (removed debug log)
       return selected.length >= 4 ? selected : events.filter(function(b){ return b && b.camera !== false; });
     }
 
@@ -10851,7 +10851,7 @@ async function analyzeAudioBeats(audioUrl, durationSec, token, options) {
     if (musicTempoResult && musicTempoResult.beats && musicTempoResult.beats.length) {
       musicTempoBeats = normalizeMusicTempoBeats(musicTempoResult.beats || [], buffer.duration);
       musicTempoGridStep = medianGap(musicTempoBeats, 0.36, 1.00);
-      console.log('music-tempo worker:', musicTempoResult.tempo, 'bpm, beats:', musicTempoBeats.length, 'step:', musicTempoGridStep);
+      // (removed debug log)
     }
 
     if (musicTempoBeats.length >= 4) {
@@ -10859,14 +10859,14 @@ async function analyzeAudioBeats(audioUrl, durationSec, token, options) {
       if (musicTempoPhaseOffset) {
         musicTempoBeats = musicTempoBeats.map(function(t){ return t + musicTempoPhaseOffset; })
           .filter(function(t){ return isFinite(t) && t >= 0.05 && t < buffer.duration - 0.05; });
-        console.log('music-tempo phase correction:', musicTempoPhaseOffset.toFixed(3), 's');
+        // (removed debug log)
       }
       if (analysisProfile.phaseScan) {
         var softGroovePhaseOffset = estimateSoftGrooveTempoOffset(musicTempoBeats, musicTempoGridStep || gridStep);
         if (softGroovePhaseOffset) {
           musicTempoBeats = musicTempoBeats.map(function(t){ return t + softGroovePhaseOffset; })
             .filter(function(t){ return isFinite(t) && t >= 0.05 && t < buffer.duration - 0.05; });
-          console.log('soft-groove phase correction:', softGroovePhaseOffset.toFixed(3), 's');
+          // (removed debug log)
         }
       }
       var tempoCameraBeats = [];
@@ -11445,7 +11445,7 @@ async function buildPodcastDjLowOnlyBeatMap(buffer, token) {
   var pulseBeats = beats.filter(function(b){ return b.pulse !== false && (b.impact >= 0.16 || b.combo === 'downbeat'); }).map(function(b){
     return { time: b.time, strength: b.strength, impact: b.impact, combo: b.combo, low: b.low, body: b.body, snap: b.snap, dj: true };
   });
-  console.log('podcast DJ low-only beatmap:', Math.round(duration) + 's', 'step:', globalStep.toFixed(3), 'candidates:', candidates.length, 'beats:', beats.length);
+  // (removed debug log)
   return {
     kicks: beats.map(function(b){ return b.time; }),
     beats: beats,
@@ -12253,7 +12253,7 @@ function applyBeatMapCacheForCurrent(songId, map, token, message) {
   syncBeatMapPlaybackCursor(audio ? audio.currentTime : 0, true);
   hideBeatChip();
   notifyDesktopLyricsBeatMapReady();
-  if (message) console.log(message, songId, map.visualBeatCount || 0);
+  // (removed debug log)
   scheduleQueueBeatPrefetch(currentIdx, 1000);
   return true;
 }
@@ -18306,7 +18306,7 @@ async function playQueueAt(idx, opts) {
         syncPodcastDjMapCursor(audio ? audio.currentTime : 0, true);
         hideBeatChip();
         notifyDesktopLyricsBeatMapReady();
-        console.log('podcast DJ beatmap 缓存命中:', currentDjBeatMap.cameraBeats.length, '个主拍');
+        // (removed log)
       } else {
         showBeatChip('DJ 离线锁拍准备中…');
         var djDurationSec = Math.max(0, Number(song.duration) || 0);
@@ -18320,7 +18320,7 @@ async function playQueueAt(idx, opts) {
       applyCinemaProfileFromBeatMap(currentBeatMap);
       syncBeatMapPlaybackCursor(audio ? audio.currentTime : 0);
       notifyDesktopLyricsBeatMapReady();
-      console.log('beatmap 缓存命中:', currentBeatMap.kicks.length, '个鼓点');
+      // (removed log)
       scheduleQueueBeatPrefetch(idx, 2600);
     } else {
       var diskBeatMap = bmKey ? await readBeatDiskCache(bmKey) : null;
@@ -18329,7 +18329,7 @@ async function playQueueAt(idx, opts) {
         applyCinemaProfileFromBeatMap(currentBeatMap);
         syncBeatMapPlaybackCursor(audio ? audio.currentTime : 0);
         notifyDesktopLyricsBeatMapReady();
-        console.log('beatmap D盘缓存命中:', currentBeatMap.kicks.length, '个鼓点');
+        // (removed log)
         scheduleQueueBeatPrefetch(idx, 2600);
       } else {
         // 后台延迟分析, 避免新歌刚开始播放时抢占解码和渲染资源
