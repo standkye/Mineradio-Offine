@@ -379,6 +379,15 @@ const server = http.createServer(async (req, res) => {
               }
             });
           }
+          // 专辑名修正：如果唱片集标签等于歌曲名（常见于单曲文件元数据错误），
+          // 则回退到所在文件夹名作为专辑名
+          if (album && title && album.toLowerCase().trim() === title.toLowerCase().trim()) {
+            var folderName = path.basename(fileDir);
+            if (folderName && folderName !== fileDir && folderName.length > 1) {
+              console.log('[LocalScan:albumFix] ' + filePath + ' album "' + album + '" → "' + folderName + '"');
+              album = folderName;
+            }
+          }
           // Find artist image from same directory, or parent directory if name matches
           if (imageFiles[fileDir] && imageFiles[fileDir].artist && imageFiles[fileDir].artist.length) {
             artistImagePath = imageFiles[fileDir].artist[0];
