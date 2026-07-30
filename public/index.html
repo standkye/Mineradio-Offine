@@ -21505,60 +21505,21 @@ function renderHome(hero, grid, rail) {
 
   grid.innerHTML = '';
 
-  // Sample real covers & artist images for collage art
-  var sampleCovers = [], sampleArtistImgs = [];
-  var seenC = {}, seenA = {};
-  for (var si = 0; si < s.length; si++) {
-    var cp = s[si].coverPath || '';
-    var ap = s[si].artistImagePath || '';
-    if (cp && !seenC[cp] && sampleCovers.length < 4) { seenC[cp] = true; sampleCovers.push(cp); }
-    if (ap && !seenA[ap] && sampleArtistImgs.length < 4) { seenA[ap] = true; sampleArtistImgs.push(ap); }
-  }
-
-  // Build card art HTML — uses real covers/artist images when available
-  function coverUrl(path) { return path ? LSERVER + '/api/local/cover?path=' + encodeURIComponent(path) : ''; }
-  function makeCardArt(iconKind, accentColor, covers, artists) {
-    var icon = getLocalMusicIcon(iconKind, accentColor);
-    var iconFallback = '<div class="home-card-art"><div style="position:absolute;inset:22px;border-radius:50%;background:rgba(0,0,0,.18);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)">' + icon + '</div></div>';
-    // Cover collage (2x2) for 全部歌曲 & 专辑
-    if ((iconKind === 'all' || iconKind === 'album') && covers.length >= 2) {
-      var cells = [];
-      for (var ci = 0; ci < 4; ci++) {
-        var img = ci < covers.length ? coverUrl(covers[ci]) : '';
-        cells.push('<div style="background:' + (img ? 'url('+img+')' : 'rgba(255,255,255,.04)') + ' center/cover;overflow:hidden"></div>');
-      }
-      return '<div class="home-card-art has-cover" style="padding:0;overflow:hidden;transform:rotate(4deg) scale(1.04)"><div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;width:100%;height:100%;gap:1.5px">' + cells.join('') + '</div><div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,0,0,.08),transparent 50%,rgba(0,0,0,.16))"></div></div>';
-    }
-    // Artist image(s) — single full-art or dual circle collage
-    if (iconKind === 'artist' && artists.length >= 1) {
-      if (artists.length === 1) {
-        return '<div class="home-card-art has-cover" style="padding:0;overflow:hidden"><img src="'+coverUrl(artists[0])+'" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display=\'none\'"><div style="position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,rgba(0,0,0,.32))"></div></div>';
-      }
-      var circs = [];
-      for (var ai = 0; ai < Math.min(artists.length, 4); ai++) {
-        circs.push('<div style="background:url('+coverUrl(artists[ai])+') center/cover;border-radius:50%;border:1.5px solid rgba(255,255,255,.1);overflow:hidden"></div>');
-      }
-      return '<div class="home-card-art has-cover" style="padding:0;overflow:hidden"><div style="display:grid;grid-template-columns:1fr 1fr;width:100%;height:100%;gap:3px;padding:5px">' + circs.join('') + '</div></div>';
-    }
-    return iconFallback;
-  }
-
   var cardData = [
-    {t: '本地音乐', sub: '全部本地歌曲', l: s.length + ' songs', col: 'rgba(0,245,212,.7)', accent: '#00f5d4', icon: 'all', fn: function(){ renderSongList('all'); } },
-    {t: '我喜欢的音乐', sub: '已点赞的歌曲', l: lc + ' liked', col: '#ff6b81', accent: '#ff6b81', icon: 'liked', fn: function(){ renderSongList('liked'); } },
-    {t: '我的歌单', sub: '创建和管理歌单', l: pc + ' playlists', col: '#b8e0ff', accent: '#74b9ff', icon: 'playlist', fn: function(){ showPlaylistsView(); } },
-    {t: '歌手', sub: '按歌手浏览', l: ac + ' artists', col: '#ffd8dd', accent: '#ff7675', icon: 'artist', fn: function(){ showArtistsView(); } },
-    {t: '专辑', sub: '按专辑浏览', l: alc + ' albums', col: '#f0ffc8', accent: '#a8e6cf', icon: 'album', fn: function(){ showAlbumsView(); } },
-    {t: '整合音乐', sub: '扫描+整理+下载歌词', l: 'integrate', col: '#f4d28a', accent: '#fdcb6e', icon: 'integrate', fn: function(){ integrateFromHome(); } }
+    {l: s.length + ' songs', t: '本地音乐', sub: '全部本地歌曲', col: 'rgba(0,245,212,.7)', icon: 'all', fn: function(){ renderSongList('all'); } },
+    {l: lc + ' liked', t: '我喜欢的音乐', sub: '已点赞的歌曲', col: '#ff6b81', icon: 'liked', fn: function(){ renderSongList('liked'); } },
+    {l: pc + ' playlists', t: '我的歌单', sub: '创建和管理歌单', col: '#b8e0ff', icon: 'playlist', fn: function(){ showPlaylistsView(); } },
+    {l: ac + ' artists', t: '歌手', sub: '按歌手浏览', col: '#ffd8dd', icon: 'artist', fn: function(){ showArtistsView(); } },
+    {l: alc + ' albums', t: '专辑', sub: '按专辑浏览', col: '#f0ffc8', icon: 'album', fn: function(){ showAlbumsView(); } },
+    {l: 'integrate', t: '整合音乐', sub: '扫描+整理+下载歌词', col: '#f4d28a', icon: 'integrate', fn: function(){ integrateFromHome(); } }
   ];
   cardData.forEach(function(c) {
     var card = document.createElement('button');
     card.className = 'home-card';
     card.style.cursor = 'pointer';
-    card.style.setProperty('--home-accent', c.accent);
     card.onclick = c.fn;
     card.setAttribute('data-home-tone', 'library');
-    card.innerHTML = '<div class="home-card-label" style="color:'+c.col+'">'+c.l+'</div><div class="home-card-title">'+c.t+'</div><div class="home-card-sub">'+c.sub+'</div>' + makeCardArt(c.icon, c.col, sampleCovers, sampleArtistImgs);
+    card.innerHTML = '<div class="home-card-label" style="color:'+c.col+'">'+c.l+'</div><div class="home-card-title">'+c.t+'</div><div class="home-card-sub">'+c.sub+'</div><div class="home-card-art"><div style="position:absolute;inset:20px;border-radius:50%;background:rgba(0,0,0,.16);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)">'+getLocalMusicIcon(c.icon, c.col)+'</div></div>';
     grid.appendChild(card);
   });
 
