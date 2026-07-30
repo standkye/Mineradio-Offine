@@ -21583,7 +21583,7 @@ function renderSongList(filter, fv) {
   if (!el) return;
   var songs = localAllSongs;
   if (filter === 'artist') songs = songs.filter(function(x){ return (x.artist||'') === fv; });
-  else if (filter === 'album') songs = songs.filter(function(x){ return (x.album||'') === fv; });
+  else if (filter === 'album') songs = songs.filter(function(x){ return normAlbum(x.album) === normAlbum(fv); });
   else if (filter === 'liked') songs = songs.filter(function(x){ return localLikedSongs[x.localPath||x.localUrl||'']; });
   // Header
   var html = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
@@ -21621,7 +21621,7 @@ function renderSongList(filter, fv) {
   if (pab) pab.onclick = function() {
     var songs = localAllSongs;
     if (filter === 'artist') songs = songs.filter(function(x){ return (x.artist||'') === fv; });
-    else if (filter === 'album') songs = songs.filter(function(x){ return (x.album||'') === fv; });
+    else if (filter === 'album') songs = songs.filter(function(x){ return normAlbum(x.album) === normAlbum(fv); });
     else if (filter === 'liked') songs = songs.filter(function(x){ return localLikedSongs[x.localPath||x.localUrl||'']; });
     if (!songs.length) return;
     playQueue = songs.map(function(s){ return Object.assign({}, s, {provider:'local',source:'local',type:'local'}); });
@@ -21686,6 +21686,17 @@ function showArtistsView() {
   });
 }
 
+// 专辑名归一化：去除不可见字符、统一空白和破折号
+function normAlbum(name) {
+  return (name || 'Unknown')
+    .toLowerCase()
+    .trim()
+    .replace(/[\u2000-\u206F\u2E00-\u2E7F\uFE00-\uFE0F\uFEFF\u00A0\u200B-\u200F\u2028-\u202F\u205F-\u2064\u3000]/g, '')
+    .replace(/[\u2010-\u2015\u2212]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function showAlbumsView() {
   var el = document.getElementById('ll');
   if (!el) return;
@@ -21699,7 +21710,7 @@ function showAlbumsView() {
   // Step 1: Group by normalized album name
   var albums = {};
   localAllSongs.forEach(function(s){
-    var alk = (s.album||'Unknown').toLowerCase().trim();
+    var alk = normAlbum(s.album);
     if (!albums[alk]) {
       albums[alk] = {
         n: s.album||'Unknown',
