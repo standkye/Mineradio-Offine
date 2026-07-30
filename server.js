@@ -321,6 +321,7 @@ const server = http.createServer(async (req, res) => {
           const fileExt = path.extname(filePath).toLowerCase();
           let title = fileName.replace(fileExt, '');
           let artist = '未知艺术家';
+          let albumArtist = '';
           let album = '未知专辑';
           let duration = 0;
           let hasCover = false;
@@ -343,6 +344,7 @@ const server = http.createServer(async (req, res) => {
               if (meta.common.title) title = meta.common.title;
               if (meta.common.artist) artist = meta.common.artist;
               if (meta.common.album) album = meta.common.album;
+              if (meta.common.albumartist) albumArtist = meta.common.albumartist;
               if (meta.common.picture && meta.common.picture.length > 0 && !coverPath) {
                 hasCover = true;
                 coverPath = filePath;
@@ -361,6 +363,7 @@ const server = http.createServer(async (req, res) => {
                     if (tags.title) title = tags.title;
                     if (tags.artist) artist = tags.artist;
                     if (tags.album) album = tags.album;
+                    if (tags.albumartist) albumArtist = tags.albumartist;
                     if (tags.picture && !coverPath) {
                       hasCover = true;
                       coverPath = filePath;
@@ -418,6 +421,7 @@ const server = http.createServer(async (req, res) => {
             name: title,
             title,
             artist,
+            albumArtist,
             album,
             provider: 'local',
             source: 'local',

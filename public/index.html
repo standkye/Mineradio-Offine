@@ -21691,11 +21691,28 @@ function showAlbumsView() {
   if (!el) return;
   var albums = {};
   localAllSongs.forEach(function(s){
-    var ak = (s.artist||'Unknown').toLowerCase().trim();
-    var alk = (s.album||'Unknown').toLowerCase().trim()+'|'+ak;
-    if (!albums[alk]) albums[alk] = {n:s.album||'Unknown', artist:s.artist||'', count:0, cover:s.coverPath||'', song:s};
+    var alk = (s.album||'Unknown').toLowerCase().trim();
+    if (!albums[alk]) {
+      albums[alk] = {
+        n: s.album||'Unknown',
+        artist: s.albumArtist || s.artist || '',
+        count: 0,
+        cover: s.coverPath || '',
+        song: s,
+        artistCounts: {}
+      };
+    }
     albums[alk].count++;
+    var artistKey = s.artist || 'Unknown';
+    albums[alk].artistCounts[artistKey] = (albums[alk].artistCounts[artistKey] || 0) + 1;
     if (s.coverPath && !albums[alk].cover) albums[alk].cover = s.coverPath;
+  });
+  // Determine primary artist: albumArtist > most common track artist
+  Object.values(albums).forEach(function(a){
+    if (!a.artist) {
+      var sorted = Object.keys(a.artistCounts).sort(function(x,y){ return a.artistCounts[y] - a.artistCounts[x]; });
+      a.artist = sorted[0] || '';
+    }
   });
   var list = Object.values(albums).sort(function(a,b){ return a.n.localeCompare(b.n); });
   var html = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:1px">ALBUMS</span><span style="font-size:10px;color:rgba(255,255,255,.25)">'+list.length+'</span></div>';
