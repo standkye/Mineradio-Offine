@@ -1,0 +1,2 @@
+[permissions]
+allow = ["Bash=cmd /c 'D:\\Programming project\\Mineradio-upgrade\\sync-to-runner.bat'", "Bash=& \"D:\\Programming project\\Mineradio-upgrade\\sync-to-runner.bat\""]

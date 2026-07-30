@@ -21573,7 +21573,7 @@ function renderSongList(filter, fv) {
   else if (filter === 'liked') songs = songs.filter(function(x){ return localLikedSongs[x.localPath||x.localUrl||'']; });
   // Header
   var html = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">';
-  if (filter !== 'all') html += '<button class="lb-back" style="background:none;border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:3px 10px;color:rgba(255,255,255,.5);font-size:11px;cursor:pointer">&larr;</button>';
+  if (filter !== 'all' && filter !== 'liked') html += '<button class="lb-back" style="background:none;border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:3px 10px;color:rgba(255,255,255,.5);font-size:11px;cursor:pointer">&larr;</button>';
   html += '<span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:1px;flex:1">' + (filter==='all'?'ALL SONGS':filter==='liked'?'LIKED':fv||'') + '</span>';
   html += '<span style="font-size:10px;color:rgba(255,255,255,.25)">' + songs.length + '</span>';
   if (songs.length > 0) html += '<button class="play-all-btn" style="height:28px;padding:0 12px;border-radius:999px;border:1px solid rgba(0,245,212,.3);background:rgba(0,245,212,.08);color:rgba(0,245,212,.9);font:inherit;font-size:10.5px;cursor:pointer;flex-shrink:0;transition:all .2s" onmouseover="this.style.background=\'rgba(0,245,212,.15)\'" onmouseout="this.style.background=\'rgba(0,245,212,.08)\'">▶ 播放全部</button>';
@@ -21597,7 +21597,11 @@ function renderSongList(filter, fv) {
 
   // Back button
   var bb = el.querySelector('.lb-back');
-  if (bb) bb.onclick = function(){ renderSongList('all'); };
+  if (bb) bb.onclick = function(){
+    if (filter === 'artist') showArtistsView();
+    else if (filter === 'album') showAlbumsView();
+    else renderSongList('all');
+  };
   // Play all button
   var pab = el.querySelector('.play-all-btn');
   if (pab) pab.onclick = function() {
@@ -21650,15 +21654,12 @@ function showArtistsView() {
     artists[ak].count++;
   });
   var list = Object.values(artists).sort(function(a,b){ return a.n.localeCompare(b.n); });
-  var html = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><button class="lb-back" style="background:none;border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:3px 10px;color:rgba(255,255,255,.5);font-size:11px;cursor:pointer">&larr;</button><span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:1px">ARTISTS</span><span style="font-size:10px;color:rgba(255,255,255,.25)">'+list.length+'</span></div>';
+  var html = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:1px">ARTISTS</span><span style="font-size:10px;color:rgba(255,255,255,.25)">'+list.length+'</span></div>';
   list.forEach(function(a){
     var img = a.img ? '<img src="'+LSERVER+'/api/local/cover?path='+encodeURIComponent(a.img)+'" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0" onerror="this.style.display=&quot;none&quot;">' : '<div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.05);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(255,255,255,.15)">&#9835;</div>';
     html += '<div class="la-row" data-artist="'+escHtml(a.n)+'" style="display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:8px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.03)">'+img+'<div style="flex:1"><div style="font-size:13px;font-weight:600;color:rgba(255,255,255,.85)">'+escHtml(a.n)+'</div><div style="font-size:10.5px;color:rgba(255,255,255,.35)">'+a.count+' songs</div></div><span style="color:rgba(255,255,255,.2);font-size:16px">&#8250;</span></div>';
   });
   el.innerHTML = html;
-  // Back
-  var bb = el.querySelector('.lb-back');
-  if (bb) bb.onclick = function(){ renderSongList('all'); };
   // Artist click
   el.addEventListener('click', function(e) {
     var row = e.target.closest('.la-row');
@@ -21683,7 +21684,7 @@ function showAlbumsView() {
     if (s.coverPath && !albums[alk].cover) albums[alk].cover = s.coverPath;
   });
   var list = Object.values(albums).sort(function(a,b){ return a.n.localeCompare(b.n); });
-  var html = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><button class="lb-back" style="background:none;border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:3px 10px;color:rgba(255,255,255,.5);font-size:11px;cursor:pointer">&larr;</button><span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:1px">ALBUMS</span><span style="font-size:10px;color:rgba(255,255,255,.25)">'+list.length+'</span></div>';
+  var html = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:1px">ALBUMS</span><span style="font-size:10px;color:rgba(255,255,255,.25)">'+list.length+'</span></div>';
   html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px">';
   list.forEach(function(al){
     var src = al.cover ? LSERVER+'/api/local/cover?path='+encodeURIComponent(al.cover) : (al.song && al.song.hasCover ? LSERVER+'/api/local/cover?path='+encodeURIComponent(al.song.localPath||'') : '');
@@ -21692,8 +21693,6 @@ function showAlbumsView() {
   });
   html += '</div>';
   el.innerHTML = html;
-  var bb = el.querySelector('.lb-back');
-  if (bb) bb.onclick = function(){ renderSongList('all'); };
   el.querySelectorAll('.lal-card').forEach(function(card){
     card.onclick = function(){ renderSongList('album', card.getAttribute('data-album')); };
   });
@@ -21703,7 +21702,7 @@ function showPlaylistsView() {
   var el = document.getElementById('ll');
   if (!el) return;
   var names = Object.keys(localPlaylists);
-  var html = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><button class="lb-back" style="background:none;border:1px solid rgba(255,255,255,.12);border-radius:999px;padding:3px 10px;color:rgba(255,255,255,.5);font-size:11px;cursor:pointer">&larr;</button><span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:1px;flex:1">PLAYLISTS</span><button id="new-pl-btn" style="background:none;border:1px solid rgba(0,245,212,.3);border-radius:999px;padding:3px 10px;color:rgba(0,245,212,.7);font-size:11px;cursor:pointer">+ NEW</button></div>';
+  var html = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:1px;flex:1">PLAYLISTS</span><button id="new-pl-btn" style="background:none;border:1px solid rgba(0,245,212,.3);border-radius:999px;padding:3px 10px;color:rgba(0,245,212,.7);font-size:11px;cursor:pointer">+ NEW</button></div>';
   if (!names.length) html += '<div style="padding:30px;text-align:center;color:rgba(255,255,255,.2);font-size:13px">No playlists yet</div>';
   else {
     names.forEach(function(name) {
@@ -21716,8 +21715,6 @@ function showPlaylistsView() {
     });
   }
   el.innerHTML = html;
-  var bb = el.querySelector('.lb-back');
-  if (bb) bb.onclick = function(){ renderSongList('all'); };
   var nb = document.getElementById('new-pl-btn');
   if (nb) nb.onclick = showCreateLocalPlaylistInput;
   el.querySelectorAll('.lpl-row').forEach(function(row) {
