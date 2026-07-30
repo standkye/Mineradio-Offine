@@ -21689,6 +21689,14 @@ function showArtistsView() {
 function showAlbumsView() {
   var el = document.getElementById('ll');
   if (!el) return;
+
+  function pDir(fp) {
+    if (!fp) return '';
+    var idx = Math.max(fp.lastIndexOf('/'), fp.lastIndexOf('\\'));
+    return idx >= 0 ? fp.substring(0, idx) : '';
+  }
+
+  // Step 1: Group by normalized album name
   var albums = {};
   localAllSongs.forEach(function(s){
     var alk = (s.album||'Unknown').toLowerCase().trim();
@@ -21699,22 +21707,54 @@ function showAlbumsView() {
         count: 0,
         cover: s.coverPath || '',
         song: s,
+        songs: [],
+        dirs: {},
         artistCounts: {}
       };
     }
     albums[alk].count++;
+    albums[alk].songs.push(s);
+    var songDir = pDir(s.localPath || s.localUrl || '');
+    if (songDir) albums[alk].dirs[songDir] = (albums[alk].dirs[songDir] || 0) + 1;
     var artistKey = s.artist || 'Unknown';
     albums[alk].artistCounts[artistKey] = (albums[alk].artistCounts[artistKey] || 0) + 1;
     if (s.coverPath && !albums[alk].cover) albums[alk].cover = s.coverPath;
   });
-  // Determine primary artist: albumArtist > most common track artist
-  Object.values(albums).forEach(function(a){
+
+  // Step 2: Merge singleton albums (1 song) into larger albums from the same directory
+  var albumEntries = Object.values(albums);
+  var multi = albumEntries.filter(function(a){ return a.count > 1; });
+  var singletons = albumEntries.filter(function(a){ return a.count === 1; });
+  singletons.forEach(function(singleton){
+    var s = singleton.songs[0];
+    var dir = pDir(s.localPath || s.localUrl || '');
+    if (!dir) return;
+    // Find a multi-song album sharing this directory
+    for (var mi = 0; mi < multi.length; mi++) {
+      if (multi[mi].dirs[dir]) {
+        // Merge into target
+        multi[mi].count += singleton.count;
+        multi[mi].songs = multi[mi].songs.concat(singleton.songs);
+        var ak = s.artist || 'Unknown';
+        multi[mi].artistCounts[ak] = (multi[mi].artistCounts[ak] || 0) + 1;
+        if (s.coverPath && !multi[mi].cover) multi[mi].cover = s.coverPath;
+        singleton._merged = true;
+        break;
+      }
+    }
+  });
+  albumEntries = albumEntries.filter(function(a){ return !a._merged; });
+
+  // Step 3: Determine primary artist (albumArtist > most common track artist)
+  albumEntries.forEach(function(a){
     if (!a.artist) {
       var sorted = Object.keys(a.artistCounts).sort(function(x,y){ return a.artistCounts[y] - a.artistCounts[x]; });
       a.artist = sorted[0] || '';
     }
   });
-  var list = Object.values(albums).sort(function(a,b){ return a.n.localeCompare(b.n); });
+
+  // Step 4: Sort and render
+  var list = albumEntries.sort(function(a,b){ return a.n.localeCompare(b.n); });
   var html = '<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:1px">ALBUMS</span><span style="font-size:10px;color:rgba(255,255,255,.25)">'+list.length+'</span></div>';
   html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px">';
   list.forEach(function(al){
