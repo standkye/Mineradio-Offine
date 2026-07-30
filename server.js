@@ -376,11 +376,16 @@ const server = http.createServer(async (req, res) => {
               }
             });
           }
-          // Find artist image from same or parent directory
+          // Find artist image from same directory, or parent directory if name matches
           if (imageFiles[fileDir] && imageFiles[fileDir].artist && imageFiles[fileDir].artist.length) {
             artistImagePath = imageFiles[fileDir].artist[0];
           } else if (imageFiles[parentDir] && imageFiles[parentDir].artist && imageFiles[parentDir].artist.length) {
-            artistImagePath = imageFiles[parentDir].artist[0];
+            // Only inherit parent's artist image if parent dir name matches the artist tag
+            var parentDirName = path.basename(parentDir).toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g, '');
+            var artistNameNorm = (artist || '').toLowerCase().trim().replace(/[^a-z0-9\u4e00-\u9fff]+/g, '');
+            if (parentDirName === artistNameNorm) {
+              artistImagePath = imageFiles[parentDir].artist[0];
+            }
           }
           // 清理标题中的歌手名前缀或后缀
           // 常见格式: "歌手 - 歌名" 或 "歌名 - 歌手" 或 "歌名-歌手"
@@ -430,6 +435,47 @@ const server = http.createServer(async (req, res) => {
           /* skip problematic files */
         }
       }
+      // 同专辑封面共享：同一专辑中若有歌曲有封面，则其他无封面的歌曲共用之
+      (function shareAlbumCovers(songs) {
+        var albumCoverMap = {};
+        for (var i = 0; i < songs.length; i++) {
+          var s = songs[i];
+          var albumKey = (s.album || '').trim().toLowerCase();
+          if (!albumKey || albumKey === '未知专辑' || albumKey === 'unknown album') continue;
+          if (s.hasCover && s.coverPath && !albumCoverMap[albumKey]) {
+            albumCoverMap[albumKey] = { coverPath: s.coverPath };
+          }
+        }
+        for (var j = 0; j < songs.length; j++) {
+          var s2 = songs[j];
+          var ak = (s2.album || '').trim().toLowerCase();
+          if (!ak || ak === '未知专辑' || ak === 'unknown album') continue;
+          if (!s2.hasCover && albumCoverMap[ak]) {
+            s2.coverPath = albumCoverMap[ak].coverPath;
+            s2.hasCover = true;
+          }
+        }
+      })(songs);
+      // 同歌手图片共享：同一歌手中若有歌曲有歌手图片，则其他无歌手图片的歌曲共用之
+      (function shareArtistImages(songs) {
+        var artistImageMap = {};
+        for (var i = 0; i < songs.length; i++) {
+          var s = songs[i];
+          var artistKey = (s.artist || '').trim().toLowerCase();
+          if (!artistKey || artistKey === '未知艺术家' || artistKey === 'unknown artist') continue;
+          if (s.artistImagePath && !artistImageMap[artistKey]) {
+            artistImageMap[artistKey] = s.artistImagePath;
+          }
+        }
+        for (var j = 0; j < songs.length; j++) {
+          var s2 = songs[j];
+          var ak = (s2.artist || '').trim().toLowerCase();
+          if (!ak || ak === '未知艺术家' || ak === 'unknown artist') continue;
+          if (!s2.artistImagePath && artistImageMap[ak]) {
+            s2.artistImagePath = artistImageMap[ak];
+          }
+        }
+      })(songs);
       localMusicCache = songs;
       localMusicScanBusy = false;
       console.log(

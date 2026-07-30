@@ -4,10 +4,10 @@
 
 Mineradio 是 Windows Electron 桌面音乐播放器，核心体验包括搜索、播放、歌单、歌词、3D 歌单架、粒子视觉预设、DIY 视觉控制台和 GitHub 自动更新。
 
-- 当前可运行程序：`H:\Mineradio\runner\Mineradio.exe`
-- 当前运行版主目录：`H:\Mineradio\runner`
-- 当前运行版目录：`H:\Mineradio\runner\resources\app`
-- 当前开发仓库/Git 仓库：`H:\Mineradio`
+- 当前可运行程序：`D:\Programming project\Mineradio-upgrade\runner\Mineradio.exe`
+- 当前运行版主目录：`D:\Programming project\Mineradio-upgrade\runner`
+- 当前运行版目录：`D:\Programming project\Mineradio-upgrade\runner\resources\app`
+- 当前开发仓库/Git 仓库：`D:\Programming project\Mineradio-upgrade`
 - GitHub 仓库：`https://github.com/XxHuberrr/Mineradio.git`
 - 当前源码版本：`v1.1.1`
 - 统一备份区：`E:\桌面\播放器软件\工作区备份`
@@ -17,10 +17,10 @@ Mineradio 是 Windows Electron 桌面音乐播放器，核心体验包括搜索�
 新对话开始处理 Mineradio 前，必须先确认当前目录是：
 
 ```powershell
-H:\Mineradio
+D:\Programming project\Mineradio-upgrade
 ```
 
-⚠️ 改完代码后，运行 `sync-to-runner.bat` 将变更同步到运行版 `H:\Mineradio\runner\resources\app`，再重启 `H:\Mineradio\runner\Mineradio.exe` 查看效果。
+⚠️ 改完代码后，运行 `sync-to-runner.bat` 将变更同步到运行版 `D:\Programming project\Mineradio-upgrade\runner\resources\app`，再重启 `D:\Programming project\Mineradio-upgrade\runner\Mineradio.exe` 查看效果。
 
 然后读这些文件：
 
@@ -48,7 +48,7 @@ Mineradio/resources/app/
 ## Commands
 
 ```powershell
-sync-to-runner.bat      # 同步代码到运行版 H:\Mineradio\runner\resources\app
+sync-to-runner.bat      # 同步代码到运行版 D:\Programming project\Mineradio-upgrade\runner\resources\app
 npm start               # 在本目录直接启动 Electron（调试用）
 node --check server.js  # 语法检查
 npm run build:win       # 打包安装程序
@@ -56,9 +56,9 @@ npm run build:win       # 打包安装程序
 
 ## 工作流
 
-1. 在 `H:\Mineradio` 修改代码（开发仓库，含 Git/docs/打包配置）
+1. 在 `D:\Programming project\Mineradio-upgrade` 修改代码（开发仓库，含 Git/docs/打包配置）
 2. 运行 `sync-to-runner.bat` 一键同步到运行版
-3. 重启 `H:\Mineradio\runner\Mineradio.exe` 查看效果
+3. 重启 `D:\Programming project\Mineradio-upgrade\runner\Mineradio.exe` 查看效果
 
 前端主逻辑在 `public/index.html`。没有独立 npm test，改动后至少做：
 
@@ -94,7 +94,7 @@ GitHub CLI / `gh auth` / Release 上传需要代理时，优先使用可用本�
 - 视觉质量定义：质感、丝滑度、帧数稳定同时成立；性能优化不能牺牲既有质感。
 - 玻璃质感：当前播放器 SVG 玻璃质感是黄金版本，详见 `docs/GLASS_SVG_TEXTURE.md`。
 - 备份策略：不要删除旧资料；重复和历史内容移动到 `E:\桌面\播放器软件\工作区备份`。
-- 重要：开发仓库在 `H:\Mineradio`，运行版在 `H:\Mineradio\runner\resources\app`。改完代码后运行 `sync-to-runner.bat` 同步，再重启 `H:\Mineradio\runner\Mineradio.exe`。
+- 重要：开发仓库在 `D:\Programming project\Mineradio-upgrade`，运行版在 `D:\Programming project\Mineradio-upgrade\runner\resources\app`。改完代码后运行 `sync-to-runner.bat` 同步，再重启 `D:\Programming project\Mineradio-upgrade\runner\Mineradio.exe`。`sync-to-runner.bat` 中的路径会自动指向当前仓库。
 
 ## Memory Protocol
 

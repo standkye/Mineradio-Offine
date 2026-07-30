@@ -12,12 +12,12 @@
 
 ## Stable Project Facts
 
-- 可运行程序：`E:\桌面\播放器软件\Mineradio\Mineradio.exe`
-- 运行版主目录：`E:\桌面\播放器软件\Mineradio`
-- 真实代码/Git 仓库：`E:\桌面\播放器软件\Mineradio\resources\app`
+- 真实代码/Git 仓库：`D:\Programming project\Mineradio-upgrade`
+- 可运行程序：`D:\Programming project\Mineradio-upgrade\runner\Mineradio.exe`
+- 运行版主目录：`D:\Programming project\Mineradio-upgrade\runner`
 - GitHub 仓库：`https://github.com/XxHuberrr/Mineradio.git`
 - 统一备份目录：`E:\桌面\播放器软件\工作区备份`
-- 当前源码检查点：`v1.1.0`
+- 当前源码检查点：`v1.1.1`
 - 最近正式安装包 Release 基线：`v1.1.0` 纯净安装版；`v1.0.10` 及更早安装包需隔离，不再建议安装或传播。
 - 发布入口：GitHub Releases，更新检查依赖 `latest.yml` 和可选轻量补丁 JSON。
 - 更新包命名规则：从 `v1.0.10` 起，快速补丁本地文件名和 GitHub Release label 使用 `Mineradio-旧版本→新版本.patch.json` 这种右箭头格式；GitHub 资产底层 `name` 可能会把 `→` 净化成点号，但更新解析仍可识别 from/to 版本。
@@ -28,7 +28,7 @@
 
 2026-06-18 已整理工作区：
 
-- 真正项目移动到 `E:\桌面\播放器软件\Mineradio`。
+- 真正项目移动到 `D:\Programming project\Mineradio-upgrade`。
 - 旧的 `editable-install`、历史 `backups`、`备份`、截图、旧计划文档和验证目录都归档到 `E:\桌面\播放器软件\工作区备份\2026-06-18-workspace-cleanup`。
 - 项目内历史 `backups` 也归档到 `E:\桌面\播放器软件\工作区备份\2026-06-18-workspace-cleanup\project-internal`。
 - 根目录 `AGENTS.md` 负责给新对话指路；项目内 `AGENTS.md` 负责项目规则。
@@ -347,11 +347,10 @@
 
 ### 2026-06-18 - 将 win-unpacked 设为 Mineradio 主运行目录
 
-- 用户认可/要求保留：用户实际检查软件靠 `win-unpacked` 里的 `Mineradio.exe`，所以 `win-unpacked` 已提升为 `E:\桌面\播放器软件\Mineradio` 主目录。
-- 涉及文件：`E:\桌面\播放器软件\AGENTS.md`、`E:\桌面\播放器软件\Mineradio\AGENTS.md`、`AGENTS.md`、本文件。
-- 关键参数/实现：真实代码/Git 仓库移动到 `E:\桌面\播放器软件\Mineradio\resources\app`；可运行程序在 `E:\桌面\播放器软件\Mineradio\Mineradio.exe`。
-- 禁止回退或改坏的点：以后不要修改外层旧源码路径；改代码必须进入 `resources\app`，否则用户打开 exe 看不到效果。
-- 补充：运行版 `node_modules` 可能没有打包依赖；发布前如缺少 `electron-builder`，在 `resources\app` 里执行 `npm install`。
+- 用户认可/要求保留：用户实际检查软件靠 `win-unpacked` 里的 `Mineradio.exe`，所以 `win-unpacked` 已提升为 `D:\Programming project\Mineradio-upgrade\runner` 主运行目录。
+- 涉及文件：`D:\Programming project\Mineradio-upgrade\AGENTS.md`、`AGENTS.md`、本文件。
+- 关键参数/实现：真实代码/Git 仓库在 `D:\Programming project\Mineradio-upgrade`；可运行程序在 `D:\Programming project\Mineradio-upgrade\runner\Mineradio.exe`。
+- 禁止回退或改坏的点：不要把真实代码/Git 仓库重新藏到 `editable-install\...\resources\app`；不要把散落备份重新放到根目录。
 
 ### 2026-06-18 - 保留最小化内存优化边界
 
