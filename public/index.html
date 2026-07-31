@@ -21352,7 +21352,7 @@ function renderHome(hero, grid, rail) {
   });
   var ac = Object.keys(artists).length;
   var alc = Object.keys(albums).length;
-  var lc = Object.keys(localLikedSongs).length;
+  var lc = localAllSongs.filter(function(x){ return localLikedSongs[x.localPath || x.localUrl || '']; }).length;
   var pc = Object.keys(localPlaylists).length;
 
   renderSongList('all');
