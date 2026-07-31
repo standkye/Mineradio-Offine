@@ -12,8 +12,6 @@ contextBridge.exposeInMainWorld('desktopWindow', {
   clearNeteaseMusicLogin: () => ipcRenderer.invoke('netease-music-clear-login'),
   openQQMusicLogin: () => ipcRenderer.invoke('qq-music-open-login'),
   clearQQMusicLogin: () => ipcRenderer.invoke('qq-music-clear-login'),
-  openUpdateInstaller: (filePath) => ipcRenderer.invoke('mineradio-open-update-installer', filePath),
-  restartApp: () => ipcRenderer.invoke('mineradio-restart-app'),
   configureGlobalHotkeys: (bindings) => ipcRenderer.invoke('mineradio-hotkeys-configure-global', bindings || []),
   exportJsonFile: (payload) => ipcRenderer.invoke('mineradio-export-json-file', payload || {}),
   importJsonFile: () => ipcRenderer.invoke('mineradio-import-json-file'),

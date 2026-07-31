@@ -90,14 +90,18 @@ const NETEASE_LOGIN_COOKIE_PRIORITY = [
   'JSESSIONID-WYYY',
 ];
 
-function findOpenPort(startPort) {
+function findOpenPort(startPort, maxAttempts = 500) {
   return new Promise((resolve, reject) => {
-    function tryPort(port) {
+    function tryPort(port, attemptsLeft) {
+      if (attemptsLeft <= 0) {
+        reject(new Error('NO_FREE_PORT_FOUND'));
+        return;
+      }
       const tester = net.createServer();
 
       tester.once('error', (err) => {
         if (err.code === 'EADDRINUSE' || err.code === 'EACCES') {
-          tryPort(port + 1);
+          tryPort(port + 1, attemptsLeft - 1);
           return;
         }
         reject(err);
@@ -107,10 +111,14 @@ function findOpenPort(startPort) {
         tester.close(() => resolve(port));
       });
 
-      tester.listen(port, '127.0.0.1');
+      try {
+        tester.listen(port, '127.0.0.1');
+      } catch (e) {
+        tryPort(port + 1, attemptsLeft - 1);
+      }
     }
 
-    tryPort(startPort);
+    tryPort(startPort, maxAttempts);
   });
 }
 
@@ -273,10 +281,6 @@ function focusMainWindow() {
   mainWindow.focus();
   sendWindowState(mainWindow);
   return true;
-}
-
-function getUpdateDownloadDir() {
-  return path.join(app.getPath('userData'), 'updates');
 }
 
 function shouldEnsureDesktopShortcut() {
@@ -525,7 +529,7 @@ async function openNeteaseMusicLoginWindow(owner) {
         const cookie = await readNeteaseLoginCookieHeader(cookieSession);
         resolve(
           neteaseCookieHasLogin(cookie)
-            ? { ok: true, cookie, partial: !qqCookieHasPlaybackLogin(cookie) }
+            ? { ok: true, cookie, partial: false }
             : { ok: false, cancelled: true, message: '网易云登录窗口已关闭' },
         );
       } catch (e) {
@@ -1239,31 +1243,6 @@ ipcMain.handle('qq-music-clear-login', async () => {
   return clearQQMusicLoginSession();
 });
 
-ipcMain.handle('mineradio-open-update-installer', async (_event, filePath) => {
-  try {
-    const target = path.resolve(String(filePath || ''));
-    const updateDir = path.resolve(getUpdateDownloadDir());
-    if (!target || !target.startsWith(updateDir + path.sep)) {
-      return { ok: false, error: 'INVALID_UPDATE_PATH' };
-    }
-    if (!fs.existsSync(target)) return { ok: false, error: 'UPDATE_FILE_MISSING' };
-    const error = await shell.openPath(target);
-    return error ? { ok: false, error } : { ok: true };
-  } catch (e) {
-    return { ok: false, error: e.message || 'OPEN_UPDATE_FAILED' };
-  }
-});
-
-ipcMain.handle('mineradio-restart-app', async () => {
-  try {
-    app.relaunch();
-    app.exit(0);
-    return { ok: true };
-  } catch (e) {
-    return { ok: false, error: e.message || 'RESTART_FAILED' };
-  }
-});
-
 ipcMain.handle('mineradio-desktop-lyrics-set-enabled', async (_event, enabled, payload) => {
   try {
     if (enabled) {
@@ -1391,7 +1370,6 @@ async function createWindow() {
   process.env.PORT = String(port);
   process.env.COOKIE_FILE = path.join(app.getPath('userData'), '.cookie');
   process.env.QQ_COOKIE_FILE = path.join(app.getPath('userData'), '.qq-cookie');
-  process.env.MINERADIO_UPDATE_DIR = getUpdateDownloadDir();
   try {
     const legacyQQCookie = path.join(__dirname, '..', '.qq-cookie');
     if (fs.existsSync(legacyQQCookie)) {

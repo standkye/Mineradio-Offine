@@ -11,7 +11,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || '0.0.0.0';
+const HOST = process.env.HOST || '127.0.0.1';
 const UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 const BEATMAP_CACHE_DIR =
@@ -32,6 +32,7 @@ const MIME = {
   '.jpg': 'image/jpeg',
   '.ico': 'image/x-icon',
   '.svg': 'image/svg+xml',
+  '.webp': 'image/webp',
 };
 
 // ---------- 工具 ----------
@@ -50,12 +51,14 @@ function serveStatic(res, filePath) {
 function sendJSON(res, data, status) {
   res.writeHead(status || 200, {
     'Content-Type': 'application/json; charset=utf-8',
-    'Access-Control-Allow-Origin': '*',
     'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
     Pragma: 'no-cache',
     Expires: '0',
   });
   res.end(JSON.stringify(data));
+}
+function requireAppHeader(req) {
+  return req.headers['x-mineradio-app'] === '1';
 }
 function readPackageInfo() {
   try {
@@ -137,11 +140,10 @@ function writeBeatMapCache(body) {
 function readRequestBody(req) {
   return new Promise((resolve) => {
     let raw = '';
-    req.on('data', (chunk) => {
-      raw += chunk;
-      if (raw.length > 8 * 1024 * 1024) req.destroy();
-    });
-    req.on('end', () => {
+    let settled = false;
+    const finish = () => {
+      if (settled) return;
+      settled = true;
       if (!raw) {
         resolve({});
         return;
@@ -156,7 +158,17 @@ function readRequestBody(req) {
         });
         resolve(out);
       }
+    };
+    req.on('data', (chunk) => {
+      raw += chunk;
+      if (raw.length > 8 * 1024 * 1024) {
+        req.destroy();
+        finish();
+      }
     });
+    req.on('end', finish);
+    req.on('error', finish);
+    req.on('aborted', finish);
   });
 }
 
@@ -235,6 +247,10 @@ const server = http.createServer(async (req, res) => {
 
   // ---------- 本地音乐 ----------
   if (pn === '/api/local/scan') {
+    if (!requireAppHeader(req)) {
+      sendJSON(res, { error: 'FORBIDDEN', songs: [] }, 403);
+      return;
+    }
     try {
       const dir = url.searchParams.get('path') || '';
       if (!dir) {
@@ -341,6 +357,7 @@ const server = http.createServer(async (req, res) => {
             const mm = require('music-metadata');
             try {
               const meta = await mm.parseFile(filePath, { duration: false, skipPostHeaders: true });
+              if (meta.format && meta.format.duration) duration = meta.format.duration;
               if (meta.common.title) title = meta.common.title;
               if (meta.common.artist) artist = meta.common.artist;
               if (meta.common.album) album = meta.common.album;
@@ -504,6 +521,10 @@ const server = http.createServer(async (req, res) => {
   }
   // ---------- 本地音乐整理 (按歌手/专辑自动归类) ----------
   if (pn === '/api/local/organize') {
+    if (!requireAppHeader(req)) {
+      sendJSON(res, { error: 'FORBIDDEN' }, 403);
+      return;
+    }
     const dir = url.searchParams.get('path') || '';
     if (!dir) {
       sendJSON(res, { error: 'Missing path' }, 400);
@@ -697,16 +718,34 @@ const server = http.createServer(async (req, res) => {
       };
       const contentType = mimeMap[ext] || 'audio/mpeg';
       if (range) {
-        const parts = range.replace(/bytes=/, '').split('-');
-        const start = parseInt(parts[0], 10);
-        const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+        const match = /^bytes=(\d*)-(\d*)$/.exec(String(range).trim());
+        const startParam = match ? match[1] : '';
+        const endParam = match ? match[2] : '';
+        let start = startParam === '' ? -1 : parseInt(startParam, 10);
+        let end = endParam === '' ? -1 : parseInt(endParam, 10);
+        if (!match || Number.isNaN(start) || Number.isNaN(end) || (start === -1 && end === -1)) {
+          res.writeHead(416, { 'Content-Range': 'bytes */' + fileSize });
+          res.end();
+          return;
+        }
+        if (start === -1) {
+          start = Math.max(0, fileSize - end);
+          end = fileSize - 1;
+        } else if (end === -1) {
+          end = fileSize - 1;
+        }
+        end = Math.min(end, fileSize - 1);
+        if (start > end || start >= fileSize) {
+          res.writeHead(416, { 'Content-Range': 'bytes */' + fileSize });
+          res.end();
+          return;
+        }
         const chunkSize = end - start + 1;
         res.writeHead(206, {
           'Content-Range': 'bytes ' + start + '-' + end + '/' + fileSize,
           'Content-Length': chunkSize,
           'Content-Type': contentType,
           'Accept-Ranges': 'bytes',
-          'Access-Control-Allow-Origin': '*',
         });
         const stream = fs.createReadStream(filePath, { start, end });
         stream.pipe(res);
@@ -715,7 +754,6 @@ const server = http.createServer(async (req, res) => {
           'Content-Length': fileSize,
           'Content-Type': contentType,
           'Accept-Ranges': 'bytes',
-          'Access-Control-Allow-Origin': '*',
         });
         const stream = fs.createReadStream(filePath);
         stream.pipe(res);
@@ -745,7 +783,6 @@ const server = http.createServer(async (req, res) => {
           'Content-Type': mimeMap[ext] || 'image/jpeg',
           'Content-Length': stat.size,
           'Cache-Control': 'public, max-age=86400',
-          'Access-Control-Allow-Origin': '*',
         });
         const stream = fs.createReadStream(filePath);
         stream.pipe(res);
@@ -765,7 +802,6 @@ const server = http.createServer(async (req, res) => {
             'Content-Type': mime,
             'Content-Length': pic.data.length,
             'Cache-Control': 'public, max-age=86400',
-            'Access-Control-Allow-Origin': '*',
           });
           res.end(pic.data);
           sent = true;
@@ -799,7 +835,6 @@ const server = http.createServer(async (req, res) => {
                         'Content-Type': mime,
                         'Content-Length': imgBuffer.length,
                         'Cache-Control': 'public, max-age=86400',
-                        'Access-Control-Allow-Origin': '*',
                       });
                       res.end(imgBuffer);
                       sent = true;
@@ -891,7 +926,6 @@ const server = http.createServer(async (req, res) => {
         'Content-Type': mimeMap[ext] || 'image/jpeg',
         'Content-Length': stat.size,
         'Cache-Control': 'public, max-age=86400',
-        'Access-Control-Allow-Origin': '*',
       });
       const stream = fs.createReadStream(artistImagePath);
       stream.pipe(res);
@@ -905,6 +939,10 @@ const server = http.createServer(async (req, res) => {
 
   // ---------- 本地歌词下载 (LRCLib + gequhai.com 备用) ----------
   if (pn === '/api/local/download-lyrics') {
+    if (!requireAppHeader(req)) {
+      sendJSON(res, { total: 0, completed: 0, failed: 0, results: [] }, 403);
+      return;
+    }
     const songsParam = url.searchParams.get('songs') || '[]';
     let songs;
     try {
@@ -984,9 +1022,14 @@ const server = http.createServer(async (req, res) => {
         failed++;
         results.push({ song: song.name || '?', status: 'no_lyrics' });
       } else {
-        fs.writeFileSync(lrcPath, lrcContent, 'utf8');
-        completed++;
-        results.push({ song: song.name || '?', status: 'downloaded', lrcPath });
+        try {
+          fs.writeFileSync(lrcPath, lrcContent, 'utf8');
+          completed++;
+          results.push({ song: song.name || '?', status: 'downloaded', lrcPath });
+        } catch (writeErr) {
+          failed++;
+          results.push({ song: song.name || '?', status: 'write_failed', reason: writeErr.message || 'WRITE_FAILED' });
+        }
       }
       await new Promise((r) => setTimeout(r, 500));
     }
@@ -995,7 +1038,7 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  // ---------- 静态资源 ----------// ---------- 静态资源 ----------
+  // ---------- 静态资源 ----------
   if (pn === '/favicon.ico') {
     serveStatic(res, path.join(__dirname, 'build', 'icon.ico'));
     return;
