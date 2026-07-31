@@ -1810,3 +1810,12 @@ html.control-glass-svg-ok #visual-guide-btn:hover{
   .fx-slider{grid-template-columns:74px minmax(0,1fr) 40px 28px;gap:8px;padding:8px}
   .lyric-color-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
+
+/* 本地播放器模式：隐藏在线平台入口（登录按钮/登录弹窗/账号弹窗/试听条） */
+#user-btn,
+#user-capsule-hide-btn,
+#login-modal,
+#user-modal,
+#trial-banner {
+  display: none !important;
+}
