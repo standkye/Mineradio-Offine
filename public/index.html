@@ -10,6 +10,7 @@
 <script src="vendor/music-tempo.min.js"></script>
 <script src="vendor/gsap.min.js"></script>
 <script src="sonic-topography-preset.js"></script>
+<script src="sonic-workshop-preset.js"></script>
 <script>
 try {
   document.documentElement.classList.add(localStorage.getItem('mineradio-diy-player-mode-v1') === '1' ? 'diy-mode-preload' : 'simple-mode-preload');
@@ -243,6 +244,58 @@ try {
   <div class="fx-slider"><label>封面清晰度</label><input id="fx-coverres" type="range" min="0.75" max="1.55" step="0.01"><output></output></div>
   <div class="fx-slider"><label>镜头晃动</label><input id="fx-cineshake" type="range" min="0" max="1.8" step="0.01"><output></output></div>
   <div class="fx-slider"><label>歌词溢光</label><input id="fx-lyricglow" type="range" min="0" max="0.85" step="0.01"><output></output></div>
+
+  <div class="fx-fold" id="fx-workshop-fold">
+    <div class="fx-fold-head" onclick="document.getElementById('fx-workshop-fold').classList.toggle('open')">
+      <span class="fx-fold-title"><strong>音域回响·WE</strong><small>Wallpaper Engine 场景 / 配色 / 响应</small></span><span class="arrow">▾</span>
+    </div>
+    <div class="fx-fold-body">
+      <div class="fx-section-label">音频响应</div>
+      <div class="fx-slider"><label>输入压制</label><input id="fx-sonicwegain" type="range" min="40" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>音频响应</label><input id="fx-sonicweaudio" type="range" min="0.3" max="2.5" step="0.01"><output></output></div>
+      <div class="fx-slider"><label>响应范围</label><input id="fx-sonicwerange" type="range" min="0.3" max="2" step="0.01"><output></output></div>
+      <div class="fx-slider"><label>中心高光</label><input id="fx-sonicwepeak" type="range" min="0" max="1.4" step="0.01"><output></output></div>
+      <div class="fx-section-label">WE 配色</div>
+      <div class="lyric-color-row" id="sonic-workshop-color-row">
+        <input id="sonic-workshop-cover-picker" class="lyric-color-picker" type="color" value="#cb6c89" title="WE theme color">
+        <div class="fx-color-row-label">WE 主题基色<small id="sonic-workshop-theme-value">封面取色</small></div>
+        <button class="fx-mini-btn ghost" type="button" onclick="setSonicWorkshopRegionColorMode('theme','cover')">封面</button>
+      </div>
+      <div class="lyric-color-row" id="sonic-workshop-base-row">
+        <input id="sonic-workshop-base-picker" class="lyric-color-picker" type="color" value="#16060f" title="WE terrain base">
+        <div class="fx-color-row-label">地形底色<small id="sonic-workshop-base-value">封面取色</small></div>
+        <button class="fx-mini-btn ghost" type="button" onclick="setSonicWorkshopRegionColorMode('base','cover')">封面</button>
+      </div>
+      <div class="lyric-color-row" id="sonic-workshop-warm-row">
+        <input id="sonic-workshop-warm-picker" class="lyric-color-picker" type="color" value="#cb6c89" title="WE warm body">
+        <div class="fx-color-row-label">暖色主体<small id="sonic-workshop-warm-value">封面取色</small></div>
+        <button class="fx-mini-btn ghost" type="button" onclick="setSonicWorkshopRegionColorMode('warm','cover')">封面</button>
+      </div>
+      <div class="lyric-color-row" id="sonic-workshop-cool-row">
+        <input id="sonic-workshop-cool-picker" class="lyric-color-picker" type="color" value="#99c4ff" title="WE upper highlight">
+        <div class="fx-color-row-label">上层高光<small id="sonic-workshop-cool-value">封面取色</small></div>
+        <button class="fx-mini-btn ghost" type="button" onclick="setSonicWorkshopRegionColorMode('cool','cover')">封面</button>
+      </div>
+      <div class="lyric-color-row" id="sonic-workshop-ripple-row">
+        <input id="sonic-workshop-ripple-picker" class="lyric-color-picker" type="color" value="#f8d8ff" title="WE ripple light">
+        <div class="fx-color-row-label">波纹亮区<small id="sonic-workshop-ripple-value">封面取色</small></div>
+        <button class="fx-mini-btn ghost" type="button" onclick="setSonicWorkshopRegionColorMode('ripple','cover')">封面</button>
+      </div>
+      <div class="lyric-color-row" id="sonic-workshop-peak-row">
+        <input id="sonic-workshop-peak-picker" class="lyric-color-picker" type="color" value="#99c4ff" title="WE peak highlight">
+        <div class="fx-color-row-label">峰值高光<small id="sonic-workshop-peak-value">封面取色</small></div>
+        <button class="fx-mini-btn ghost" type="button" onclick="setSonicWorkshopRegionColorMode('peak','cover')">封面</button>
+      </div>
+      <div class="fx-section-label">WE 主题</div>
+      <div class="fx-seg sonic-workshop-theme-seg" id="sonic-workshop-theme-seg">
+        <button data-sonic-workshop-theme="coral-mirage" onclick="setSonicWorkshopTheme('coral-mirage')">珊瑚</button>
+        <button data-sonic-workshop-theme="ocean-deep" onclick="setSonicWorkshopTheme('ocean-deep')">深海</button>
+        <button data-sonic-workshop-theme="arctic-aurora" onclick="setSonicWorkshopTheme('arctic-aurora')">冰蓝</button>
+        <button data-sonic-workshop-theme="cyber-forest" onclick="setSonicWorkshopTheme('cyber-forest')">翠绿</button>
+        <button data-sonic-workshop-theme="minimal-monochrome" onclick="setSonicWorkshopTheme('minimal-monochrome')">极简</button>
+      </div>
+    </div>
+  </div>
 
   <div class="fx-fold" id="fx-lyric-fold">
     <div class="fx-fold-head" onclick="document.getElementById('fx-lyric-fold').classList.toggle('open')">
@@ -1343,6 +1396,23 @@ var fxDefaults = {
   performanceQuality: 'high',
   liveBackgroundKeep: false,
   cam: 'off',
+  sonicWorkshopInputGain: 82,
+  sonicWorkshopAudioIntensity: 1.15,
+  sonicWorkshopResponseRange: 1.30,
+  sonicWorkshopPeakIntensity: 0.62,
+  sonicWorkshopColorMode: 'cover',
+  sonicWorkshopTheme: 'minimal-monochrome',
+  sonicWorkshopCustomColor: '#d9dde3',
+  sonicWorkshopBaseColorMode: 'cover',
+  sonicWorkshopBaseColor: '#0b0c0e',
+  sonicWorkshopWarmColorMode: 'cover',
+  sonicWorkshopWarmColor: '#d9dde3',
+  sonicWorkshopCoolColorMode: 'custom',
+  sonicWorkshopCoolColor: '#ffffff',
+  sonicWorkshopRippleColorMode: 'cover',
+  sonicWorkshopRippleColor: '#ffffff',
+  sonicWorkshopPeakColorMode: 'cover',
+  sonicWorkshopPeakColor: '#f2f5f8',
 };
 var PACKAGED_DEFAULT_USER_FX_ARCHIVE_NAME = '默认测试';
 var PACKAGED_DEFAULT_USER_FX_ARCHIVE_EXPORTED_AT = 1782276031784;
@@ -1425,7 +1495,24 @@ var PACKAGED_DEFAULT_FX_SNAPSHOT = Object.freeze({
   shelfOpacity: 1,
   shelfBgOpacity: 0.9,
   shelfAccentColor: '#ffffff',
-  cam: 'off'
+  cam: 'off',
+  sonicWorkshopInputGain: 82,
+  sonicWorkshopAudioIntensity: 1.15,
+  sonicWorkshopResponseRange: 1.30,
+  sonicWorkshopPeakIntensity: 0.62,
+  sonicWorkshopColorMode: 'cover',
+  sonicWorkshopTheme: 'minimal-monochrome',
+  sonicWorkshopCustomColor: '#d9dde3',
+  sonicWorkshopBaseColorMode: 'cover',
+  sonicWorkshopBaseColor: '#0b0c0e',
+  sonicWorkshopWarmColorMode: 'cover',
+  sonicWorkshopWarmColor: '#d9dde3',
+  sonicWorkshopCoolColorMode: 'custom',
+  sonicWorkshopCoolColor: '#ffffff',
+  sonicWorkshopRippleColorMode: 'cover',
+  sonicWorkshopRippleColor: '#ffffff',
+  sonicWorkshopPeakColorMode: 'cover',
+  sonicWorkshopPeakColor: '#f2f5f8',
 });
 function clonePackagedDefaultFxSnapshot() {
   return Object.assign({}, PACKAGED_DEFAULT_FX_SNAPSHOT);
@@ -5704,7 +5791,24 @@ function readSavedLyricLayout() {
       shelfOpacity: clampRange(raw.shelfOpacity == null ? fxDefaults.shelfOpacity : Number(raw.shelfOpacity), 0.25, 1),
       shelfBgOpacity: clampRange(raw.shelfBgOpacity == null ? fxDefaults.shelfBgOpacity : Number(raw.shelfBgOpacity), 0.25, 0.98),
       shelfAccentColor: normalizeHexColor(raw.shelfAccentColor || fxDefaults.shelfAccentColor, fxDefaults.shelfAccentColor),
-      cam: /^(off|gesture)$/.test(String(raw.cam || '')) ? raw.cam : fxDefaults.cam
+      cam: /^(off|gesture)$/.test(String(raw.cam || '')) ? raw.cam : fxDefaults.cam,
+      sonicWorkshopInputGain: clampRange(Number(raw.sonicWorkshopInputGain) || fxDefaults.sonicWorkshopInputGain, 40, 100),
+      sonicWorkshopAudioIntensity: clampRange(Number(raw.sonicWorkshopAudioIntensity) || fxDefaults.sonicWorkshopAudioIntensity, 0.3, 2.5),
+      sonicWorkshopResponseRange: clampRange(Number(raw.sonicWorkshopResponseRange) || fxDefaults.sonicWorkshopResponseRange, 0.3, 2),
+      sonicWorkshopPeakIntensity: clampRange(Number(raw.sonicWorkshopPeakIntensity) || fxDefaults.sonicWorkshopPeakIntensity, 0, 1.4),
+      sonicWorkshopColorMode: raw.sonicWorkshopColorMode === 'custom' ? 'custom' : 'cover',
+      sonicWorkshopTheme: /^(coral-mirage|ocean-deep|arctic-aurora|cyber-forest|minimal-monochrome|nocturnal|golden-hour|ember-fire|crimson-sunset|neon-tokyo)$/.test(String(raw.sonicWorkshopTheme || '')) ? raw.sonicWorkshopTheme : fxDefaults.sonicWorkshopTheme,
+      sonicWorkshopCustomColor: normalizeHexColor(raw.sonicWorkshopCustomColor || fxDefaults.sonicWorkshopCustomColor || '#cb6c89', fxDefaults.sonicWorkshopCustomColor || '#cb6c89'),
+      sonicWorkshopBaseColorMode: raw.sonicWorkshopBaseColorMode === 'custom' ? 'custom' : 'cover',
+      sonicWorkshopBaseColor: normalizeHexColor(raw.sonicWorkshopBaseColor || fxDefaults.sonicWorkshopBaseColor || '#16060f', fxDefaults.sonicWorkshopBaseColor || '#16060f'),
+      sonicWorkshopWarmColorMode: raw.sonicWorkshopWarmColorMode === 'custom' ? 'custom' : 'cover',
+      sonicWorkshopWarmColor: normalizeHexColor(raw.sonicWorkshopWarmColor || fxDefaults.sonicWorkshopWarmColor || '#cb6c89', fxDefaults.sonicWorkshopWarmColor || '#cb6c89'),
+      sonicWorkshopCoolColorMode: raw.sonicWorkshopCoolColorMode === 'custom' ? 'custom' : 'cover',
+      sonicWorkshopCoolColor: normalizeHexColor(raw.sonicWorkshopCoolColor || fxDefaults.sonicWorkshopCoolColor || '#99c4ff', fxDefaults.sonicWorkshopCoolColor || '#99c4ff'),
+      sonicWorkshopRippleColorMode: raw.sonicWorkshopRippleColorMode === 'custom' ? 'custom' : 'cover',
+      sonicWorkshopRippleColor: normalizeHexColor(raw.sonicWorkshopRippleColor || fxDefaults.sonicWorkshopRippleColor || '#f8d8ff', fxDefaults.sonicWorkshopRippleColor || '#f8d8ff'),
+      sonicWorkshopPeakColorMode: raw.sonicWorkshopPeakColorMode === 'custom' ? 'custom' : 'cover',
+      sonicWorkshopPeakColor: normalizeHexColor(raw.sonicWorkshopPeakColor || fxDefaults.sonicWorkshopPeakColor || '#99c4ff', fxDefaults.sonicWorkshopPeakColor || '#99c4ff')
     };
   } catch (e) {
     return {};
@@ -5794,7 +5898,24 @@ function saveLyricLayout() {
       shelfOpacity: clampRange(fx.shelfOpacity == null ? fxDefaults.shelfOpacity : Number(fx.shelfOpacity), 0.25, 1),
       shelfBgOpacity: clampRange(fx.shelfBgOpacity == null ? fxDefaults.shelfBgOpacity : Number(fx.shelfBgOpacity), 0.25, 0.98),
       shelfAccentColor: normalizeHexColor(fx.shelfAccentColor || fxDefaults.shelfAccentColor, fxDefaults.shelfAccentColor),
-      cam: /^(off|gesture)$/.test(String(fx.cam || '')) ? fx.cam : fxDefaults.cam
+      cam: /^(off|gesture)$/.test(String(fx.cam || '')) ? fx.cam : fxDefaults.cam,
+      sonicWorkshopInputGain: clampRange(Number(fx.sonicWorkshopInputGain) || fxDefaults.sonicWorkshopInputGain, 40, 100),
+      sonicWorkshopAudioIntensity: clampRange(Number(fx.sonicWorkshopAudioIntensity) || fxDefaults.sonicWorkshopAudioIntensity, 0.3, 2.5),
+      sonicWorkshopResponseRange: clampRange(Number(fx.sonicWorkshopResponseRange) || fxDefaults.sonicWorkshopResponseRange, 0.3, 2),
+      sonicWorkshopPeakIntensity: clampRange(Number(fx.sonicWorkshopPeakIntensity) || fxDefaults.sonicWorkshopPeakIntensity, 0, 1.4),
+      sonicWorkshopColorMode: fx.sonicWorkshopColorMode === 'custom' ? 'custom' : 'cover',
+      sonicWorkshopTheme: /^(coral-mirage|ocean-deep|arctic-aurora|cyber-forest|minimal-monochrome|nocturnal|golden-hour|ember-fire|crimson-sunset|neon-tokyo)$/.test(String(fx.sonicWorkshopTheme || '')) ? fx.sonicWorkshopTheme : fxDefaults.sonicWorkshopTheme,
+      sonicWorkshopCustomColor: normalizeHexColor(fx.sonicWorkshopCustomColor || fxDefaults.sonicWorkshopCustomColor || '#cb6c89', fxDefaults.sonicWorkshopCustomColor || '#cb6c89'),
+      sonicWorkshopBaseColorMode: fx.sonicWorkshopBaseColorMode === 'custom' ? 'custom' : 'cover',
+      sonicWorkshopBaseColor: normalizeHexColor(fx.sonicWorkshopBaseColor || fxDefaults.sonicWorkshopBaseColor || '#16060f', fxDefaults.sonicWorkshopBaseColor || '#16060f'),
+      sonicWorkshopWarmColorMode: fx.sonicWorkshopWarmColorMode === 'custom' ? 'custom' : 'cover',
+      sonicWorkshopWarmColor: normalizeHexColor(fx.sonicWorkshopWarmColor || fxDefaults.sonicWorkshopWarmColor || '#cb6c89', fxDefaults.sonicWorkshopWarmColor || '#cb6c89'),
+      sonicWorkshopCoolColorMode: fx.sonicWorkshopCoolColorMode === 'custom' ? 'custom' : 'cover',
+      sonicWorkshopCoolColor: normalizeHexColor(fx.sonicWorkshopCoolColor || fxDefaults.sonicWorkshopCoolColor || '#99c4ff', fxDefaults.sonicWorkshopCoolColor || '#99c4ff'),
+      sonicWorkshopRippleColorMode: fx.sonicWorkshopRippleColorMode === 'custom' ? 'custom' : 'cover',
+      sonicWorkshopRippleColor: normalizeHexColor(fx.sonicWorkshopRippleColor || fxDefaults.sonicWorkshopRippleColor || '#f8d8ff', fxDefaults.sonicWorkshopRippleColor || '#f8d8ff'),
+      sonicWorkshopPeakColorMode: fx.sonicWorkshopPeakColorMode === 'custom' ? 'custom' : 'cover',
+      sonicWorkshopPeakColor: normalizeHexColor(fx.sonicWorkshopPeakColor || fxDefaults.sonicWorkshopPeakColor || '#99c4ff', fxDefaults.sonicWorkshopPeakColor || '#99c4ff')
     }));
   } catch (e) {}
 }
@@ -18055,6 +18176,7 @@ var presetMeta = [
   { name: '星河', desc: '壁纸粒子 · 音乐律动' },
   { name: '安魂', desc: '骷髅·YUI7W', descHtml: '骷髅·<span class="pc-yui7w">YUI7W</span>' },
   { name: '音域回响', nameHtml: '音域回响 <span class="pc-name-en">Sonic-Topography</span>', desc: '作者 Ajin', descHtml: '作者 <span class="pc-author-ajin">Ajin</span>' },
+  { name: '音域回响', nameHtml: '音域回响 <span class="pc-name-en">Wallpaper Engine</span>', desc: '作者 CmzYa' },
 ];
 var presetIcons = [
   '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 14c3-2 5-2 8 0s5 2 8 0M3 10c3-2 5-2 8 0s5 2 8 0M3 18c3-2 5-2 8 0s5 2 8 0"/></svg>',
@@ -18065,8 +18187,9 @@ var presetIcons = [
   '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 15c2.2-4.4 4.4-4.4 6.6 0s4.4 4.4 6.6 0S20.6 10.6 23 15"/><path d="M3 9c2.2 2.2 4.4 2.2 6.6 0s4.4-2.2 6.6 0S20.6 11.2 23 9"/><circle cx="12" cy="12" r="1.7" fill="currentColor"/></svg>',
   '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.2h4v6.2h4.2v3.8H14v7.6h-4v-7.6H5.8V9.4H10z"/></svg>',
   '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18c2-3 4-3 6 0s4 3 6 0 4-3 6 0"/><path d="M3 12c2-2.5 4-2.5 6 0s4 2.5 6 0 4-2.5 6 0"/><path d="M3 6c2-2 4-2 6 0s4 2 6 0 4-2 6 0"/><circle cx="18" cy="5" r="1.2" fill="currentColor"/></svg>',
+  '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18h18"/><path d="M5 15c1.4-4 2.8-4 4.2 0s2.8 4 4.2 0 2.8-4 4.6 0"/><path d="M4 10c2-2 4-2 6 0s4 2 6 0 3-2 4 0"/><path d="M7 6h10"/><circle cx="18.2" cy="5.8" r="1.35" fill="currentColor"/></svg>',
 ];
-var presetDisplayOrder = [0, 6, 7, 5, 4, 2, 1, 3];
+var presetDisplayOrder = [0, 6, 7, 8, 5, 4, 2, 1, 3];
 var lyricColorPresets = [
   { name:'雾蓝', color:'#a9b8c8' },
   { name:'银蓝', color:'#9db8cf' },
@@ -18189,7 +18312,24 @@ function normalizeFxArchiveSnapshot(raw) {
     shelfOpacity: archiveNumber(raw, 'shelfOpacity', fxDefaults.shelfOpacity, 0.25, 1),
     shelfBgOpacity: archiveNumber(raw, 'shelfBgOpacity', fxDefaults.shelfBgOpacity, 0.25, 0.98),
     shelfAccentColor: normalizeHexColor(raw.shelfAccentColor || fxDefaults.shelfAccentColor, fxDefaults.shelfAccentColor),
-    cam: archiveMode(raw, 'cam', /^(off|gesture)$/, fxDefaults.cam)
+    cam: archiveMode(raw, 'cam', /^(off|gesture)$/, fxDefaults.cam),
+    sonicWorkshopInputGain: archiveNumber(raw, 'sonicWorkshopInputGain', fxDefaults.sonicWorkshopInputGain, 40, 100),
+    sonicWorkshopAudioIntensity: archiveNumber(raw, 'sonicWorkshopAudioIntensity', fxDefaults.sonicWorkshopAudioIntensity, 0.3, 2.5),
+    sonicWorkshopResponseRange: archiveNumber(raw, 'sonicWorkshopResponseRange', fxDefaults.sonicWorkshopResponseRange, 0.3, 2),
+    sonicWorkshopPeakIntensity: archiveNumber(raw, 'sonicWorkshopPeakIntensity', fxDefaults.sonicWorkshopPeakIntensity, 0, 1.4),
+    sonicWorkshopColorMode: raw.sonicWorkshopColorMode === 'custom' ? 'custom' : 'cover',
+    sonicWorkshopTheme: archiveMode(raw, 'sonicWorkshopTheme', /^(coral-mirage|ocean-deep|arctic-aurora|cyber-forest|minimal-monochrome|nocturnal|golden-hour|ember-fire|crimson-sunset|neon-tokyo)$/, fxDefaults.sonicWorkshopTheme),
+    sonicWorkshopCustomColor: normalizeHexColor(raw.sonicWorkshopCustomColor || fxDefaults.sonicWorkshopCustomColor || '#cb6c89', fxDefaults.sonicWorkshopCustomColor || '#cb6c89'),
+    sonicWorkshopBaseColorMode: raw.sonicWorkshopBaseColorMode === 'custom' ? 'custom' : 'cover',
+    sonicWorkshopBaseColor: normalizeHexColor(raw.sonicWorkshopBaseColor || fxDefaults.sonicWorkshopBaseColor || '#16060f', fxDefaults.sonicWorkshopBaseColor || '#16060f'),
+    sonicWorkshopWarmColorMode: raw.sonicWorkshopWarmColorMode === 'custom' ? 'custom' : 'cover',
+    sonicWorkshopWarmColor: normalizeHexColor(raw.sonicWorkshopWarmColor || fxDefaults.sonicWorkshopWarmColor || '#cb6c89', fxDefaults.sonicWorkshopWarmColor || '#cb6c89'),
+    sonicWorkshopCoolColorMode: raw.sonicWorkshopCoolColorMode === 'custom' ? 'custom' : 'cover',
+    sonicWorkshopCoolColor: normalizeHexColor(raw.sonicWorkshopCoolColor || fxDefaults.sonicWorkshopCoolColor || '#99c4ff', fxDefaults.sonicWorkshopCoolColor || '#99c4ff'),
+    sonicWorkshopRippleColorMode: raw.sonicWorkshopRippleColorMode === 'custom' ? 'custom' : 'cover',
+    sonicWorkshopRippleColor: normalizeHexColor(raw.sonicWorkshopRippleColor || fxDefaults.sonicWorkshopRippleColor || '#f8d8ff', fxDefaults.sonicWorkshopRippleColor || '#f8d8ff'),
+    sonicWorkshopPeakColorMode: raw.sonicWorkshopPeakColorMode === 'custom' ? 'custom' : 'cover',
+    sonicWorkshopPeakColor: normalizeHexColor(raw.sonicWorkshopPeakColor || fxDefaults.sonicWorkshopPeakColor || '#99c4ff', fxDefaults.sonicWorkshopPeakColor || '#99c4ff')
   };
 }
 function readUserFxArchives() {
@@ -18280,6 +18420,7 @@ function applyFxArchiveSnapshot(snapshot) {
   if (shelfManager && shelfManager.refreshTheme) shelfManager.refreshTheme();
   setCamMode(fx.cam);
   updateFxInputs();
+  if (window.MineradioSonicWorkshop && typeof MineradioSonicWorkshop.pushProperties === 'function') MineradioSonicWorkshop.pushProperties(true);
   applySavedLyricPaletteState();
   refreshCurrentLyricStyle();
   applyDesktopLyricsState(true);
@@ -19178,7 +19319,7 @@ function buildPresetGrid() {
     var desc = p.descHtml || p.desc;
     return '<div class="preset-card" data-preset="' + i + '" onclick="setPreset(' + i + ')">' +
       '<div class="pc-icon">' + presetIcons[i] + '</div>' +
-      '<div class="pc-name">' + p.name + '</div>' +
+      '<div class="pc-name">' + (p.nameHtml || p.name) + '</div>' +
       '<div class="pc-desc">' + desc + '</div>' +
     '</div>';
   }).join('');
@@ -19232,6 +19373,9 @@ function setPreset(p, opts) {
   var prev = fx.preset;
   var changed = prev !== p;
   fx.preset = p;
+  if (changed && window.MineradioSonicWorkshop && typeof MineradioSonicWorkshop.onPresetChange === 'function') {
+    MineradioSonicWorkshop.onPresetChange(prev, p, { skipTransition: !!opts.skipTransition });
+  }
   if (changed && prev === SKULL_PRESET_INDEX && p !== SKULL_PRESET_INDEX) clearSkullPresetResidue();
   if (p === SKULL_PRESET_INDEX) loadSkullParticleAsset();
   uniforms.uPreset.value = p;
@@ -19246,6 +19390,7 @@ function setPreset(p, opts) {
     else if (p === 5) { orbit.userRadius = 9.4; orbit.userPhi = 0.34; orbit.userTheta = -0.52; orbit.baselineRadius = 9.4; orbit.baselinePhi = 0.34; }
     else if (p === 6) { orbit.userRadius = 7.4; orbit.userPhi = 0.10; orbit.userTheta = 0.18; orbit.baselineRadius = 7.4; orbit.baselinePhi = 0.10; }
     else if (p === 7) { orbit.userRadius = 8.4; orbit.userPhi = 0.18; orbit.userTheta = 0.0; orbit.baselineRadius = 8.4; orbit.baselinePhi = 0.18; }
+    else if (p === 8) { orbit.userRadius = 8.4; orbit.userPhi = 0.18; orbit.userTheta = 0.0; orbit.baselineRadius = 8.4; orbit.baselinePhi = 0.18; }
     else              { orbit.userRadius = 6.6; orbit.userPhi = 0.08; orbit.userTheta = 0.0; orbit.baselineRadius = 6.6; orbit.baselinePhi = 0.08; }
     orbit.baselineTheta = p === 5 ? -0.52 : (p === 6 ? 0.18 : (p === 7 ? 0.0 : 0.0));
   }
@@ -19324,7 +19469,7 @@ function setRange(id, value) {
   var out = el.parentElement.querySelector('output');
   if (out) out.textContent = id === 'fx-coverres'
     ? coverParticleCountLabel(value)
-    : (id === 'fx-lyricweight' || id === 'fx-glassaberration' || id === 'fx-lyrictiltx' || id === 'fx-lyrictilty' || id === 'fx-shelfangle' ? String(Math.round(Number(value) || 0)) : Number(value).toFixed(id === 'fx-lyricspacing' ? 3 : 2));
+    : (id === 'fx-lyricweight' || id === 'fx-glassaberration' || id === 'fx-lyrictiltx' || id === 'fx-lyrictilty' || id === 'fx-shelfangle' || id === 'fx-sonicwegain' ? String(Math.round(Number(value) || 0)) : Number(value).toFixed(id === 'fx-lyricspacing' ? 3 : 2));
 }
 function updateDevelopmentFxControls() {
   [
@@ -19442,6 +19587,10 @@ function updateFxInputs() {
   setRange('fx-bloom', fx.bloomStrength);
   setRange('fx-scatter', fx.scatter);
   setRange('fx-bgfade', fx.bgFade);
+  setRange('fx-sonicwegain', fx.sonicWorkshopInputGain);
+  setRange('fx-sonicweaudio', fx.sonicWorkshopAudioIntensity);
+  setRange('fx-sonicwerange', fx.sonicWorkshopResponseRange);
+  setRange('fx-sonicwepeak', fx.sonicWorkshopPeakIntensity);
   updateLyricGlowControls();
   // 同步开关
   document.getElementById('t-float').classList.toggle('on', fx.floatLayer);
@@ -19493,6 +19642,7 @@ function updateFxInputs() {
   updateIconAccentControls();
   updateCustomBackgroundControls();
   updateVisualTintControls();
+  updateSonicWorkshopColorControls();
   applyControlGlassChromaticOffset();
   syncFxUniforms();
 }
@@ -19559,6 +19709,7 @@ function fxPanelTargetForNode(node, current) {
   if (id === 'preset-grid' || id === 'user-archive-grid') return 'presets';
   if (id === 'fx-lyric-fold') return 'lyrics';
   if (id === 'fx-overlay-fold' || id === 'fx-stage-fold') return 'motion';
+  if (id === 'fx-workshop-fold') return 'appearance';
   if (id === 'fx-advanced' || node.classList.contains('fx-actions')) return 'advanced';
   if (node.classList.contains('lyric-color-row') || node.classList.contains('cover-color-pop') || node.classList.contains('color-lab-pop') || node.classList.contains('cover-color-loupe')) return 'appearance';
   if (inputId === 'fx-bgopacity' || inputId === 'fx-glassaberration') return 'appearance';
@@ -19618,7 +19769,7 @@ function organizeFxPanel() {
     }
     (pages[target] || pages.presets).appendChild(node);
   });
-  ['fx-lyric-fold','fx-overlay-fold','fx-stage-fold','fx-advanced'].forEach(function(id){
+  ['fx-lyric-fold','fx-overlay-fold','fx-stage-fold','fx-workshop-fold','fx-advanced'].forEach(function(id){
     var fold = document.getElementById(id);
     if (fold) fold.classList.add('open');
   });
@@ -20105,6 +20256,107 @@ document.addEventListener('keydown', function(e){
   hotkeyCaptureState = null;
   setHotkeyBinding(target.action, target.scope, combo);
 }, true);
+var SONIC_WORKSHOP_COLOR_CONTROLS = [
+  { id: 'theme', modeKey: 'sonicWorkshopColorMode', colorKey: 'sonicWorkshopCustomColor', picker: 'sonic-workshop-cover-picker', value: 'sonic-workshop-theme-value', fallback: '#cb6c89', label: '主题基色' },
+  { id: 'base', modeKey: 'sonicWorkshopBaseColorMode', colorKey: 'sonicWorkshopBaseColor', picker: 'sonic-workshop-base-picker', value: 'sonic-workshop-base-value', fallback: '#16060f', label: '地形底色' },
+  { id: 'warm', modeKey: 'sonicWorkshopWarmColorMode', colorKey: 'sonicWorkshopWarmColor', picker: 'sonic-workshop-warm-picker', value: 'sonic-workshop-warm-value', fallback: '#cb6c89', label: '暖色主体' },
+  { id: 'cool', modeKey: 'sonicWorkshopCoolColorMode', colorKey: 'sonicWorkshopCoolColor', picker: 'sonic-workshop-cool-picker', value: 'sonic-workshop-cool-value', fallback: '#99c4ff', label: '上层高光' },
+  { id: 'ripple', modeKey: 'sonicWorkshopRippleColorMode', colorKey: 'sonicWorkshopRippleColor', picker: 'sonic-workshop-ripple-picker', value: 'sonic-workshop-ripple-value', fallback: '#f8d8ff', label: '波纹亮区' },
+  { id: 'peak', modeKey: 'sonicWorkshopPeakColorMode', colorKey: 'sonicWorkshopPeakColor', picker: 'sonic-workshop-peak-picker', value: 'sonic-workshop-peak-value', fallback: '#99c4ff', label: '峰值高光' }
+];
+function sonicWorkshopRegionControl(id) {
+  for (var i = 0; i < SONIC_WORKSHOP_COLOR_CONTROLS.length; i++) {
+    if (SONIC_WORKSHOP_COLOR_CONTROLS[i].id === id || SONIC_WORKSHOP_COLOR_CONTROLS[i].picker === id) return SONIC_WORKSHOP_COLOR_CONTROLS[i];
+  }
+  return null;
+}
+function sonicWorkshopCoverHex(role) {
+  var pal = (stageLyrics && (stageLyrics.coverPalette || stageLyrics.palette)) || {};
+  var fallback = role === 'base' ? '#16060f' : (role === 'cool' || role === 'peak' ? '#99c4ff' : (role === 'ripple' ? '#f8d8ff' : '#cb6c89'));
+  var value = null;
+  if (role === 'base') value = pal.secondary || pal.primary || pal.highlight;
+  else if (role === 'warm') value = pal.primary || pal.secondary || pal.highlight;
+  else if (role === 'cool') value = pal.highlight || pal.secondary || pal.primary;
+  else if (role === 'ripple') value = pal.highlight || pal.primary || pal.secondary;
+  else if (role === 'peak') value = pal.highlight || pal.secondary || pal.primary;
+  else value = pal.primary || pal.secondary || pal.highlight;
+  if (window.MineradioSonicWorkshop && typeof MineradioSonicWorkshop.cssToHex === 'function') return MineradioSonicWorkshop.cssToHex(value, fallback);
+  return normalizeHexColor(value || fallback, fallback);
+}
+function currentSonicWorkshopTheme() {
+  if (window.MineradioSonicWorkshop && typeof MineradioSonicWorkshop.themeForColor === 'function') {
+    return fx.sonicWorkshopColorMode === 'custom' ? MineradioSonicWorkshop.normalizeTheme(fx.sonicWorkshopTheme) : MineradioSonicWorkshop.themeForColor(sonicWorkshopCoverHex('primary'));
+  }
+  return 'minimal-monochrome';
+}
+function sonicWorkshopRegionHex(item) {
+  item = sonicWorkshopRegionControl(item);
+  if (!item) return '#cb6c89';
+  if (fx[item.modeKey] === 'custom') return normalizeHexColor(fx[item.colorKey] || item.fallback, item.fallback);
+  return sonicWorkshopCoverHex(item.id);
+}
+function updateSonicWorkshopColorControls() {
+  if (!window.MineradioSonicWorkshop || typeof MineradioSonicWorkshop.themeColor !== 'function') return;
+  var theme = currentSonicWorkshopTheme();
+  var themeHex = MineradioSonicWorkshop.themeColor(theme);
+  SONIC_WORKSHOP_COLOR_CONTROLS.forEach(function(item){
+    var picker = document.getElementById(item.picker);
+    var value = document.getElementById(item.value);
+    var hex = item.id === 'theme'
+      ? (fx.sonicWorkshopColorMode === 'custom' ? normalizeHexColor(fx.sonicWorkshopCustomColor || themeHex, themeHex) : sonicWorkshopCoverHex('primary'))
+      : sonicWorkshopRegionHex(item);
+    if (picker) picker.value = hex;
+    if (value) value.textContent = (fx[item.modeKey] === 'custom' ? '' : '封面 ') + hex.toUpperCase();
+  });
+  document.querySelectorAll('#sonic-workshop-theme-seg [data-sonic-workshop-theme]').forEach(function(btn){
+    btn.classList.toggle('active', fx.sonicWorkshopColorMode === 'custom' && MineradioSonicWorkshop.normalizeTheme(btn.getAttribute('data-sonic-workshop-theme')) === theme);
+  });
+}
+function pushSonicWorkshopColorChange() {
+  updateSonicWorkshopColorControls();
+  if (window.MineradioSonicWorkshop && typeof MineradioSonicWorkshop.pushProperties === 'function') MineradioSonicWorkshop.pushProperties(true);
+  saveLyricLayout();
+}
+function setSonicWorkshopRegionColorMode(id, mode, silent) {
+  var item = sonicWorkshopRegionControl(id);
+  if (!item) return;
+  fx[item.modeKey] = mode === 'custom' ? 'custom' : 'cover';
+  pushSonicWorkshopColorChange();
+  if (!silent) showToast('音域回响·WE ' + item.label + ': ' + (fx[item.modeKey] === 'custom' ? '自定义' : '封面取色'));
+}
+function setSonicWorkshopTheme(theme, silent) {
+  if (!window.MineradioSonicWorkshop) return;
+  theme = MineradioSonicWorkshop.normalizeTheme(theme);
+  fx.sonicWorkshopColorMode = 'custom';
+  fx.sonicWorkshopTheme = theme;
+  fx.sonicWorkshopCustomColor = normalizeHexColor(MineradioSonicWorkshop.themeColor(theme), '#cb6c89');
+  pushSonicWorkshopColorChange();
+  if (!silent) {
+    var themeNames = { 'coral-mirage': '珊瑚', 'ocean-deep': '深海', 'arctic-aurora': '冰蓝', 'cyber-forest': '翠绿', 'minimal-monochrome': '极简' };
+    showToast('音域回响·WE 主题: ' + (themeNames[theme] || theme));
+  }
+}
+function setSonicWorkshopThemeFromPicker(color, silent) {
+  if (!window.MineradioSonicWorkshop) return;
+  var hex = normalizeHexColor(color || '#cb6c89', '#cb6c89');
+  fx.sonicWorkshopColorMode = 'custom';
+  fx.sonicWorkshopTheme = MineradioSonicWorkshop.themeForColor(hex);
+  fx.sonicWorkshopCustomColor = hex;
+  pushSonicWorkshopColorChange();
+  if (!silent) showToast('音域回响·WE 主题基色: ' + hex.toUpperCase());
+}
+function setSonicWorkshopRegionColorFromPicker(id, color, silent) {
+  var item = sonicWorkshopRegionControl(id);
+  if (!item) return;
+  if (item.id === 'theme') {
+    setSonicWorkshopThemeFromPicker(color, silent);
+    return;
+  }
+  fx[item.modeKey] = 'custom';
+  fx[item.colorKey] = normalizeHexColor(color || item.fallback, item.fallback);
+  pushSonicWorkshopColorChange();
+  if (!silent) showToast('音域回响·WE ' + item.label + ': ' + fx[item.colorKey].toUpperCase());
+}
 function bindFxPanel() {
   liftFxFloatingPopups();
   organizeFxPanel();
@@ -20121,6 +20373,7 @@ function bindFxPanel() {
     ['fx-lyricscale','lyricScale'],['fx-lyricx','lyricOffsetX'],['fx-lyricy','lyricOffsetY'],['fx-lyricz','lyricOffsetZ'],['fx-lyrictiltx','lyricTiltX'],['fx-lyrictilty','lyricTiltY'],
     ['fx-point','point'],['fx-speed','speed'],['fx-twist','twist'],
     ['fx-color','color'],['fx-bloom','bloomStrength'],['fx-scatter','scatter'],['fx-bgfade','bgFade'],
+    ['fx-sonicwegain','sonicWorkshopInputGain'],['fx-sonicweaudio','sonicWorkshopAudioIntensity'],['fx-sonicwerange','sonicWorkshopResponseRange'],['fx-sonicwepeak','sonicWorkshopPeakIntensity'],
   ];
   ids.forEach(function(pair){
     var el = document.getElementById(pair[0]);
@@ -20144,6 +20397,13 @@ function bindFxPanel() {
         fx.controlGlassChromaticOffset = normalizeControlGlassChromaticOffset(fx.controlGlassChromaticOffset);
         applyControlGlassChromaticOffset();
       }
+      if (/^sonicWorkshop/.test(pair[1])) {
+        if (pair[1] === 'sonicWorkshopInputGain') fx[pair[1]] = Math.round(clampRange(fx[pair[1]], 40, 100));
+        else if (pair[1] === 'sonicWorkshopAudioIntensity') fx[pair[1]] = clampRange(fx[pair[1]], 0.3, 2.5);
+        else if (pair[1] === 'sonicWorkshopResponseRange') fx[pair[1]] = clampRange(fx[pair[1]], 0.3, 2);
+        else if (pair[1] === 'sonicWorkshopPeakIntensity') fx[pair[1]] = clampRange(fx[pair[1]], 0, 1.4);
+        if (window.MineradioSonicWorkshop && typeof MineradioSonicWorkshop.pushProperties === 'function') MineradioSonicWorkshop.pushProperties(true);
+      }
       if (pair[1] === 'desktopLyricsSize') fx.desktopLyricsSize = clampRange(fx.desktopLyricsSize, 0.72, 1.55);
       if (pair[1] === 'desktopLyricsOpacity') fx.desktopLyricsOpacity = clampRange(fx.desktopLyricsOpacity, 0.28, 1);
       if (pair[1] === 'desktopLyricsY') fx.desktopLyricsY = clampRange(fx.desktopLyricsY, 0.08, 0.92);
@@ -20161,7 +20421,7 @@ function bindFxPanel() {
       if (pair[1] === 'lyricTiltX' || pair[1] === 'lyricTiltY') fx[pair[1]] = Math.round(clampRange(fx[pair[1]], -42, 42));
       if (out) out.textContent = pair[1] === 'coverResolution'
         ? coverParticleCountLabel(fx.coverResolution)
-        : (pair[1] === 'lyricWeight' || pair[1] === 'controlGlassChromaticOffset' || pair[1] === 'lyricTiltX' || pair[1] === 'lyricTiltY' || pair[1] === 'shelfAngleY' ? String(Math.round(fx[pair[1]])) : Number(el.value).toFixed(pair[1] === 'lyricLetterSpacing' ? 3 : 2));
+        : (pair[1] === 'lyricWeight' || pair[1] === 'controlGlassChromaticOffset' || pair[1] === 'lyricTiltX' || pair[1] === 'lyricTiltY' || pair[1] === 'shelfAngleY' || pair[1] === 'sonicWorkshopInputGain' ? String(Math.round(fx[pair[1]])) : Number(el.value).toFixed(pair[1] === 'lyricLetterSpacing' ? 3 : 2));
       syncFxUniforms();
       if (/^shelf(Size|OffsetX|OffsetY|OffsetZ|AngleY|Opacity|BgOpacity)$/.test(pair[1]) && shelfManager && shelfManager.refreshTheme) shelfManager.refreshTheme();
       if (pair[1] === 'lyricLetterSpacing' || pair[1] === 'lyricLineHeight' || pair[1] === 'lyricWeight') refreshCurrentLyricStyle();
@@ -20220,6 +20480,19 @@ function bindFxPanel() {
   if (shelfAccentPicker) {
     shelfAccentPicker.addEventListener('input', function(){ setShelfAccentColor(shelfAccentPicker.value, true); });
     shelfAccentPicker.addEventListener('change', function(){ showToast('歌单架颜色: ' + shelfAccentHex().toUpperCase()); });
+  }
+  [['sonic-workshop-cover-picker','theme'],['sonic-workshop-base-picker','base'],['sonic-workshop-warm-picker','warm'],['sonic-workshop-cool-picker','cool'],['sonic-workshop-ripple-picker','ripple'],['sonic-workshop-peak-picker','peak']].forEach(function(pair){
+    var picker = document.getElementById(pair[0]);
+    if (!picker) return;
+    picker.addEventListener('input', function(){ setSonicWorkshopRegionColorFromPicker(pair[1], picker.value, true); });
+    picker.addEventListener('change', function(){ setSonicWorkshopRegionColorFromPicker(pair[1], picker.value); });
+  });
+  var sonicWorkshopThemeSeg = document.getElementById('sonic-workshop-theme-seg');
+  if (sonicWorkshopThemeSeg) {
+    sonicWorkshopThemeSeg.addEventListener('click', function(e){
+      var btn = e.target && e.target.closest ? e.target.closest('[data-sonic-workshop-theme]') : null;
+      if (btn) setSonicWorkshopTheme(btn.getAttribute('data-sonic-workshop-theme'));
+    });
   }
   var bgImageInput = document.getElementById('background-image-input');
   if (bgImageInput) {
@@ -24754,7 +25027,7 @@ function animate() {
   uniforms.uEnergy.value = audioEnergy;
   uniforms.uMouseXY.value.set(mouseWorld.x, mouseWorld.y);
   uniforms.uMouseActive.value = mouseActive ? 1 : 0;
-  var sonicPresetActive = window.MineradioSonicTopography && MineradioSonicTopography.isActive(fx);
+  var sonicPresetActive = (window.MineradioSonicTopography && MineradioSonicTopography.isActive(fx)) || (window.MineradioSonicWorkshop && MineradioSonicWorkshop.isActive(fx));
   var skullBackdropDim = fx && fx.preset === SKULL_PRESET_INDEX ? 0.58 : (sonicPresetActive ? 0.82 : 1);
   var shelfDimTarget = shouldDimWallpaperForShelf() ? 0.48 : skullBackdropDim;
   var shelfDimEase = shelfDimTarget < uniforms.uParticleDim.value ? 0.18 : 0.10;
@@ -24779,7 +25052,7 @@ function animate() {
   // v7.2 旋转 = 头部+眼球追踪 + 鼠标/手势拖动 + 惯性
   tickGestureRotation(dt);
   var skullPresetActive = fx && fx.preset === SKULL_PRESET_INDEX;
-  var sonicPresetActiveParticles = window.MineradioSonicTopography && MineradioSonicTopography.isActive(fx);
+  var sonicPresetActiveParticles = (window.MineradioSonicTopography && MineradioSonicTopography.isActive(fx)) || (window.MineradioSonicWorkshop && MineradioSonicWorkshop.isActive(fx));
   particles.visible = !skullPresetActive && !sonicPresetActiveParticles;
   if (bloomParticles) bloomParticles.visible = !skullPresetActive && !sonicPresetActiveParticles && fx.bloom && fx.bloomStrength > 0.01;
   if (floatGroup) floatGroup.visible = !skullPresetActive && !sonicPresetActiveParticles;
@@ -24808,6 +25081,12 @@ function animate() {
       dpr: renderer.getPixelRatio ? renderer.getPixelRatio() : (window.devicePixelRatio || 1),
       visualRotation: particles && particles.rotation ? particles.rotation : null,
       visualRotationActive: !!(orbit && orbit.rotating),
+      audio: { bass: bass, mid: mid, treble: treble, beat: beatPulse, energy: audioEnergy }
+    });
+  }
+  if (window.MineradioSonicWorkshop) {
+    MineradioSonicWorkshop.update(dt, {
+      fx: fx,
       audio: { bass: bass, mid: mid, treble: treble, beat: beatPulse, energy: audioEnergy }
     });
   }
