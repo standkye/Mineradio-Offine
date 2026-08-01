@@ -8352,7 +8352,7 @@ function updateControlTrackInfo(song) {
   var title = document.getElementById('control-title');
   var artist = document.getElementById('control-artist');
   if (title) title.textContent = song.name || '';
-  if (artist) artist.textContent = song.artist || '';
+  if (artist) artist.textContent = displayArtist(song) || '';
 }
 
 function applyCoverCanvas(cv, thumbSrc, opts) {
@@ -13580,6 +13580,12 @@ function onlineMetaCached(artist, track, album) {
   p.catch(function(){ delete onlineMetaCache[key]; });
   return p;
 }
+// 多歌手显示：artistList 存在时展示完整列表（如 "Gummy、T.O.P"），否则用 artist
+function displayArtist(song) {
+  var list = song && song.artistList;
+  if (list && list.length > 1) return list.join('\u3001');
+  return (song && song.artist) || '';
+}
 function escHtml(s){ var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 function normalizePlaybackQuality(value) {
   value = String(value || '').toLowerCase();
@@ -15440,7 +15446,7 @@ function renderLocalMusicResults(songs) {
         imgTag +
         '<div class="search-result-info">' +
           '<div class="search-result-title">' + escHtml(s.name) + '<span class="tag-source" style="border-color:rgba(157,184,207,.30);background:rgba(157,184,207,.075);color:#c8dce8">本地</span></div>' +
-          '<div class="search-result-meta">' + escHtml(s.artist || '未知') + '</div>' +
+          '<div class="search-result-meta">' + escHtml(displayArtist(s) || '未知') + '</div>' +
         '</div>' +
       '</div>' +
       '<button class="add-btn" title="下一首播放" onclick="event.stopPropagation();queueLocalMusic(' + i + ')">+</button>' +
@@ -16752,7 +16758,7 @@ async function playQueueAt(idx, opts) {
   safePlaybackStep('track-ui', function(){
     document.getElementById('hint').classList.add('hidden');
     document.getElementById('thumb-title').textContent = song.name;
-    document.getElementById('thumb-artist').textContent = song.artist;
+    document.getElementById('thumb-artist').textContent = displayArtist(song);
     updateControlTrackInfo(song);
     document.getElementById('thumb-wrap').classList.add('visible');
   });

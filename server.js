@@ -172,6 +172,18 @@ function readRequestBody(req) {
   });
 }
 
+// 多歌手字段拆分：如 "Gummy, T.O.P" / "Gummy、T.O.P" → 主歌手 + 完整列表
+function splitArtistsField(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return { primary: '', list: [] };
+  const list = raw
+    .split(/[,，、;；]/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (!list.length) return { primary: raw, list: [raw] };
+  return { primary: list[0], list };
+}
+
 // ---------- 在线元数据（专辑封面 / 歌手照片） ----------
 // 数据源优先级：Spotify（需配置）→ iTunes（免Key）→ Deezer（免Key）
 const META_CACHE_DIR =
@@ -750,6 +762,10 @@ const server = http.createServer(async (req, res) => {
               album = folderName;
             }
           }
+          // 多歌手拆分：如 "Gummy, T.O.P" → 主歌手 Gummy + 完整列表 artistList
+          const artistParts = splitArtistsField(artist);
+          const artistList = artistParts.list;
+          if (artistParts.list.length > 1) artist = artistParts.primary;
           // Find artist image from same directory, or parent directory if name matches
           if (imageFiles[fileDir] && imageFiles[fileDir].artist && imageFiles[fileDir].artist.length) {
             artistImagePath = imageFiles[fileDir].artist[0];
@@ -792,6 +808,7 @@ const server = http.createServer(async (req, res) => {
             name: title,
             title,
             artist,
+            artistList,
             albumArtist,
             album,
             provider: 'local',
@@ -947,6 +964,9 @@ const server = http.createServer(async (req, res) => {
             .replace(/[<>:"\/\\|?*]/g, '_')
             .replace(/\.+$/, '')
             .trim() || '未知';
+        // 多歌手拆分：目录用主歌手，避免出现 "Gummy, T.O.P" 目录
+        const artistParts = splitArtistsField(artist);
+        if (artistParts.list.length > 1) artist = artistParts.primary;
         const artistDir = sanitize(artist);
         const albumDir = sanitize(album);
         const targetDir = path.join(dir, artistDir, albumDir);
