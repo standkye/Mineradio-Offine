@@ -183,6 +183,28 @@ function splitArtistsField(value) {
   if (!list.length) return { primary: raw, list: [raw] };
   return { primary: list[0], list };
 }
+// 读取图片像素宽度（JPEG/PNG），失败或未知返回 0
+function imagePixelWidth(buf) {
+  try {
+    if (!buf || buf.length < 24) return 0;
+    if (buf[0] === 0x89 && buf[1] === 0x50) return buf.readUInt32BE(16); // PNG
+    if (buf[0] === 0xff && buf[1] === 0xd8) {
+      let i = 2;
+      while (i + 9 < buf.length) {
+        if (buf[i] !== 0xff) { i++; continue; }
+        const marker = buf[i + 1];
+        if (marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc) {
+          return buf.readUInt16BE(i + 7);
+        }
+        const len = buf.readUInt16BE(i + 2);
+        i += 2 + len;
+      }
+    }
+  } catch (e) {
+    /* ignore */
+  }
+  return 0;
+}
 
 // ---------- 在线元数据（专辑封面 / 歌手照片） ----------
 // 数据源优先级：Spotify（需配置）→ iTunes（免Key）→ Deezer（免Key）
@@ -388,7 +410,7 @@ async function searchQQ(artist, track) {
     if (!albumMid) return null;
     const coverUrl = 'https://y.gtimg.cn/music/photo_new/T002R800x800M000' + albumMid + '.jpg';
     const artistPhotoUrl = singerMid
-      ? 'https://y.gtimg.cn/music/photo_new/T001R300x300M000' + singerMid + '.jpg'
+      ? 'https://y.gtimg.cn/music/photo_new/T001R800x800M000' + singerMid + '.jpg'
       : '';
     return { coverUrl, artistPhotoUrl, source: 'qq', songMid: best.songmid || '' };
   } catch (e) {
@@ -502,7 +524,7 @@ async function fetchOnlineMeta(artist, track, album) {
   const a = String(artist || '').trim();
   const t = String(track || '').trim();
   if (!t) return null;
-  const cacheKey = a + '|' + t + '|' + String(album || '').trim();
+  const cacheKey = a + '|' + t + '|' + String(album || '').trim() + '|v3';
   const cached = readMetaCache(cacheKey);
   if (cached) return cached;
   let result = null;
@@ -1485,10 +1507,17 @@ const server = http.createServer(async (req, res) => {
         fs.existsSync(coverPath) ||
         fs.existsSync(path.join(dir, 'cover.jpg')) ||
         fs.existsSync(path.join(dir, 'cover.png'));
-      // 歌手照片独立处理：歌手目录下没有 singer.jpg 才需要下载
+      // 歌手照片独立处理：歌手目录没有 singer.jpg 或分辨率过低（旧版 300x300）时下载/升级
       const artistDir = resolveArtistDir(dir, song.artist || '');
       const singerPath = artistDir ? path.join(artistDir, 'singer.jpg') : '';
-      const needSinger = !!singerPath && !fs.existsSync(singerPath);
+      let needSinger = !!singerPath && !fs.existsSync(singerPath);
+      if (!needSinger && singerPath) {
+        try {
+          needSinger = imagePixelWidth(fs.readFileSync(singerPath)) < 400;
+        } catch (e) {
+          needSinger = true;
+        }
+      }
       if (hasLocalCover && !needSinger) {
         skipped++;
         results.push({ song: name || '?', status: 'exists' });
