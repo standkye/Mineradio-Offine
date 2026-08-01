@@ -1286,6 +1286,7 @@ body.desktop-shell.diy-mode #bottom-bar.stage-mode{left:50%;width:min(1080px,cal
 .qi-act button:hover{background:rgba(255,255,255,.15);color:#fff}
 .qi-act button.queue-next:hover{background:rgba(0,245,212,.14);color:#eafffb}
 .qi-act button.liked,.song-action-btn.liked{color:#ff7a90;background:rgba(255,122,144,.10)}
+.song-action-btn.liked:hover,.qi-act button.liked:hover,.ctrl-btn.liked:hover{color:#ff8a9e!important;background:rgba(255,122,144,.14)!important;border-color:rgba(255,122,144,.32)!important;text-shadow:0 0 14px rgba(255,122,144,.30)!important;box-shadow:0 10px 26px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.10)!important;transform:translateY(-1px)}
 .song-action-btn{width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,255,255,.11);background:rgba(255,255,255,.045);color:rgba(255,255,255,.58);cursor:pointer;display:grid;place-items:center;flex-shrink:0;transition:all .18s;font-size:14px;line-height:1;padding:0}
 .song-action-btn:hover{background:rgba(0,245,212,.10);border-color:rgba(0,245,212,.32);color:#eafffb;transform:translateY(-1px)}
 .queue-chip{display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:999px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.03);font-size:10.5px;color:rgba(255,255,255,.65)}
