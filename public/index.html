@@ -13737,6 +13737,9 @@ function isProxyableCoverUrl(url) {
 function coverProxySrc(url, cacheBust) {
   if (!url) return '';
   if (isInlineCoverSrc(url)) return url;
+  if (/^\/api\//.test(String(url))) {
+    return url + (cacheBust ? (String(url).indexOf('?') >= 0 ? '&' : '?') + 'v=' + Date.now() : '');
+  }
   if (!isProxyableCoverUrl(url)) return '';
   if (/^https?:\/\/localhost/.test(url) || /^https?:\/\/127\.0\.0\.1/.test(url)) return url + (cacheBust ? '?v=' + Date.now() : '');
   return url + (cacheBust ? '?v=' + Date.now() : ''); /* online cover proxy API removed; use direct URL */
