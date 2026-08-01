@@ -25,6 +25,7 @@ backups/
 *.cache
 .env
 .env.*
+spotify.config.json
 
 # Local development noise
 .DS_Store

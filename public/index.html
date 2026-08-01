@@ -13569,6 +13569,17 @@ async function apiJson(url, opts) {
     if (timer) clearTimeout(timer);
   }
 }
+var onlineMetaCache = {};
+function onlineMetaCached(artist, track, album) {
+  var key = String(artist || '') + '|' + String(track || '');
+  if (onlineMetaCache[key]) return onlineMetaCache[key];
+  var p = apiJson('/api/online/meta?artist=' + encodeURIComponent(artist || '') +
+    '&track=' + encodeURIComponent(track || '') +
+    '&album=' + encodeURIComponent(album || ''));
+  onlineMetaCache[key] = p;
+  p.catch(function(){ delete onlineMetaCache[key]; });
+  return p;
+}
 function escHtml(s){ var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 function normalizePlaybackQuality(value) {
   value = String(value || '').toLowerCase();
@@ -15416,6 +15427,7 @@ function renderLocalMusicResults(songs) {
   results.innerHTML = '<div style="padding:8px 12px;font-size:10px;color:rgba(255,255,255,.35);letter-spacing:.5px;display:flex;justify-content:space-between"><span style="font-size:14px;font-weight:700;color:#fff">本地音乐</span><span style="font-size:11px;color:rgba(255,255,255,.5)">' + songs.length + ' 首</span></div>' +
   '<div style="padding:0 12px 8px;display:flex;gap:6px">' +
     '<button id="integrateBtn" onclick="integrateMusic()" style="height:28px;padding:0 12px;border-radius:999px;border:1px solid rgba(244,210,138,.3);background:rgba(244,210,138,.08);color:rgba(244,210,138,.9);font:inherit;font-size:10.5px;cursor:pointer">整合音乐</button>' +
+    '<button id="fetchCoversBtn" onclick="fetchCoversForLocal()" style="height:28px;padding:0 12px;border-radius:999px;border:1px solid rgba(120,200,255,.3);background:rgba(120,200,255,.08);color:rgba(150,215,255,.9);font:inherit;font-size:10.5px;cursor:pointer">补封面</button>' +
     '<button onclick="leaveLocalMode()" style="height:28px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.5);font:inherit;font-size:10.5px;cursor:pointer">退出本地模式</button>' +
   '</div>' +
   songs.map(function(s, i){
@@ -15494,16 +15506,26 @@ async function integrateMusic() {
     showToast('\u2460 \u626b\u63cf\u97f3\u4e50...');
     var scanData = await apiJson('/api/local/scan?path=E:\\MyMusic');
     var songs = scanData.songs || [];
+    var totalSongs = songs.length;
     showToast('\u2461 \u6574\u7406\u6587\u4ef6...');
     await apiJson('/api/local/organize?path=E:\\MyMusic');
-    var totalSongs = songs.length;
+    // 整理后路径已变化，先重扫更新服务端歌曲列表
+    window.__localMusicCache = null;
+    scanData = await apiJson('/api/local/scan?path=E:\\MyMusic');
+    window.__localMusicCache = scanData.songs || [];
     var msg = '';
-    if (songs.length) {
+    if (scanData.songs && scanData.songs.length) {
       showToast('\u2462 \u4e0b\u8f7d\u6b4c\u8bcd...');
       var dlData = await apiJson('/api/local/download-lyrics?songs=[]');
       var dlMsg = dlData.completed > 0 ? '\u2713\u4e0b\u8f7d' + dlData.completed + '\u9996\u6b4c\u8bcd' : '';
       if (dlData.failed > 0) dlMsg += '(' + dlData.failed + '\u5931\u8d25)';
       if (dlMsg) msg += '\n' + dlMsg;
+      showToast('\u2463 \u8865\u5c01\u9762\u4e0e\u6b4c\u624b\u7167\u7247...');
+      var cvData = await apiJson('/api/local/fetch-covers?songs=[]');
+      var cvMsg = cvData.completed > 0 ? '\u2713\u8865\u5c01\u9762' + cvData.completed + '\u9996' : '';
+      if (cvData.skipped > 0) cvMsg += '(\u8df3\u8fc7' + cvData.skipped + ')';
+      if (cvData.failed > 0) cvMsg += '(' + cvData.failed + '\u5931\u8d25)';
+      if (cvMsg) msg += '\n' + cvMsg;
     }
     window.__localMusicCache = null;
     scanData = await apiJson('/api/local/scan?path=E:\\MyMusic');
@@ -15520,6 +15542,31 @@ async function integrateMusic() {
   } finally {
     musicTaskInProgress = false;
     if (btn) { btn.textContent = '\u6574\u5408\u97f3\u4e50'; btn.style.opacity = '1'; btn.disabled = false; }
+  }
+}
+var coverTaskInProgress = false;
+async function fetchCoversForLocal() {
+  if (coverTaskInProgress) return;
+  coverTaskInProgress = true;
+  var btn = document.getElementById('fetchCoversBtn');
+  if (btn) { btn.textContent = '\u8865\u5c01\u9762\u4e2d...'; btn.style.opacity = '0.6'; btn.disabled = true; }
+  try {
+    showToast('\u6b63\u5728\u4e3a\u672c\u5730\u6b4c\u66f2\u8865\u5c01\u9762\uff08\u65e0\u5c01\u9762\u7684\u624d\u4f1a\u5904\u7406\uff09...');
+    var data = await apiJson('/api/local/fetch-covers?songs=[]');
+    if (!data) { showToast('\u8865\u5c01\u9762\u8bf7\u6c42\u5931\u8d25', 'error'); return; }
+    var msg = '\u2713 \u8865\u5c01\u9762\u5b8c\u6210\uff1a\u6210\u529f ' + data.completed + ' \u9996';
+    if (data.skipped > 0) msg += '\uff0c\u8df3\u8fc7 ' + data.skipped + ' \u9996\uff08\u5df2\u6709\u5c01\u9762\uff09';
+    if (data.failed > 0) msg += '\uff0c\u5931\u8d25 ' + data.failed + ' \u9996';
+    showToast(msg);
+    window.__localMusicCache = null;
+    var scanData = await apiJson('/api/local/scan?path=E:\\MyMusic');
+    window.__localMusicCache = scanData.songs || [];
+    if (scanData.songs && scanData.songs.length) renderLocalMusicResults(scanData.songs);
+  } catch (err) {
+    showToast('\u8865\u5c01\u9762\u5931\u8d25: ' + (err.message || ''), 'error');
+  } finally {
+    coverTaskInProgress = false;
+    if (btn) { btn.textContent = '\u8865\u5c01\u9762'; btn.style.opacity = '1'; btn.disabled = false; }
   }
 }
 function clearSearchResults() {
@@ -16724,7 +16771,12 @@ async function playQueueAt(idx, opts) {
     else if (song.provider === 'local' || song.source === 'local' || song.type === 'local') {
       var localCoverPath = song.coverPath || (song.hasCover && (song.localPath || song.localUrl) ? (song.localPath || song.localUrl) : '');
       if (localCoverPath) loadCoverFromUrl('/api/local/cover?path=' + encodeURIComponent(localCoverPath), coverOpts);
-      else loadCoverFromUrl('', coverOpts);
+      else {
+        loadCoverFromUrl('', coverOpts);
+        onlineMetaCached(song.artist, song.name || song.title || '', song.album).then(function(meta){
+          if (meta && meta.ok && meta.coverUrl) loadCoverFromUrl(meta.coverUrl, coverOpts);
+        }).catch(function(){ /* 在线兜底失败不影响播放 */ });
+      }
     } else loadCoverFromUrl(song.cover ? coverUrlWithSize(song.cover, 400) : '', coverOpts);
   });
   safePlaybackStep('trial-banner-reset', function(){ document.getElementById('trial-banner').classList.remove('show'); });

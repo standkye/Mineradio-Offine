@@ -172,6 +172,351 @@ function readRequestBody(req) {
   });
 }
 
+// ---------- 在线元数据（专辑封面 / 歌手照片） ----------
+// 数据源优先级：Spotify（需配置）→ iTunes（免Key）→ Deezer（免Key）
+const META_CACHE_DIR =
+  process.env.MINERADIO_META_CACHE_DIR || path.join(__dirname, '..', 'MineradioCache', 'onlinemeta');
+const META_CACHE_MAX_AGE = 30 * 24 * 3600 * 1000; // 30 天
+let spotifyTokenCache = { token: '', expiresAt: 0 };
+
+function spotifyConfig() {
+  const fromEnv = {
+    clientId: process.env.SPOTIFY_CLIENT_ID || '',
+    clientSecret: process.env.SPOTIFY_CLIENT_SECRET || '',
+  };
+  if (fromEnv.clientId && fromEnv.clientSecret) return fromEnv;
+  try {
+    const cfgPath = path.join(__dirname, 'spotify.config.json');
+    if (fs.existsSync(cfgPath)) {
+      const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+      if (cfg && cfg.clientId && cfg.clientSecret) {
+        return { clientId: String(cfg.clientId).trim(), clientSecret: String(cfg.clientSecret).trim() };
+      }
+    }
+  } catch (e) {
+    /* 配置文件损坏则忽略 */
+  }
+  return null;
+}
+
+async function getSpotifyToken() {
+  const cfg = spotifyConfig();
+  if (!cfg) return '';
+  if (spotifyTokenCache.token && Date.now() < spotifyTokenCache.expiresAt - 60 * 1000) {
+    return spotifyTokenCache.token;
+  }
+  try {
+    const auth = Buffer.from(cfg.clientId + ':' + cfg.clientSecret).toString('base64');
+    const resp = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Basic ' + auth,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: 'grant_type=client_credentials',
+    });
+    if (!resp.ok) return '';
+    const data = await resp.json();
+    spotifyTokenCache = {
+      token: data.access_token || '',
+      expiresAt: Date.now() + (Number(data.expires_in) || 3600) * 1000,
+    };
+    return spotifyTokenCache.token;
+  } catch (e) {
+    return '';
+  }
+}
+
+async function searchSpotify(artist, track) {
+  const token = await getSpotifyToken();
+  if (!token) return null;
+  try {
+    const clean = (s) => String(s || '').replace(/"/g, '').trim();
+    const q = encodeURIComponent('track:"' + clean(track) + '" artist:"' + clean(artist) + '"');
+    const resp = await fetch('https://api.spotify.com/v1/search?q=' + q + '&type=track&limit=3', {
+      headers: { Authorization: 'Bearer ' + token },
+    });
+    if (!resp.ok) {
+      spotifyDisabled = true;
+      return null;
+    }
+    const data = await resp.json();
+    const t = data.tracks && data.tracks.items && data.tracks.items[0];
+    if (!t) return null;
+    const img =
+      t.album && t.album.images && t.album.images.length ? t.album.images[0].url : '';
+    let artistPhotoUrl = '';
+    const ar = t.artists && t.artists[0];
+    if (ar && ar.id) {
+      try {
+        const arResp = await fetch('https://api.spotify.com/v1/artists/' + ar.id, {
+          headers: { Authorization: 'Bearer ' + token },
+        });
+        if (arResp.ok) {
+          const arData = await arResp.json();
+          if (arData.images && arData.images.length) artistPhotoUrl = arData.images[0].url;
+        }
+      } catch (e) {
+        /* 歌手照片失败不影响封面 */
+      }
+    }
+    return { coverUrl: img, artistPhotoUrl, source: 'spotify' };
+  } catch (e) {
+    return null;
+  }
+}
+
+let spotifyDisabled = false;
+// 通用匹配：优先精确匹配歌名+歌手包含，其次仅歌名匹配，最后取第一条
+function pickBestMatch(items, track, artist, nameKey, artistKey) {
+  if (!items || !items.length) return null;
+  const t = String(track || '').trim().toLowerCase();
+  const a = String(artist || '').trim().toLowerCase();
+  const nameOf = (it) => String((it[nameKey] || '') + '').trim().toLowerCase();
+  const artistOf = (it) => {
+    const v = it[artistKey];
+    if (!v) return '';
+    const name = typeof v === 'string' ? v : (Array.isArray(v) && v[0] ? v[0].name || '' : v.name || '');
+    return String(name).trim().toLowerCase();
+  };
+  if (t) {
+    for (const it of items) {
+      if (nameOf(it) === t && a && artistOf(it).indexOf(a) !== -1) return it;
+    }
+    for (const it of items) {
+      if (nameOf(it) === t) return it;
+    }
+    for (const it of items) {
+      if (a && artistOf(it).indexOf(a) !== -1) return it;
+    }
+  }
+  return items[0];
+}
+// 定位歌手目录：歌曲在"歌手/专辑"或"歌手"层级下时返回歌手目录，否则空串
+function resolveArtistDir(songDir, artist) {
+  const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g, '');
+  const aNorm = norm(artist);
+  if (!aNorm || !songDir) return '';
+  const parentDir = path.dirname(songDir);
+  if (norm(path.basename(parentDir)) === aNorm) return parentDir; // 歌手/专辑/歌曲
+  if (norm(path.basename(songDir)) === aNorm) return songDir;     // 歌手/歌曲
+  return '';
+}
+const NETEASE_HEADERS = {
+  'User-Agent':
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  Referer: 'https://music.163.com/',
+  'Content-Type': 'application/x-www-form-urlencoded',
+};
+async function searchNetease(artist, track) {
+  try {
+    const body = new URLSearchParams({
+      s: (track || '') + ' ' + (artist || ''),
+      type: '1',
+      offset: '0',
+      limit: '5',
+    });
+    const resp = await fetch('https://music.163.com/api/search/get', {
+      method: 'POST',
+      headers: NETEASE_HEADERS,
+      body: body.toString(),
+    });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const songs = data.result && data.result.songs;
+    if (!songs || !songs.length) return null;
+    const best = pickBestMatch(
+      songs,
+      track,
+      artist,
+      'name',
+      'artists'
+    );
+    if (!best || !best.id) return null;
+    // 二次请求 song detail 拿可用的封面 URL 与歌手头像
+    const dResp = await fetch('https://music.163.com/api/song/detail?ids=[' + best.id + ']', {
+      headers: NETEASE_HEADERS,
+    });
+    if (!dResp.ok) return null;
+    const dData = await dResp.json();
+    const song = dData.songs && dData.songs[0];
+    if (!song) return null;
+    const coverUrl = (song.album && song.album.picUrl) || '';
+    const artistPhotoUrl =
+      (song.artists && song.artists[0] && song.artists[0].img1v1Url) || '';
+    if (!coverUrl) return null;
+    return { coverUrl, artistPhotoUrl, source: 'netease', songId: best.id };
+  } catch (e) {
+    return null;
+  }
+}
+
+const QQ_HEADERS = {
+  'User-Agent':
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  Referer: 'https://y.qq.com/',
+  Cookie: 'uin=0; qqmusic_key=; qqmusic_fromtag=66',
+};
+async function searchQQ(artist, track) {
+  try {
+    const w = encodeURIComponent((track || '') + ' ' + (artist || ''));
+    const resp = await fetch(
+      'https://c.y.qq.com/soso/fcgi-bin/client_search_cp?w=' + w + '&format=json&n=5&p=1&cr=1&t=0',
+      { headers: QQ_HEADERS }
+    );
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const list = data.data && data.data.song && data.data.song.list;
+    if (!list || !list.length) return null;
+    const best = pickBestMatch(list, track, artist, 'songname', 'singer');
+    if (!best) return null;
+    const albumMid = best.albummid || '';
+    const singerMid =
+      best.singer && best.singer[0] && best.singer[0].mid ? best.singer[0].mid : '';
+    if (!albumMid) return null;
+    const coverUrl = 'https://y.gtimg.cn/music/photo_new/T002R800x800M000' + albumMid + '.jpg';
+    const artistPhotoUrl = singerMid
+      ? 'https://y.gtimg.cn/music/photo_new/T001R300x300M000' + singerMid + '.jpg'
+      : '';
+    return { coverUrl, artistPhotoUrl, source: 'qq', songMid: best.songmid || '' };
+  } catch (e) {
+    return null;
+  }
+}
+
+async function searchItunes(artist, track) {
+  try {
+    const term = encodeURIComponent((String(track || '') + ' ' + String(artist || '')).trim());
+    const resp = await fetch('https://itunes.apple.com/search?term=' + term + '&media=music&limit=5');
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const item = data.results && data.results[0];
+    if (!item || !item.artworkUrl100) return null;
+    const coverUrl = item.artworkUrl100.replace('100x100', '600x600');
+    return { coverUrl, artistPhotoUrl: '', source: 'itunes' };
+  } catch (e) {
+    return null;
+  }
+}
+
+async function searchDeezer(artist, track) {
+  try {
+    const clean = (s) => String(s || '').replace(/"/g, '').trim();
+    const q = encodeURIComponent('track:"' + clean(track) + '" artist:"' + clean(artist) + '"');
+    const resp = await fetch('https://api.deezer.com/search?q=' + q + '&limit=3');
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    const t = data.data && data.data[0];
+    if (!t) return null;
+    const coverUrl = (t.album && t.album.cover_xl) || '';
+    let artistPhotoUrl = '';
+    if (t.artist && t.artist.id) {
+      try {
+        const arResp = await fetch('https://api.deezer.com/artist/' + t.artist.id);
+        if (arResp.ok) {
+          const arData = await arResp.json();
+          if (arData.picture_xl) artistPhotoUrl = arData.picture_xl;
+        }
+      } catch (e) {
+        /* ignore */
+      }
+    }
+    return { coverUrl, artistPhotoUrl, source: 'deezer' };
+  } catch (e) {
+    return null;
+  }
+}
+
+async function fetchNeteaseLyric(artist, track) {
+  try {
+    const meta = await searchNetease(artist, track);
+    if (!meta || !meta.songId) return '';
+    const resp = await fetch('https://music.163.com/api/song/lyric?id=' + meta.songId + '&lv=1&kv=1&tv=-1', {
+      headers: NETEASE_HEADERS,
+    });
+    if (!resp.ok) return '';
+    const data = await resp.json();
+    return (data.lrc && data.lrc.lyric) || '';
+  } catch (e) {
+    return '';
+  }
+}
+
+async function fetchQQLyric(artist, track) {
+  try {
+    const meta = await searchQQ(artist, track);
+    if (!meta || !meta.songMid) return '';
+    const resp = await fetch(
+      'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg?songmid=' + meta.songMid + '&format=json',
+      { headers: QQ_HEADERS }
+    );
+    if (!resp.ok) return '';
+    const data = await resp.json();
+    if (!data.lyric) return '';
+    return Buffer.from(data.lyric, 'base64').toString('utf8');
+  } catch (e) {
+    return '';
+  }
+}
+
+function metaCacheFile(key) {
+  const hash = crypto.createHash('sha1').update(key).digest('hex');
+  return path.join(META_CACHE_DIR, hash + '.json');
+}
+function readMetaCache(key) {
+  try {
+    const file = metaCacheFile(key);
+    if (!fs.existsSync(file)) return null;
+    const raw = JSON.parse(fs.readFileSync(file, 'utf8'));
+    if (!raw || !raw.savedAt || Date.now() - raw.savedAt > META_CACHE_MAX_AGE) return null;
+    return raw.data || null;
+  } catch (e) {
+    return null;
+  }
+}
+function writeMetaCache(key, data) {
+  try {
+    fs.mkdirSync(META_CACHE_DIR, { recursive: true });
+    const file = metaCacheFile(key);
+    const tmp = file + '.tmp';
+    fs.writeFileSync(tmp, JSON.stringify({ savedAt: Date.now(), data }));
+    fs.renameSync(tmp, file);
+  } catch (e) {
+    /* 缓存失败不影响功能 */
+  }
+}
+
+async function fetchOnlineMeta(artist, track, album) {
+  const a = String(artist || '').trim();
+  const t = String(track || '').trim();
+  if (!t) return null;
+  const cacheKey = a + '|' + t + '|' + String(album || '').trim();
+  const cached = readMetaCache(cacheKey);
+  if (cached) return cached;
+  let result = null;
+  // 中文源优先：网易云 → QQ → Spotify（可用时）→ iTunes → Deezer
+  result = await searchNetease(a, t);
+  if (!result || !result.coverUrl) {
+    const qq = await searchQQ(a, t);
+    if (qq && qq.coverUrl) result = Object.assign(result || {}, qq);
+  }
+  if ((!result || !result.coverUrl) && spotifyConfig() && !spotifyDisabled) {
+    const sp = await searchSpotify(a, t);
+    if (sp && sp.coverUrl) result = Object.assign(result || {}, sp);
+  }
+  if (!result || !result.coverUrl) {
+    const it = await searchItunes(a, t);
+    if (it && it.coverUrl) result = Object.assign(result || {}, it);
+  }
+  if (!result || !result.coverUrl) {
+    const dz = await searchDeezer(a, t);
+    if (dz && dz.coverUrl) result = Object.assign(result || {}, dz);
+  }
+  if (!result || !result.coverUrl) result = null;
+  if (result) writeMetaCache(cacheKey, result);
+  return result;
+}
+
 // ====================================================================
 //  HTTP Server
 // ====================================================================
@@ -984,6 +1329,19 @@ const server = http.createServer(async (req, res) => {
       const lrclibUrl =
         'https://lrclib.net/api/get?artist_name=' + artist + '&track_name=' + track + '&album_name=' + album;
       let lrcContent = '';
+      // 优先网易云/QQ 歌词（中文覆盖最全）
+      try {
+        lrcContent = await fetchNeteaseLyric(song.artist || '', song.name || song.title || baseName);
+      } catch (e) {
+        /* netease lyric failed */
+      }
+      if (!lrcContent) {
+        try {
+          lrcContent = await fetchQQLyric(song.artist || '', song.name || song.title || baseName);
+        } catch (e) {
+          /* qq lyric failed */
+        }
+      }
       // Try LRCLib
       try {
         const resp = await fetch(lrclibUrl);
@@ -1035,6 +1393,138 @@ const server = http.createServer(async (req, res) => {
     }
     console.log('[LocalLyricsDL] 完成: ' + completed + ' 成功, ' + failed + ' 失败');
     sendJSON(res, { total: songs.length, completed, failed, results });
+    return;
+  }
+
+  // ---------- 在线元数据查询（单曲：封面 + 歌手照片） ----------
+  if (pn === '/api/online/meta') {
+    if (!requireAppHeader(req)) {
+      sendJSON(res, { ok: false, error: 'FORBIDDEN' }, 403);
+      return;
+    }
+    const artist = url.searchParams.get('artist') || '';
+    const track = url.searchParams.get('track') || '';
+    const album = url.searchParams.get('album') || '';
+    if (!track) {
+      sendJSON(res, { ok: false, error: 'NO_TRACK' });
+      return;
+    }
+    const meta = await fetchOnlineMeta(artist, track, album);
+    if (meta) {
+      sendJSON(res, {
+        ok: true,
+        coverUrl: meta.coverUrl || '',
+        artistPhotoUrl: meta.artistPhotoUrl || '',
+        source: meta.source || '',
+      });
+    } else {
+      sendJSON(res, { ok: false, error: 'NOT_FOUND' });
+    }
+    return;
+  }
+
+  // ---------- 本地音乐批量补封面（写 cover.jpg 到歌曲目录） ----------
+  if (pn === '/api/local/fetch-covers') {
+    if (!requireAppHeader(req)) {
+      sendJSON(res, { total: 0, completed: 0, failed: 0, skipped: 0, results: [] }, 403);
+      return;
+    }
+    const songsParam = url.searchParams.get('songs') || '[]';
+    let songs;
+    try {
+      songs = JSON.parse(songsParam);
+    } catch (e) {
+      songs = [];
+    }
+    if (!Array.isArray(songs)) songs = [];
+    if (songs.length === 0 && localMusicCache && localMusicCache.length) {
+      songs = localMusicCache;
+    }
+    if (songs.length === 0) {
+      sendJSON(res, { total: 0, completed: 0, failed: 0, skipped: 0, results: [] });
+      return;
+    }
+    console.log('[FetchCovers] 开始为 ' + songs.length + ' 首歌补封面');
+    const results = [];
+    let completed = 0,
+      failed = 0,
+      skipped = 0;
+    for (const song of songs) {
+      const fp = song.localPath || song.localUrl || '';
+      const name = song.name || song.title || '';
+      if (!fp || !fs.existsSync(fp)) {
+        skipped++;
+        results.push({ song: name || '?', status: 'skipped', reason: '文件不存在' });
+        continue;
+      }
+      const dir = path.dirname(fp);
+      const coverPath = path.join(dir, 'folder.jpg');
+      // 已有封面（内嵌/目录图片）则跳过
+      if (
+        (song.hasCover && song.coverPath) ||
+        fs.existsSync(coverPath) ||
+        fs.existsSync(path.join(dir, 'cover.jpg')) ||
+        fs.existsSync(path.join(dir, 'cover.png'))
+      ) {
+        skipped++;
+        results.push({ song: name || '?', status: 'exists' });
+        continue;
+      }
+      const meta = await fetchOnlineMeta(song.artist || '', name, song.album || '');
+      if (!meta || !meta.coverUrl) {
+        failed++;
+        results.push({ song: name || '?', status: 'no_cover' });
+        continue;
+      }
+      try {
+        const imgResp = await fetch(meta.coverUrl);
+        if (!imgResp.ok) throw new Error('HTTP ' + imgResp.status);
+        const buf = Buffer.from(await imgResp.arrayBuffer());
+        if (buf.length < 100) throw new Error('IMAGE_TOO_SMALL');
+        fs.writeFileSync(coverPath, buf);
+        let singerPath = '';
+        if (meta.artistPhotoUrl) {
+          const artistDir = resolveArtistDir(dir, song.artist || '');
+          if (artistDir) {
+            const sp = path.join(artistDir, 'singer.jpg');
+            if (fs.existsSync(sp)) {
+              singerPath = sp;
+            } else {
+              try {
+                const sResp = await fetch(meta.artistPhotoUrl);
+                if (sResp.ok) {
+                  const sBuf = Buffer.from(await sResp.arrayBuffer());
+                  if (sBuf.length >= 100) {
+                    fs.writeFileSync(sp, sBuf);
+                    singerPath = sp;
+                  }
+                }
+              } catch (e2) {
+                /* 歌手照片失败不影响封面 */
+              }
+            }
+          }
+        }
+        completed++;
+        results.push({
+          song: name || '?',
+          status: 'downloaded',
+          coverPath,
+          singerPath: singerPath || '',
+          source: meta.source,
+        });
+      } catch (e) {
+        failed++;
+        results.push({
+          song: name || '?',
+          status: 'download_failed',
+          reason: (e && e.message) || 'DOWNLOAD_FAILED',
+        });
+      }
+      await new Promise((r) => setTimeout(r, 600));
+    }
+    console.log('[FetchCovers] 完成: ' + completed + ' 成功, ' + failed + ' 失败, ' + skipped + ' 跳过');
+    sendJSON(res, { total: songs.length, completed, failed, skipped, results });
     return;
   }
 
