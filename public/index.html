@@ -918,21 +918,6 @@ try {
   </div>
 </div>
 
-<div id="integrate-progress-modal" class="modal-mask">
-  <div class="modal" style="width:440px;max-width:92vw;background:#15161d;border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:22px 24px;box-shadow:0 24px 80px rgba(0,0,0,.55)">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
-      <h2 style="margin:0;font-size:15px;font-weight:700;color:#fff">整合音乐</h2>
-      <span id="ip-percent" style="font-size:15px;font-weight:700;color:rgba(0,245,212,.9)">0%</span>
-    </div>
-    <div id="ip-stage" style="font-size:12px;color:rgba(255,255,255,.55);margin-bottom:14px">准备中...</div>
-    <div style="height:6px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden">
-      <div id="ip-bar" style="height:100%;width:0%;border-radius:999px;background:rgba(0,245,212,.85);transition:width .3s ease"></div>
-    </div>
-    <div id="ip-stats" style="display:flex;justify-content:space-between;margin-top:10px;font-size:11px;color:rgba(255,255,255,.45)"></div>
-    <div id="ip-detail" style="margin-top:6px;font-size:11px;color:rgba(255,255,255,.35)"></div>
-  </div>
-</div>
-
 <div id="custom-lyric-modal" class="modal-mask">
   <div class="modal custom-lyric-modal">
     <h2>自定义歌词</h2>
@@ -15517,13 +15502,30 @@ async function loadLocalMusic() {
     results.innerHTML = '<div class="search-empty">扫描失败: ' + escHtml(err.message || '') + '</div>';
   }
 }
-var ipModalEl = null;
+var ipOverlayEl = null;
 function openIntegrateProgress() {
-  ipModalEl = document.getElementById('integrate-progress-modal');
-  if (ipModalEl) openGsapModal(ipModalEl);
+  if (ipOverlayEl) return;
+  var ov = document.createElement('div');
+  ov.style.cssText = 'position:fixed;z-index:99999;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)';
+  var box = document.createElement('div');
+  box.style.cssText = 'width:440px;max-width:92vw;background:#15161d;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:22px 24px;box-shadow:0 24px 80px rgba(0,0,0,.6)';
+  box.innerHTML =
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">' +
+      '<div style="font-size:15px;font-weight:700;color:#fff">整合音乐</div>' +
+      '<span id="ip-percent" style="font-size:15px;font-weight:700;color:rgba(0,245,212,.9)">0%</span>' +
+    '</div>' +
+    '<div id="ip-stage" style="font-size:12px;color:rgba(255,255,255,.55);margin-bottom:14px">准备中...</div>' +
+    '<div style="height:6px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden">' +
+      '<div id="ip-bar" style="height:100%;width:0%;border-radius:999px;background:rgba(0,245,212,.85);transition:width .3s ease"></div>' +
+    '</div>' +
+    '<div id="ip-stats" style="display:flex;justify-content:space-between;margin-top:10px;font-size:11px;color:rgba(255,255,255,.45)"></div>' +
+    '<div id="ip-detail" style="margin-top:6px;font-size:11px;color:rgba(255,255,255,.35)"></div>';
+  ov.appendChild(box);
+  document.body.appendChild(ov);
+  ipOverlayEl = ov;
 }
 function updateIntegrateProgress(stage, done, total, completed, failed, skipped) {
-  if (!ipModalEl) return;
+  if (!ipOverlayEl) return;
   var stageEl = document.getElementById('ip-stage');
   if (stageEl) stageEl.textContent = stage;
   var pct = total > 0 ? Math.round(Math.min(done, total) / total * 100) : 0;
@@ -15537,7 +15539,7 @@ function updateIntegrateProgress(stage, done, total, completed, failed, skipped)
   if (detailEl) detailEl.textContent = '\u6210\u529f ' + completed + ' \u00b7 \u5931\u8d25 ' + failed + ' \u00b7 \u8df3\u8fc7 ' + skipped;
 }
 function closeIntegrateProgress() {
-  if (ipModalEl) { closeGsapModal(ipModalEl); ipModalEl = null; }
+  if (ipOverlayEl) { ipOverlayEl.remove(); ipOverlayEl = null; }
 }
 // 分批执行任务并实时更新进度（每批一次接口调用）
 async function runBatchedTask(songs, apiPath, chunkSize, onEach) {
