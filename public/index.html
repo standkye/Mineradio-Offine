@@ -546,6 +546,29 @@ try {
       <div class="fx-slider"><label>闪光触发</label><input id="fx-sonicpresence" type="range" min="0" max="100" step="1"><output></output></div>
       <div class="fx-slider"><label>边缘微闪</label><input id="fx-sonicbrilliance" type="range" min="0" max="100" step="1"><output></output></div>
       <div class="fx-slider"><label>空气颗粒</label><input id="fx-sonicair" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-section-label">歌单详情页位置</div>
+      <div class="fx-slider"><label>详情左右</label><input id="fx-shelfdetailx" type="range" min="-4.8" max="4.8" step="0.01"><output></output></div>
+      <div class="fx-slider"><label>详情上下</label><input id="fx-shelfdetaily" type="range" min="-3.6" max="3.6" step="0.01"><output></output></div>
+      <div class="fx-slider"><label>详情前后</label><input id="fx-shelfdetailz" type="range" min="-3.6" max="3.6" step="0.01"><output></output></div>
+      <div class="fx-slider"><label>详情大小</label><input id="fx-shelfdetailscale" type="range" min="0.72" max="1.35" step="0.01"><output></output></div>
+      <div class="fx-slider"><label>详情俯仰</label><input id="fx-shelfdetailanglex" type="range" min="-24" max="24" step="1"><output></output></div>
+      <div class="fx-slider"><label>详情侧旋</label><input id="fx-shelfdetailangley" type="range" min="-28" max="28" step="1"><output></output></div>
+      <div class="fx-slider"><label>详情行间距</label><input id="fx-shelfdetailrowgap" type="range" min="0.72" max="1.32" step="0.01"><output></output></div>
+      <div class="fx-section-label">歌单详情页动画</div>
+      <div class="fx-slider"><label>展开秒数</label><input id="fx-shelfdetailopen" type="range" min="0.12" max="1.2" step="0.01"><output></output></div>
+      <div class="fx-slider"><label>关闭秒数</label><input id="fx-shelfdetailclose" type="range" min="0.08" max="0.8" step="0.01"><output></output></div>
+      <div class="fx-slider"><label>行入场秒数</label><input id="fx-shelfdetailrowtime" type="range" min="0.16" max="1.6" step="0.01"><output></output></div>
+      <div class="fx-slider"><label>展开位移</label><input id="fx-shelfdetailintro" type="range" min="0" max="1.8" step="0.01"><output></output></div>
+      <div class="fx-slider"><label>悬浮视差</label><input id="fx-shelfdetailparallax" type="range" min="0" max="1.8" step="0.01"><output></output></div>
+      <div class="fx-section-label">歌单架唤出动画</div>
+      <div class="fx-slider"><label>唤出秒数</label><input id="fx-shelfsummonopen" type="range" min="0.08" max="2" step="0.01"><output></output></div>
+      <div class="fx-slider"><label>收起秒数</label><input id="fx-shelfsummonclose" type="range" min="0.08" max="1.6" step="0.01"><output></output></div>
+      <div class="fx-slider"><label>唤出位移</label><input id="fx-shelfsummonslide" type="range" min="0" max="4" step="0.01"><output></output></div>
+      <div class="fx-slider"><label>卡片错层</label><input id="fx-shelfsummonstagger" type="range" min="0" max="3" step="0.01"><output></output></div>
+      <div class="fx-slider"><label>唤出缩放</label><input id="fx-shelfsummonscale" type="range" min="0" max="3" step="0.01"><output></output></div>
+      <div class="fx-slider"><label>唤出视差</label><input id="fx-shelfsummonparallax" type="range" min="0" max="2.5" step="0.01"><output></output></div>
+      <div class="fx-slider"><label>镜头进入速度</label><input id="fx-shelfcamenter" type="range" min="0.2" max="1.5" step="0.01"><output></output></div>
+      <div class="fx-slider"><label>镜头离开速度</label><input id="fx-shelfcamexit" type="range" min="0.2" max="1.5" step="0.01"><output></output></div>
       <div class="fx-section-label">直播 / 后台</div>
       <div class="fx-seg" id="performance-background-seg" title="控制窗口隐藏、最小化或后台运行时的渲染策略">
         <button data-performance-background="auto">自动优化</button>
@@ -1553,6 +1576,26 @@ var fxDefaults = {
   sonicGroundPresence: 50,
   sonicGroundBrilliance: 50,
   sonicGroundAir: 48,
+  shelfDetailOffsetX: 0,
+  shelfDetailOffsetY: 0,
+  shelfDetailOffsetZ: 0,
+  shelfDetailScale: 1,
+  shelfDetailAngleX: 0,
+  shelfDetailAngleY: 0,
+  shelfDetailRowGap: 1,
+  shelfDetailOpenDuration: 0.5,
+  shelfDetailCloseDuration: 0.3,
+  shelfDetailRowDuration: 0.5,
+  shelfDetailIntroStrength: 0.8,
+  shelfDetailParallax: 0.8,
+  shelfSummonOpenDuration: 0.7,
+  shelfSummonCloseDuration: 0.5,
+  shelfSummonSlide: 1.9,
+  shelfSummonStagger: 1,
+  shelfSummonScale: 1,
+  shelfSummonParallax: 1,
+  shelfCameraEnterSpeed: 0.24,
+  shelfCameraExitSpeed: 0.24,
   sonicWorkshopAudioIntensity: 1.15,
   sonicWorkshopResponseRange: 1.30,
   sonicWorkshopPeakIntensity: 0.62,
@@ -5994,6 +6037,26 @@ function readSavedLyricLayout() {
       shelfOpacity: clampRange(raw.shelfOpacity == null ? fxDefaults.shelfOpacity : Number(raw.shelfOpacity), 0.25, 1),
       shelfBgOpacity: clampRange(raw.shelfBgOpacity == null ? fxDefaults.shelfBgOpacity : Number(raw.shelfBgOpacity), 0.25, 0.98),
       shelfAccentColor: normalizeHexColor(raw.shelfAccentColor || fxDefaults.shelfAccentColor, fxDefaults.shelfAccentColor),
+      shelfDetailOffsetX: isFinite(Number(raw.shelfDetailOffsetX)) ? clampRange(Number(raw.shelfDetailOffsetX), -4.8, 4.8) : 0,
+      shelfDetailOffsetY: isFinite(Number(raw.shelfDetailOffsetY)) ? clampRange(Number(raw.shelfDetailOffsetY), -3.6, 3.6) : 0,
+      shelfDetailOffsetZ: isFinite(Number(raw.shelfDetailOffsetZ)) ? clampRange(Number(raw.shelfDetailOffsetZ), -3.6, 3.6) : 0,
+      shelfDetailScale: isFinite(Number(raw.shelfDetailScale)) ? clampRange(Number(raw.shelfDetailScale), 0.72, 1.35) : 1,
+      shelfDetailAngleX: isFinite(Number(raw.shelfDetailAngleX)) ? clampRange(Number(raw.shelfDetailAngleX), -24, 24) : 0,
+      shelfDetailAngleY: isFinite(Number(raw.shelfDetailAngleY)) ? clampRange(Number(raw.shelfDetailAngleY), -28, 28) : 0,
+      shelfDetailRowGap: isFinite(Number(raw.shelfDetailRowGap)) ? clampRange(Number(raw.shelfDetailRowGap), 0.72, 1.32) : 1,
+      shelfDetailOpenDuration: isFinite(Number(raw.shelfDetailOpenDuration)) ? clampRange(Number(raw.shelfDetailOpenDuration), 0.12, 1.2) : 0.5,
+      shelfDetailCloseDuration: isFinite(Number(raw.shelfDetailCloseDuration)) ? clampRange(Number(raw.shelfDetailCloseDuration), 0.08, 0.8) : 0.3,
+      shelfDetailRowDuration: isFinite(Number(raw.shelfDetailRowDuration)) ? clampRange(Number(raw.shelfDetailRowDuration), 0.16, 1.6) : 0.5,
+      shelfDetailIntroStrength: isFinite(Number(raw.shelfDetailIntroStrength)) ? clampRange(Number(raw.shelfDetailIntroStrength), 0, 1.8) : 0.8,
+      shelfDetailParallax: isFinite(Number(raw.shelfDetailParallax)) ? clampRange(Number(raw.shelfDetailParallax), 0, 1.8) : 0.8,
+      shelfSummonOpenDuration: isFinite(Number(raw.shelfSummonOpenDuration)) ? clampRange(Number(raw.shelfSummonOpenDuration), 0.08, 2) : 0.7,
+      shelfSummonCloseDuration: isFinite(Number(raw.shelfSummonCloseDuration)) ? clampRange(Number(raw.shelfSummonCloseDuration), 0.08, 1.6) : 0.5,
+      shelfSummonSlide: isFinite(Number(raw.shelfSummonSlide)) ? clampRange(Number(raw.shelfSummonSlide), 0, 4) : 1.9,
+      shelfSummonStagger: isFinite(Number(raw.shelfSummonStagger)) ? clampRange(Number(raw.shelfSummonStagger), 0, 3) : 1,
+      shelfSummonScale: isFinite(Number(raw.shelfSummonScale)) ? clampRange(Number(raw.shelfSummonScale), 0, 3) : 1,
+      shelfSummonParallax: isFinite(Number(raw.shelfSummonParallax)) ? clampRange(Number(raw.shelfSummonParallax), 0, 2.5) : 1,
+      shelfCameraEnterSpeed: isFinite(Number(raw.shelfCameraEnterSpeed)) ? clampRange(Number(raw.shelfCameraEnterSpeed), 0.2, 1.5) : 0.24,
+      shelfCameraExitSpeed: isFinite(Number(raw.shelfCameraExitSpeed)) ? clampRange(Number(raw.shelfCameraExitSpeed), 0.2, 1.5) : 0.24,
       cam: /^(off|gesture)$/.test(String(raw.cam || '')) ? raw.cam : fxDefaults.cam,
       sonicWorkshopInputGain: clampRange(Number(raw.sonicWorkshopInputGain) || fxDefaults.sonicWorkshopInputGain, 40, 100),
       sonicWorkshopAudioIntensity: clampRange(Number(raw.sonicWorkshopAudioIntensity) || fxDefaults.sonicWorkshopAudioIntensity, 0.3, 2.5),
@@ -6100,6 +6163,26 @@ function saveLyricLayout() {
       shelfAngleYManual: fx.shelfAngleYManual === true,
       shelfOpacity: clampRange(fx.shelfOpacity == null ? fxDefaults.shelfOpacity : Number(fx.shelfOpacity), 0.25, 1),
       shelfBgOpacity: clampRange(fx.shelfBgOpacity == null ? fxDefaults.shelfBgOpacity : Number(fx.shelfBgOpacity), 0.25, 0.98),
+      shelfDetailOffsetX: isFinite(Number(fx.shelfDetailOffsetX)) ? clampRange(Number(fx.shelfDetailOffsetX), -4.8, 4.8) : 0,
+      shelfDetailOffsetY: isFinite(Number(fx.shelfDetailOffsetY)) ? clampRange(Number(fx.shelfDetailOffsetY), -3.6, 3.6) : 0,
+      shelfDetailOffsetZ: isFinite(Number(fx.shelfDetailOffsetZ)) ? clampRange(Number(fx.shelfDetailOffsetZ), -3.6, 3.6) : 0,
+      shelfDetailScale: isFinite(Number(fx.shelfDetailScale)) ? clampRange(Number(fx.shelfDetailScale), 0.72, 1.35) : 1,
+      shelfDetailAngleX: isFinite(Number(fx.shelfDetailAngleX)) ? clampRange(Number(fx.shelfDetailAngleX), -24, 24) : 0,
+      shelfDetailAngleY: isFinite(Number(fx.shelfDetailAngleY)) ? clampRange(Number(fx.shelfDetailAngleY), -28, 28) : 0,
+      shelfDetailRowGap: isFinite(Number(fx.shelfDetailRowGap)) ? clampRange(Number(fx.shelfDetailRowGap), 0.72, 1.32) : 1,
+      shelfDetailOpenDuration: isFinite(Number(fx.shelfDetailOpenDuration)) ? clampRange(Number(fx.shelfDetailOpenDuration), 0.12, 1.2) : 0.5,
+      shelfDetailCloseDuration: isFinite(Number(fx.shelfDetailCloseDuration)) ? clampRange(Number(fx.shelfDetailCloseDuration), 0.08, 0.8) : 0.3,
+      shelfDetailRowDuration: isFinite(Number(fx.shelfDetailRowDuration)) ? clampRange(Number(fx.shelfDetailRowDuration), 0.16, 1.6) : 0.5,
+      shelfDetailIntroStrength: isFinite(Number(fx.shelfDetailIntroStrength)) ? clampRange(Number(fx.shelfDetailIntroStrength), 0, 1.8) : 0.8,
+      shelfDetailParallax: isFinite(Number(fx.shelfDetailParallax)) ? clampRange(Number(fx.shelfDetailParallax), 0, 1.8) : 0.8,
+      shelfSummonOpenDuration: isFinite(Number(fx.shelfSummonOpenDuration)) ? clampRange(Number(fx.shelfSummonOpenDuration), 0.08, 2) : 0.7,
+      shelfSummonCloseDuration: isFinite(Number(fx.shelfSummonCloseDuration)) ? clampRange(Number(fx.shelfSummonCloseDuration), 0.08, 1.6) : 0.5,
+      shelfSummonSlide: isFinite(Number(fx.shelfSummonSlide)) ? clampRange(Number(fx.shelfSummonSlide), 0, 4) : 1.9,
+      shelfSummonStagger: isFinite(Number(fx.shelfSummonStagger)) ? clampRange(Number(fx.shelfSummonStagger), 0, 3) : 1,
+      shelfSummonScale: isFinite(Number(fx.shelfSummonScale)) ? clampRange(Number(fx.shelfSummonScale), 0, 3) : 1,
+      shelfSummonParallax: isFinite(Number(fx.shelfSummonParallax)) ? clampRange(Number(fx.shelfSummonParallax), 0, 2.5) : 1,
+      shelfCameraEnterSpeed: isFinite(Number(fx.shelfCameraEnterSpeed)) ? clampRange(Number(fx.shelfCameraEnterSpeed), 0.2, 1.5) : 0.24,
+      shelfCameraExitSpeed: isFinite(Number(fx.shelfCameraExitSpeed)) ? clampRange(Number(fx.shelfCameraExitSpeed), 0.2, 1.5) : 0.24,
       shelfAccentColor: normalizeHexColor(fx.shelfAccentColor || fxDefaults.shelfAccentColor, fxDefaults.shelfAccentColor),
       cam: /^(off|gesture)$/.test(String(fx.cam || '')) ? fx.cam : fxDefaults.cam,
       sonicWorkshopInputGain: clampRange(Number(fx.sonicWorkshopInputGain) || fxDefaults.sonicWorkshopInputGain, 40, 100),
@@ -11155,6 +11238,10 @@ function shelfLayoutProfile() {
   var skullShelf = shouldUseSkullSafeShelfCamera();
   var detailScale = portrait ? clampRange(innerWidth / 820, 0.70, 0.86) : (narrow ? 0.92 : 1.04);
   var shelfCtl = shelfSettings();
+  function detailNum(key, fallback, min, max) {
+    var v = Number(fx && fx[key]);
+    return isFinite(v) ? clampRange(v, min, max) : fallback;
+  }
   return {
     portrait: portrait,
     narrow: narrow,
@@ -11175,13 +11262,13 @@ function shelfLayoutProfile() {
     stageZ: (portrait ? 0.84 : 1.0) + shelfCtl.z,
     stageScale: (portrait ? 0.72 : (narrow ? 0.86 : 1)) * shelfCtl.size,
     detail: {
-      x: (skullShelf ? (portrait ? 0.16 : (narrow ? 0.40 : 0.64)) : (portrait ? 0.38 : (narrow ? 0.96 : 1.28))) + shelfCtl.x * 0.62,
-      y: (skullShelf ? (portrait ? -0.40 : -0.68) : (portrait ? 0.10 : 0.18)) + shelfCtl.y * 0.55,
-      z: (skullShelf ? (portrait ? 1.10 : 1.22) : (portrait ? 1.28 : 1.36)) + shelfCtl.z * 0.45,
-      rx: skullShelf ? (portrait ? 0.006 : 0.014) : (portrait ? -0.004 : -0.008),
-      ry: (skullShelf ? (portrait ? -0.070 : -0.165) : (portrait ? 0.00 : 0.020)) + shelfCtl.angle * 0.55,
-      scale: (skullShelf ? detailScale * (portrait ? 0.88 : 1.02) : detailScale) * shelfCtl.size,
-      rowStep: skullShelf ? (portrait ? 0.37 : 0.43) : (portrait ? 0.36 : 0.42),
+      x: (skullShelf ? (portrait ? 0.16 : (narrow ? 0.40 : 0.64)) : (portrait ? 0.38 : (narrow ? 0.96 : 1.28))) + shelfCtl.x * 0.62 + detailNum('shelfDetailOffsetX', 0, -4.8, 4.8),
+      y: (skullShelf ? (portrait ? -0.40 : -0.68) : (portrait ? 0.10 : 0.18)) + shelfCtl.y * 0.55 + detailNum('shelfDetailOffsetY', 0, -3.6, 3.6),
+      z: (skullShelf ? (portrait ? 1.10 : 1.22) : (portrait ? 1.28 : 1.36)) + shelfCtl.z * 0.45 + detailNum('shelfDetailOffsetZ', 0, -3.6, 3.6),
+      rx: (skullShelf ? (portrait ? 0.006 : 0.014) : (portrait ? -0.004 : -0.008)) + detailNum('shelfDetailAngleX', 0, -24, 24) * Math.PI / 180,
+      ry: (skullShelf ? (portrait ? -0.070 : -0.165) : (portrait ? 0.00 : 0.020)) + shelfCtl.angle * 0.55 + detailNum('shelfDetailAngleY', 0, -28, 28) * Math.PI / 180,
+      scale: (skullShelf ? detailScale * (portrait ? 0.88 : 1.02) : detailScale) * shelfCtl.size * detailNum('shelfDetailScale', 1, 0.72, 1.35),
+      rowStep: (skullShelf ? (portrait ? 0.37 : 0.43) : (portrait ? 0.36 : 0.42)) * detailNum('shelfDetailRowGap', 1, 0.72, 1.32),
       rowScale: skullShelf ? (portrait ? 0.90 : 1.02) : (portrait ? 0.88 : (narrow ? 0.96 : 1.00))
     }
   };
@@ -11189,6 +11276,10 @@ function shelfLayoutProfile() {
 function shelfHotZoneWidth() {
   var ratio = isPortraitShelfViewport() ? 0.26 : 0.18;
   return Math.min(isPortraitShelfViewport() ? 280 : 360, Math.max(148, innerWidth * ratio));
+}
+function shelfAnimNum(key, fallback, min, max) {
+  var v = Number(fx && fx[key]);
+  return isFinite(v) && v > 0 ? clampRange(v, min, max) : fallback;
 }
 function shelfPreviewUseZoneWidth() {
   return Math.min(820, Math.max(shelfHotZoneWidth(), innerWidth * 0.56));
@@ -11745,9 +11836,12 @@ function makeShelfManager() {
         ? (30 + Math.round(sideLayer * 1.1) + Math.round(lift * 96))
         : (60 + Math.round(sideLayer * 10) + Math.round(lift * 70));
       var breathPulse = hoverBreath * (0.5 + 0.5 * Math.sin(nowT * 1.22 + card.index * 0.74));
-      var revealRaw = Math.max(0, Math.min(1, (nowT - shelfOpenAnimAt - absD * 0.035) / 0.62));
+      var summonDur = shelfAnimNum('shelfSummonOpenDuration', 0.62, 0.08, 2);
+      var summonStagger = shelfAnimNum('shelfSummonStagger', 1, 0.01, 3);
+      var summonSlide = shelfAnimNum('shelfSummonSlide', 1.9, 0.01, 4);
+      var revealRaw = Math.max(0, Math.min(1, (nowT - shelfOpenAnimAt - absD * 0.035 * summonStagger) / summonDur));
       var reveal = revealRaw * revealRaw * (3 - 2 * revealRaw);
-      var entry = (1 - reveal) * (0.82 + absD * 0.075);
+      var entry = (1 - reveal) * (0.82 + absD * 0.075) * (summonSlide / 1.9);
       var paneRaw = Math.max(0, Math.min(1, (nowT - paneSwitchAt - absD * 0.030) / 0.72));
       var paneEase = 1 - paneRaw * paneRaw * (3 - 2 * paneRaw);
       var wallpaperShelfPose = shouldUseWallpaperSafeShelfCamera();
@@ -12615,11 +12709,14 @@ function makeContentListManager() {
     row.mesh.visible = true;
     row.mesh.renderOrder = 240 + Math.round((CONTENT_VISIBLE_RADIUS + 1 - Math.min(absD, CONTENT_VISIBLE_RADIUS + 1)) * 14);
     var nowT = uniforms.uTime.value;
-    var revealRaw = Math.max(0, Math.min(1, (nowT - rowAnimAt - absD * 0.040) / 0.72));
+    var rowDur = shelfAnimNum('shelfDetailRowDuration', 0.72, 0.16, 1.6);
+    var revealRaw = Math.max(0, Math.min(1, (nowT - rowAnimAt - absD * 0.040) / rowDur));
     var reveal = revealRaw * revealRaw * (3 - 2 * revealRaw);
     var parX = pointerParallax.x || 0;
     var parY = pointerParallax.y || 0;
     var parWeight = Math.max(0, 1 - absD * 0.12);
+    var detailIntro = shelfAnimNum('shelfDetailIntroStrength', 0.8, 0.01, 1.8);
+    var detailPar = shelfAnimNum('shelfDetailParallax', 0.8, 0.01, 1.8);
     var pulse = row.fxPulse || 0;
     var settle = group && group.userData ? (group.userData.rowSettle || 0) : 0;
     var layout = detailLayout();
@@ -12627,17 +12724,17 @@ function makeContentListManager() {
     var skullDetail = shouldUseSkullSafeShelfCamera();
     var rowBaseX = skullDetail ? 0.22 : -0.04;
     var rowSpreadX = skullDetail ? 0.030 : 0.014;
-    var rowIntroX = skullDetail ? 0.58 : 0.38;
+    var rowIntroX = (skullDetail ? 0.58 : 0.38) * (detailIntro / 0.8);
     var rowCenterZ = skullDetail ? 0.62 : 0.62;
     var rowBackZ = skullDetail ? 0.58 : 0.58;
     var rowDepthStep = skullDetail ? 0.046 : 0.048;
-    var px = rowBaseX + absD * rowSpreadX + (1 - reveal) * (rowIntroX + absD * rowSpreadX);
-    var py = -delta * layout.rowStep + (1 - reveal) * (0.20 + (delta < 0 ? -0.10 : 0.10));
+    var px = rowBaseX + absD * rowSpreadX + (1 - reveal) * (rowIntroX + absD * rowSpreadX * (detailIntro / 0.8));
+    var py = -delta * layout.rowStep + (1 - reveal) * (0.20 + (delta < 0 ? -0.10 : 0.10)) * (detailIntro / 0.8);
     var pz = (absD < 0.5 ? rowCenterZ : (rowBackZ - absD * rowDepthStep)) - (1 - reveal) * (skullDetail ? 0.10 : 0.16);
     px += settle * ((skullDetail ? 0.11 : 0.12) + absD * (skullDetail ? 0.010 : 0.012));
     py += settle * (delta < 0 ? -0.08 : 0.08);
     pz -= settle * (skullDetail ? 0.045 : 0.08);
-    px += parX * (skullDetail ? 0.022 : 0.026) * parWeight;
+    px += parX * ((skullDetail ? 0.022 : 0.026) * (detailPar / 0.8)) * parWeight;
     py += parY * (skullDetail ? 0.024 : 0.036) * parWeight;
     pz += (parY * (skullDetail ? 0.014 : 0.024) - parX * (skullDetail ? 0.010 : 0.020)) * parWeight;
     var scale = (absD < 0.5 ? 1.00 : Math.max(0.66, 0.94 - absD * 0.070)) * (0.90 + reveal * 0.10) * (1 + pulse * 0.052) * (1 - settle * 0.025) * layout.rowScale;
@@ -19906,6 +20003,26 @@ function updateFxInputs() {
   setRange('fx-sonicpresence', fx.sonicGroundPresence == null ? 50 : fx.sonicGroundPresence);
   setRange('fx-sonicbrilliance', fx.sonicGroundBrilliance == null ? 50 : fx.sonicGroundBrilliance);
   setRange('fx-sonicair', fx.sonicGroundAir == null ? 48 : fx.sonicGroundAir);
+  setRange('fx-shelfdetailx', fx.shelfDetailOffsetX == null ? 0 : fx.shelfDetailOffsetX);
+  setRange('fx-shelfdetaily', fx.shelfDetailOffsetY == null ? 0 : fx.shelfDetailOffsetY);
+  setRange('fx-shelfdetailz', fx.shelfDetailOffsetZ == null ? 0 : fx.shelfDetailOffsetZ);
+  setRange('fx-shelfdetailscale', fx.shelfDetailScale == null ? 1 : fx.shelfDetailScale);
+  setRange('fx-shelfdetailanglex', fx.shelfDetailAngleX == null ? 0 : fx.shelfDetailAngleX);
+  setRange('fx-shelfdetailangley', fx.shelfDetailAngleY == null ? 0 : fx.shelfDetailAngleY);
+  setRange('fx-shelfdetailrowgap', fx.shelfDetailRowGap == null ? 1 : fx.shelfDetailRowGap);
+  setRange('fx-shelfdetailopen', fx.shelfDetailOpenDuration == null ? 0.5 : fx.shelfDetailOpenDuration);
+  setRange('fx-shelfdetailclose', fx.shelfDetailCloseDuration == null ? 0.3 : fx.shelfDetailCloseDuration);
+  setRange('fx-shelfdetailrowtime', fx.shelfDetailRowDuration == null ? 0.5 : fx.shelfDetailRowDuration);
+  setRange('fx-shelfdetailintro', fx.shelfDetailIntroStrength == null ? 0.8 : fx.shelfDetailIntroStrength);
+  setRange('fx-shelfdetailparallax', fx.shelfDetailParallax == null ? 0.8 : fx.shelfDetailParallax);
+  setRange('fx-shelfsummonopen', fx.shelfSummonOpenDuration == null ? 0.7 : fx.shelfSummonOpenDuration);
+  setRange('fx-shelfsummonclose', fx.shelfSummonCloseDuration == null ? 0.5 : fx.shelfSummonCloseDuration);
+  setRange('fx-shelfsummonslide', fx.shelfSummonSlide == null ? 1.9 : fx.shelfSummonSlide);
+  setRange('fx-shelfsummonstagger', fx.shelfSummonStagger == null ? 1 : fx.shelfSummonStagger);
+  setRange('fx-shelfsummonscale', fx.shelfSummonScale == null ? 1 : fx.shelfSummonScale);
+  setRange('fx-shelfsummonparallax', fx.shelfSummonParallax == null ? 1 : fx.shelfSummonParallax);
+  setRange('fx-shelfcamenter', fx.shelfCameraEnterSpeed == null ? 0.24 : fx.shelfCameraEnterSpeed);
+  setRange('fx-shelfcamexit', fx.shelfCameraExitSpeed == null ? 0.24 : fx.shelfCameraExitSpeed);
   [['sonic-ground-base-picker','sonicGroundBaseColor','#05070c'],['sonic-ground-cool-picker','sonicGroundCoolColor','#0066ff'],['sonic-ground-warm-picker','sonicGroundWarmColor','#ff3c19'],['sonic-ground-accent-picker','sonicGroundAccentColor','#33e6ff']].forEach(function(pair){
     var el = document.getElementById(pair[0]);
     if (el) el.value = fx[pair[1]] || pair[2];
@@ -20732,6 +20849,10 @@ function bindFxPanel() {
     ['fx-sonicrange','sonicGroundRange'],['fx-soniclower','sonicGroundLower'],['fx-sonicdepth','sonicGroundDepth'],['fx-sonicautorotate','sonicGroundAutoRotate'],['fx-sonicglow','sonicGroundGlow'],
     ['fx-sonicfloatcount','sonicGroundFloatingCount'],['fx-sonicfloatintensity','sonicGroundFloatingIntensity'],['fx-sonicfloatmin','sonicGroundFloatingMinSize'],['fx-sonicfloatmax','sonicGroundFloatingMaxSize'],['fx-sonicfloatspeed','sonicGroundFloatingSpeed'],
     ['fx-sonicsubbass','sonicGroundSubBass'],['fx-sonicbass','sonicGroundBass'],['fx-soniclowmid','sonicGroundLowMid'],['fx-sonicmid','sonicGroundMid'],['fx-sonichighmid','sonicGroundHighMid'],['fx-sonicpresence','sonicGroundPresence'],['fx-sonicbrilliance','sonicGroundBrilliance'],['fx-sonicair','sonicGroundAir'],
+    ['fx-shelfdetailx','shelfDetailOffsetX'],['fx-shelfdetaily','shelfDetailOffsetY'],['fx-shelfdetailz','shelfDetailOffsetZ'],['fx-shelfdetailscale','shelfDetailScale'],['fx-shelfdetailanglex','shelfDetailAngleX'],['fx-shelfdetailangley','shelfDetailAngleY'],['fx-shelfdetailrowgap','shelfDetailRowGap'],
+    ['fx-shelfdetailopen','shelfDetailOpenDuration'],['fx-shelfdetailclose','shelfDetailCloseDuration'],['fx-shelfdetailrowtime','shelfDetailRowDuration'],['fx-shelfdetailintro','shelfDetailIntroStrength'],['fx-shelfdetailparallax','shelfDetailParallax'],
+    ['fx-shelfsummonopen','shelfSummonOpenDuration'],['fx-shelfsummonclose','shelfSummonCloseDuration'],['fx-shelfsummonslide','shelfSummonSlide'],['fx-shelfsummonstagger','shelfSummonStagger'],['fx-shelfsummonscale','shelfSummonScale'],['fx-shelfsummonparallax','shelfSummonParallax'],
+    ['fx-shelfcamenter','shelfCameraEnterSpeed'],['fx-shelfcamexit','shelfCameraExitSpeed'],
     ['fx-desktoplyricssize','desktopLyricsSize'],['fx-desktoplyricsopacity','desktopLyricsOpacity'],['fx-desktoplyricsy','desktopLyricsY'],['fx-wallpaperopacity','wallpaperOpacity'],
     ['fx-shelfsize','shelfSize'],['fx-shelfx','shelfOffsetX'],['fx-shelfy','shelfOffsetY'],['fx-shelfz','shelfOffsetZ'],['fx-shelfangle','shelfAngleY'],['fx-shelfopacity','shelfOpacity'],['fx-shelfbgalpha','shelfBgOpacity'],
     ['fx-lyricspacing','lyricLetterSpacing'],['fx-lyriclineheight','lyricLineHeight'],['fx-lyricweight','lyricWeight'],
@@ -20756,6 +20877,26 @@ function bindFxPanel() {
         fx[pair[1]] = Math.round(clampRange(fx[pair[1]], 0, 100));
         if (window.MineradioSonicTopography && typeof MineradioSonicTopography.pushProperties === 'function') MineradioSonicTopography.pushProperties(true);
       }
+      if (pair[1] === 'shelfDetailOffsetX') fx[pair[1]] = clampRange(fx[pair[1]], -4.8, 4.8);
+      if (pair[1] === 'shelfDetailOffsetY') fx[pair[1]] = clampRange(fx[pair[1]], -3.6, 3.6);
+      if (pair[1] === 'shelfDetailOffsetZ') fx[pair[1]] = clampRange(fx[pair[1]], -3.6, 3.6);
+      if (pair[1] === 'shelfDetailScale') fx[pair[1]] = clampRange(fx[pair[1]], 0.72, 1.35);
+      if (pair[1] === 'shelfDetailAngleX') fx[pair[1]] = Math.round(clampRange(fx[pair[1]], -24, 24));
+      if (pair[1] === 'shelfDetailAngleY') fx[pair[1]] = Math.round(clampRange(fx[pair[1]], -28, 28));
+      if (pair[1] === 'shelfDetailRowGap') fx[pair[1]] = clampRange(fx[pair[1]], 0.72, 1.32);
+      if (pair[1] === 'shelfDetailOpenDuration') fx[pair[1]] = clampRange(fx[pair[1]], 0.12, 1.2);
+      if (pair[1] === 'shelfDetailCloseDuration') fx[pair[1]] = clampRange(fx[pair[1]], 0.08, 0.8);
+      if (pair[1] === 'shelfDetailRowDuration') fx[pair[1]] = clampRange(fx[pair[1]], 0.16, 1.6);
+      if (pair[1] === 'shelfDetailIntroStrength') fx[pair[1]] = clampRange(fx[pair[1]], 0, 1.8);
+      if (pair[1] === 'shelfDetailParallax') fx[pair[1]] = clampRange(fx[pair[1]], 0, 1.8);
+      if (pair[1] === 'shelfSummonOpenDuration') fx[pair[1]] = clampRange(fx[pair[1]], 0.08, 2);
+      if (pair[1] === 'shelfSummonCloseDuration') fx[pair[1]] = clampRange(fx[pair[1]], 0.08, 1.6);
+      if (pair[1] === 'shelfSummonSlide') fx[pair[1]] = clampRange(fx[pair[1]], 0, 4);
+      if (pair[1] === 'shelfSummonStagger') fx[pair[1]] = clampRange(fx[pair[1]], 0, 3);
+      if (pair[1] === 'shelfSummonScale') fx[pair[1]] = clampRange(fx[pair[1]], 0, 3);
+      if (pair[1] === 'shelfSummonParallax') fx[pair[1]] = clampRange(fx[pair[1]], 0, 2.5);
+      if (pair[1] === 'shelfCameraEnterSpeed') fx[pair[1]] = clampRange(fx[pair[1]], 0.2, 1.5);
+      if (pair[1] === 'shelfCameraExitSpeed') fx[pair[1]] = clampRange(fx[pair[1]], 0.2, 1.5);
       if (pair[1] === 'backgroundOpacity') {
         fx.backgroundOpacity = clampRange(fx.backgroundOpacity, 0, 1);
         fx.backgroundColorMode = 'custom';

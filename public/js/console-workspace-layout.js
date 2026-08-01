@@ -183,6 +183,32 @@ var FX_CONSOLE_LAYOUT = [
         fxConsoleItem("fx-shelfopacity", "整体透明度", "歌单架透明"),
         fxConsoleItem("fx-shelfbgalpha", "背景透明度", "歌单架背景")
       ] },
+      { key: "detail-position", title: "详情页位置", hint: "详情页位置、比例、角度与行距", items: [
+        fxConsoleItem("fx-shelfdetailx", "详情左右", "详情页水平"),
+        fxConsoleItem("fx-shelfdetaily", "详情上下", "详情页垂直"),
+        fxConsoleItem("fx-shelfdetailz", "详情前后", "详情页远近"),
+        fxConsoleItem("fx-shelfdetailscale", "详情大小", "详情页缩放"),
+        fxConsoleItem("fx-shelfdetailanglex", "详情俯仰", "详情页 俯仰"),
+        fxConsoleItem("fx-shelfdetailangley", "详情侧旋", "详情页 侧旋"),
+        fxConsoleItem("fx-shelfdetailrowgap", "详情行间距", "详情行距 行高")
+      ] },
+      { key: "detail-motion", title: "详情页动画", hint: "详情页展开、关闭、行入场与视差", items: [
+        fxConsoleItem("fx-shelfdetailopen", "展开秒数", "详情打开速度"),
+        fxConsoleItem("fx-shelfdetailclose", "关闭秒数", "详情关闭速度"),
+        fxConsoleItem("fx-shelfdetailrowtime", "行入场秒数", "详情行 入场"),
+        fxConsoleItem("fx-shelfdetailintro", "展开位移", "详情 位移 入场"),
+        fxConsoleItem("fx-shelfdetailparallax", "悬浮视差", "详情 视差 悬浮")
+      ] },
+      { key: "summon", title: "唤出动画", hint: "歌单架唤出、收起与镜头速度", items: [
+        fxConsoleItem("fx-shelfsummonopen", "唤出秒数", "歌单架打开速度"),
+        fxConsoleItem("fx-shelfsummonclose", "收起秒数", "歌单架关闭速度"),
+        fxConsoleItem("fx-shelfsummonslide", "唤出位移", "唤出 滑动 位移"),
+        fxConsoleItem("fx-shelfsummonstagger", "卡片错层", "唤出 错层 延迟"),
+        fxConsoleItem("fx-shelfsummonscale", "唤出缩放", "唤出 缩放"),
+        fxConsoleItem("fx-shelfsummonparallax", "唤出视差", "唤出 视差"),
+        fxConsoleItem("fx-shelfcamenter", "镜头进入速度", "镜头 进入"),
+        fxConsoleItem("fx-shelfcamexit", "镜头离开速度", "镜头 离开")
+      ] },
       { key: "camera", title: "摄像头交互", hint: "摄像头手势触碰开关", items: [
         fxConsoleItem("cam-seg", "摄像头交互", "关闭 手势触碰")
       ] }
