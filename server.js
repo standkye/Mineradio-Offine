@@ -1479,68 +1479,73 @@ const server = http.createServer(async (req, res) => {
       }
       const dir = path.dirname(fp);
       const coverPath = path.join(dir, 'folder.jpg');
-      // 已有封面（内嵌/目录图片）则跳过
-      if (
+      // 封面是否已存在（内嵌/目录图片），决定是否跳过封面下载
+      const hasLocalCover =
         (song.hasCover && song.coverPath) ||
         fs.existsSync(coverPath) ||
         fs.existsSync(path.join(dir, 'cover.jpg')) ||
-        fs.existsSync(path.join(dir, 'cover.png'))
-      ) {
+        fs.existsSync(path.join(dir, 'cover.png'));
+      // 歌手照片独立处理：歌手目录下没有 singer.jpg 才需要下载
+      const artistDir = resolveArtistDir(dir, song.artist || '');
+      const singerPath = artistDir ? path.join(artistDir, 'singer.jpg') : '';
+      const needSinger = !!singerPath && !fs.existsSync(singerPath);
+      if (hasLocalCover && !needSinger) {
         skipped++;
         results.push({ song: name || '?', status: 'exists' });
         continue;
       }
       const meta = await fetchOnlineMeta(song.artist || '', name, song.album || '');
-      if (!meta || !meta.coverUrl) {
+      if (!meta || (!meta.coverUrl && !meta.artistPhotoUrl)) {
         failed++;
         results.push({ song: name || '?', status: 'no_cover' });
         continue;
       }
-      try {
-        const imgResp = await fetch(meta.coverUrl);
-        if (!imgResp.ok) throw new Error('HTTP ' + imgResp.status);
-        const buf = Buffer.from(await imgResp.arrayBuffer());
-        if (buf.length < 100) throw new Error('IMAGE_TOO_SMALL');
-        fs.writeFileSync(coverPath, buf);
-        let singerPath = '';
-        if (meta.artistPhotoUrl) {
-          const artistDir = resolveArtistDir(dir, song.artist || '');
-          if (artistDir) {
-            const sp = path.join(artistDir, 'singer.jpg');
-            if (fs.existsSync(sp)) {
-              singerPath = sp;
-            } else {
-              try {
-                const sResp = await fetch(meta.artistPhotoUrl);
-                if (sResp.ok) {
-                  const sBuf = Buffer.from(await sResp.arrayBuffer());
-                  if (sBuf.length >= 100) {
-                    fs.writeFileSync(sp, sBuf);
-                    singerPath = sp;
-                  }
-                }
-              } catch (e2) {
-                /* 歌手照片失败不影响封面 */
-              }
+      let coverWritten = false;
+      let singerWritten = false;
+      // 封面：仅当无本地封面时下载（有内嵌封面保持跳过）
+      if (!hasLocalCover && meta.coverUrl) {
+        try {
+          const imgResp = await fetch(meta.coverUrl);
+          if (imgResp.ok) {
+            const buf = Buffer.from(await imgResp.arrayBuffer());
+            if (buf.length >= 100) {
+              fs.writeFileSync(coverPath, buf);
+              coverWritten = true;
             }
           }
+        } catch (e) {
+          /* 封面失败不影响歌手照片 */
         }
-        completed++;
-        results.push({
-          song: name || '?',
-          status: 'downloaded',
-          coverPath,
-          singerPath: singerPath || '',
-          source: meta.source,
-        });
-      } catch (e) {
-        failed++;
-        results.push({
-          song: name || '?',
-          status: 'download_failed',
-          reason: (e && e.message) || 'DOWNLOAD_FAILED',
-        });
       }
+      // 歌手照片：独立下载（已有则跳过）
+      if (needSinger && meta.artistPhotoUrl) {
+        try {
+          const sResp = await fetch(meta.artistPhotoUrl);
+          if (sResp.ok) {
+            const sBuf = Buffer.from(await sResp.arrayBuffer());
+            if (sBuf.length >= 100) {
+              fs.writeFileSync(singerPath, sBuf);
+              singerWritten = true;
+            }
+          }
+        } catch (e) {
+          /* 歌手照片失败不影响封面 */
+        }
+      }
+      if (coverWritten || singerWritten) {
+        completed++;
+      } else if (hasLocalCover) {
+        skipped++;
+      } else {
+        failed++;
+      }
+      results.push({
+        song: name || '?',
+        status: coverWritten || singerWritten ? 'downloaded' : hasLocalCover ? 'exists' : 'failed',
+        coverPath: coverWritten ? coverPath : '',
+        singerPath: singerWritten ? singerPath : fs.existsSync(singerPath) ? singerPath : '',
+        source: meta.source || '',
+      });
       await new Promise((r) => setTimeout(r, 600));
     }
     console.log('[FetchCovers] 完成: ' + completed + ' 成功, ' + failed + ' 失败, ' + skipped + ' 跳过');
