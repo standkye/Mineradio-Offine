@@ -1,10 +1,19 @@
-const { app, BrowserWindow, ipcMain, shell, screen, session, globalShortcut, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, screen, session, globalShortcut, dialog, protocol, desktopCapturer } = require('electron');
 const net = require('net');
 const path = require('path');
 const fs = require('fs');
 const { execFile, spawn } = require('child_process');
+const {
+  createWallpaperEngineBridge,
+  registerWallpaperEngineScheme,
+} = require('./wallpaper-engine-bridge');
+const systemMemory = require('./system-memory');
+
+registerWallpaperEngineScheme(protocol);
 
 let mainWindow = null;
+let wallpaperEngineBridge = null;
+let appQuitCleanupStarted = false;
 let localServer = null;
 let mainServerPort = 0;
 let desktopLyricsWindow = null;
@@ -22,6 +31,24 @@ let wallpaperState = {};
 let htmlFullscreenActive = false;
 let windowFullscreenActive = false;
 let mainWindowStateTimer = null;
+let appMemoryTrimTimer = null;
+let appMemoryTrimInFlight = false;
+let lastAppMemoryTrimAt = 0;
+let lastAppMemoryTrimReason = '';
+let memoryAutoTimer = null;
+let memoryAutoState = {
+  appTrimEnabled: true,
+  backgroundTrimEnabled: true,
+  enabled: false,
+  mask: systemMemory.MEMORY_MASK_DEFAULT,
+  intervalMin: 30,
+  thresholdPercent: 78,
+  autoElevate: false,
+  lastRunAt: 0,
+  lastReason: '',
+  lastResult: null,
+  lastError: '',
+};
 const registeredGlobalHotkeys = new Map();
 
 const WINDOWED_ASPECT = 16 / 9;
@@ -1165,19 +1192,35 @@ function closeOverlayWindows() {
 }
 
 ipcMain.handle('desktop-window-minimize', (event) => {
-  getSenderWindow(event)?.minimize();
+  const win = getSenderWindow(event);
+  if (win === mainWindow && wallpaperEngineBridge && wallpaperEngineBridge.isFullDesktopInteractive()) {
+    return wallpaperEngineBridge.setInteractive(false, 'window-minimize');
+  }
+  win?.minimize();
 });
 
 ipcMain.handle('desktop-window-toggle-maximize', (event) => {
-  toggleFullscreen(getSenderWindow(event));
+  const win = getSenderWindow(event);
+  if (win === mainWindow && wallpaperEngineBridge && wallpaperEngineBridge.isFullDesktopInteractive()) {
+    return getWindowState(win);
+  }
+  toggleFullscreen(win);
 });
 
 ipcMain.handle('desktop-window-toggle-fullscreen', (event) => {
-  toggleFullscreen(getSenderWindow(event));
+  const win = getSenderWindow(event);
+  if (win === mainWindow && wallpaperEngineBridge && wallpaperEngineBridge.isFullDesktopInteractive()) {
+    return getWindowState(win);
+  }
+  toggleFullscreen(win);
 });
 
 ipcMain.handle('desktop-window-exit-fullscreen-windowed', (event) => {
-  exitFullscreenToWindow(getSenderWindow(event));
+  const win = getSenderWindow(event);
+  if (win === mainWindow && wallpaperEngineBridge && wallpaperEngineBridge.isFullDesktopInteractive()) {
+    return getWindowState(win);
+  }
+  exitFullscreenToWindow(win);
 });
 
 ipcMain.handle('desktop-window-get-state', (event) => {
@@ -1185,7 +1228,17 @@ ipcMain.handle('desktop-window-get-state', (event) => {
 });
 
 ipcMain.handle('desktop-window-close', (event) => {
-  getSenderWindow(event)?.close();
+  const win = getSenderWindow(event);
+  if (!win) return;
+  if (win === mainWindow && wallpaperEngineBridge && wallpaperEngineBridge.isFullDesktopEnabled()) {
+    wallpaperEngineBridge.setEnabled(false, { reason: 'window-close' }).then(() => {
+      if (!win.isDestroyed()) win.close();
+    }).catch(() => {
+      if (!win.isDestroyed()) win.close();
+    });
+    return;
+  }
+  win?.close();
 });
 
 ipcMain.handle('mineradio-hotkeys-configure-global', (_event, bindings) => {
@@ -1408,6 +1461,7 @@ async function createWindow() {
       backgroundThrottling: false,
     },
   });
+  if (wallpaperEngineBridge) wallpaperEngineBridge.installWindow(mainWindow);
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
@@ -1484,14 +1538,233 @@ if (!gotSingleInstanceLock) {
   });
 
   app.whenReady().then(async () => {
+    try {
+      const nativeTempPath = path.join(app.getPath('userData'), 'native-helper-temp');
+      fs.mkdirSync(nativeTempPath, { recursive: true });
+      systemMemory.setNativeTempPath(nativeTempPath);
+    } catch (_) { }
+    wallpaperEngineBridge = createWallpaperEngineBridge({
+      getMainWindow: () => mainWindow,
+      sendWindowState,
+      desktopCapturer,
+    });
+    await wallpaperEngineBridge.installProtocol(protocol);
     screen.on('display-metrics-changed', () => {
       positionDesktopLyricsWindow();
       positionWallpaperWindow();
+      if (wallpaperEngineBridge) wallpaperEngineBridge.reconcile('display-metrics-changed').catch(() => {});
       scheduleWindowStateSend(mainWindow);
     });
-    screen.on('display-added', () => scheduleWindowStateSend(mainWindow));
-    screen.on('display-removed', () => scheduleWindowStateSend(mainWindow));
+    screen.on('display-added', () => {
+      if (wallpaperEngineBridge) wallpaperEngineBridge.reconcile('display-added').catch(() => {});
+      scheduleWindowStateSend(mainWindow);
+    });
+    screen.on('display-removed', () => {
+      if (wallpaperEngineBridge) wallpaperEngineBridge.reconcile('display-removed').catch(() => {});
+      scheduleWindowStateSend(mainWindow);
+    });
     await createWindow();
+  });
+
+  // ============================================================
+  //  内存自动管理 (来自 Mineradio-main v2.1.0)
+  // ============================================================
+  function collectAppTrimPids() {
+    const pids = new Set([process.pid]);
+    function addWindowProcess(win) {
+      if (!win || win.isDestroyed()) return;
+      try {
+        const pid = win.webContents && win.webContents.getOSProcessId && win.webContents.getOSProcessId();
+        if (pid) pids.add(pid);
+      } catch (e) { }
+    }
+    addWindowProcess(mainWindow);
+    try {
+      app.getAppMetrics().forEach((row) => {
+        if (row && Number.isFinite(Number(row.pid))) pids.add(Math.round(Number(row.pid)));
+      });
+    } catch (e) { }
+    return Array.from(pids);
+  }
+
+  function isMainWindowForegroundVisible() {
+    try {
+      return !!(mainWindow && !mainWindow.isDestroyed() && mainWindow.isVisible() && !mainWindow.isMinimized());
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function trimAppMemoryNow(reason) {
+    if (appMemoryTrimInFlight) {
+      return { ok: false, skipped: true, reason: 'in-flight' };
+    }
+    const trimReason = String(reason || 'manual');
+    if (isMainWindowForegroundVisible() && trimReason !== 'manual-force') {
+      return { ok: false, skipped: true, reason: 'foreground-visible' };
+    }
+    appMemoryTrimInFlight = true;
+    lastAppMemoryTrimAt = Date.now();
+    lastAppMemoryTrimReason = trimReason;
+    try {
+      const before = systemMemory.getMemorySnapshot();
+      const trim = await systemMemory.trimAppWorkingSets(collectAppTrimPids());
+      const after = systemMemory.getMemorySnapshot();
+      return { ok: true, reason: lastAppMemoryTrimReason, before, trim, after };
+    } catch (e) {
+      return { ok: false, reason: lastAppMemoryTrimReason, error: e.message || 'APP_MEMORY_TRIM_FAILED', snapshot: systemMemory.getMemorySnapshot() };
+    } finally {
+      appMemoryTrimInFlight = false;
+    }
+  }
+
+  function scheduleAppMemoryTrim(reason, delay = 9000) {
+    if (process.platform !== 'win32') return;
+    if (memoryAutoState.appTrimEnabled === false || memoryAutoState.backgroundTrimEnabled === false) return;
+    if (Date.now() - lastAppMemoryTrimAt < 120000) return;
+    if (appMemoryTrimTimer) clearTimeout(appMemoryTrimTimer);
+    appMemoryTrimTimer = setTimeout(() => {
+      appMemoryTrimTimer = null;
+      if (!mainWindow || mainWindow.isDestroyed()) return;
+      if (!mainWindow.isMinimized() && mainWindow.isVisible()) return;
+      trimAppMemoryNow(reason).catch(() => { });
+    }, Math.max(4000, delay));
+  }
+
+  function normalizeMemoryAutoState(payload = {}) {
+    const systemEnabled = systemMemory.SYSTEM_PURGE_AVAILABLE === true && systemMemory.SYSTEM_PURGE_ENABLED === true;
+    return {
+      appTrimEnabled: payload.appTrimEnabled !== false,
+      backgroundTrimEnabled: payload.backgroundTrimEnabled !== false,
+      enabled: systemEnabled && payload.enabled === true,
+      mask: systemMemory.normalizeMask(payload.mask != null ? payload.mask : memoryAutoState.mask),
+      intervalMin: Math.max(5, Math.min(180, Math.round(Number(payload.intervalMin != null ? payload.intervalMin : memoryAutoState.intervalMin) || 30))),
+      thresholdPercent: Math.max(0, Math.min(100, Math.round(Number(payload.thresholdPercent != null ? payload.thresholdPercent : memoryAutoState.thresholdPercent) || 0))),
+      autoElevate: payload.autoElevate === true,
+      lastRunAt: memoryAutoState.lastRunAt || 0,
+      lastReason: memoryAutoState.lastReason || '',
+      lastResult: memoryAutoState.lastResult || null,
+      lastError: '',
+    };
+  }
+
+  function stopMemoryAutoTimer() {
+    if (memoryAutoTimer) {
+      clearInterval(memoryAutoTimer);
+      memoryAutoTimer = null;
+    }
+  }
+
+  function syncMemoryAutoTimer() {
+    stopMemoryAutoTimer();
+    if (!memoryAutoState.enabled) return;
+    memoryAutoTimer = setInterval(() => {
+      runMemoryAutoTick('timer').catch(() => { });
+    }, Math.max(5, memoryAutoState.intervalMin) * 60000);
+  }
+
+  async function runMemoryAutoTick(reason = 'auto') {
+    if (!memoryAutoState.enabled) return { ok: false, skipped: true, reason: 'disabled', state: memoryAutoState };
+    if (isMainWindowForegroundVisible()) {
+      memoryAutoState.lastRunAt = Date.now();
+      memoryAutoState.lastReason = reason + ':foreground-visible';
+      memoryAutoState.lastResult = { ok: true, skipped: true, reason: 'foreground-visible' };
+      return { ok: true, skipped: true, reason: 'foreground-visible', state: memoryAutoState };
+    }
+    const snapshot = await systemMemory.getMemorySnapshotExtended();
+    const threshold = Number(memoryAutoState.thresholdPercent) || 0;
+    if (threshold > 0 && snapshot && snapshot.usedPercent < threshold) {
+      memoryAutoState.lastRunAt = Date.now();
+      memoryAutoState.lastReason = reason + ':below-threshold';
+      memoryAutoState.lastResult = { ok: true, skipped: true, usedPercent: snapshot.usedPercent, thresholdPercent: threshold };
+      return { ok: true, skipped: true, snapshot, state: memoryAutoState };
+    }
+    memoryAutoState.lastRunAt = Date.now();
+    memoryAutoState.lastReason = reason;
+    try {
+      const result = await systemMemory.purgeSystemMemorySmart(memoryAutoState.mask, {
+        autoElevate: memoryAutoState.autoElevate === true,
+      });
+      memoryAutoState.lastResult = result;
+      memoryAutoState.lastError = '';
+      return { ok: true, result, snapshot: await systemMemory.getMemorySnapshotExtended(), state: memoryAutoState };
+    } catch (e) {
+      memoryAutoState.lastError = e.message || 'MEMORY_AUTO_FAILED';
+      memoryAutoState.lastResult = { ok: false, error: memoryAutoState.lastError };
+      return { ok: false, error: memoryAutoState.lastError, snapshot: systemMemory.getMemorySnapshot(), state: memoryAutoState };
+    }
+  }
+
+  ipcMain.handle('mineradio-memory-get-snapshot', async () => {
+    try {
+      return {
+        ok: true,
+        snapshot: await systemMemory.getMemorySnapshotExtended(),
+        elevated: false,
+        systemPurgeAvailable: systemMemory.SYSTEM_PURGE_AVAILABLE === true,
+        systemPurgeEnabled: systemMemory.SYSTEM_PURGE_ENABLED === true,
+        appMetrics: systemMemory.getMemorySnapshot().process,
+        auto: memoryAutoState,
+        lastTrimAt: lastAppMemoryTrimAt,
+        lastTrimReason: lastAppMemoryTrimReason,
+      };
+    } catch (e) {
+      return { ok: false, error: e.message || 'MEMORY_SNAPSHOT_FAILED', snapshot: systemMemory.getMemorySnapshot(), auto: memoryAutoState };
+    }
+  });
+
+  ipcMain.handle('mineradio-memory-configure-auto', async (_event, payload = {}) => {
+    memoryAutoState = normalizeMemoryAutoState(payload);
+    syncMemoryAutoTimer();
+    if (memoryAutoState.enabled && payload.runNow === true && !isMainWindowForegroundVisible()) {
+      await runMemoryAutoTick('configure');
+    }
+    return {
+      ok: true,
+      state: memoryAutoState,
+      systemPurgeAvailable: systemMemory.SYSTEM_PURGE_AVAILABLE === true,
+      systemPurgeEnabled: systemMemory.SYSTEM_PURGE_ENABLED === true,
+    };
+  });
+
+  ipcMain.handle('mineradio-memory-trim-app', async (_event, payload = {}) => {
+    return trimAppMemoryNow(payload.reason || 'renderer');
+  });
+
+  ipcMain.handle('mineradio-memory-purge-system', async (_event, payload = {}) => {
+    const mask = systemMemory.normalizeMask(payload && payload.mask);
+    const autoElevate = payload && payload.autoElevate === true;
+    try {
+      if (isMainWindowForegroundVisible()) {
+        return {
+          ok: true,
+          result: { ok: false, skipped: true, reason: 'foreground-visible', message: 'System memory purge is skipped while Mineradio is visible.' },
+          snapshot: systemMemory.getMemorySnapshot(),
+          elevated: false,
+          systemPurgeAvailable: systemMemory.SYSTEM_PURGE_AVAILABLE === true,
+          systemPurgeEnabled: systemMemory.SYSTEM_PURGE_ENABLED === true,
+        };
+      }
+      const elevatedBefore = await systemMemory.isProcessElevated();
+      const result = await systemMemory.purgeSystemMemorySmart(mask, { autoElevate, manual: true });
+      return {
+        ok: true,
+        result,
+        snapshot: await systemMemory.getMemorySnapshotExtended(),
+        elevated: elevatedBefore || await systemMemory.isProcessElevated(),
+        systemPurgeAvailable: systemMemory.SYSTEM_PURGE_AVAILABLE === true,
+        systemPurgeEnabled: systemMemory.SYSTEM_PURGE_ENABLED === true,
+      };
+    } catch (e) {
+      return {
+        ok: false,
+        error: e.message || 'SYSTEM_MEMORY_PURGE_FAILED',
+        snapshot: systemMemory.getMemorySnapshot(),
+        elevated: false,
+        systemPurgeAvailable: systemMemory.SYSTEM_PURGE_AVAILABLE === true,
+        systemPurgeEnabled: systemMemory.SYSTEM_PURGE_ENABLED === true,
+      };
+    }
   });
 
   app.on('activate', () => {
@@ -1503,9 +1776,20 @@ if (!gotSingleInstanceLock) {
     if (process.platform !== 'darwin') app.quit();
   });
 
-  app.on('before-quit', () => {
+  app.on('before-quit', (event) => {
     unregisterMineradioGlobalHotkeys();
     closeOverlayWindows();
     if (localServer && localServer.close) localServer.close();
+    if (wallpaperEngineBridge && !appQuitCleanupStarted) {
+      event.preventDefault();
+      appQuitCleanupStarted = true;
+      const cleanup = Promise.race([
+        wallpaperEngineBridge.dispose(),
+        new Promise((resolve) => setTimeout(resolve, 12000)),
+      ]);
+      cleanup.catch(() => {}).finally(() => {
+        app.quit();
+      });
+    }
   });
 }

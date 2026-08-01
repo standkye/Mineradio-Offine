@@ -18,7 +18,11 @@ try {
   document.documentElement.classList.add('simple-mode-preload');
 }
 </script>
-<link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/console.css">
+  <link rel="stylesheet" href="css/wallpaper-engine.css">
+  <script src="js/console-workspace.js"></script>
+  <script src="js/console-workspace-layout.js"></script>
 </head>
 <body>
 <div id="desktop-window-shell">
@@ -45,6 +49,14 @@ try {
   <button id="fullscreen-diy-btn" class="desktop-mode-btn" type="button" onclick="toggleDiyMode()" title="DIY" aria-label="DIY" aria-pressed="false">DIY</button>
 </div>
 <div id="custom-bg"><video id="custom-bg-video" muted loop playsinline preload="metadata"></video></div>
+<div id="wallpaper-engine-layer" aria-hidden="true">
+  <img id="wallpaper-engine-image" alt="">
+  <canvas id="wallpaper-engine-freeze" aria-hidden="true"></canvas>
+  <video id="wallpaper-engine-video" muted loop playsinline preload="metadata"></video>
+</div>
+<div id="wallpaper-engine-glass-sampler" aria-hidden="true">
+  <video id="wallpaper-engine-glass-sampler-video" muted playsinline preload="none"></video>
+</div>
 <div id="album-bg"></div>
 <div id="canvas-container"></div>
 <canvas id="idle-guide-canvas" aria-hidden="true"></canvas>
@@ -235,7 +247,25 @@ try {
     <div class="fx-color-row-label">背景媒体<small id="bg-image-value">未设置</small></div>
     <button class="fx-mini-btn ghost" type="button" onclick="clearCustomBackgroundImage()">清除</button>
   </div>
+  <div class="lyric-color-row image-pick-row wallpaper-engine-row">
+    <div class="wallpaper-engine-mark" aria-hidden="true">WE</div>
+    <div class="fx-color-row-label">Wallpaper Engine<small id="wallpaper-engine-value">未启用 · 原背景保留</small></div>
+    <div class="wallpaper-engine-actions">
+      <button class="fx-mini-btn ghost" type="button" onclick="openWallpaperEngineLibrary()">识别 / 导入</button>
+      <button class="fx-mini-btn ghost" id="wallpaper-engine-restore-btn" type="button"
+        onclick="deactivateWallpaperEngineBackground()" disabled>恢复原背景</button>
+    </div>
+  </div>
   <div class="fx-slider"><label>背景透明度</label><input id="fx-bgopacity" type="range" min="0" max="1" step="0.01"><output></output></div>
+  <div class="fx-slider"><label>窗口背景透明</label><input id="fx-windowbgopacity" type="range" min="0" max="1" step="0.01"><output></output></div>
+  <div class="fx-slider"><label>毛玻璃透明</label><input id="fx-bgglassopacity" type="range" min="0" max="1" step="0.01"><output></output></div>
+  <div class="fx-slider"><label>裁切左右</label><input id="fx-bgcropx" type="range" min="0" max="100" step="1"><output></output></div>
+  <div class="fx-slider"><label>裁切上下</label><input id="fx-bgcropy" type="range" min="0" max="100" step="1"><output></output></div>
+  <div class="fx-slider"><label>裁切缩放</label><input id="fx-bgzoom" type="range" min="1" max="2.8" step="0.01"><output></output></div>
+  <div class="fx-slider"><label>左栏雾面</label><input id="fx-playlistblur" type="range" min="14" max="60" step="1"><output></output></div>
+  <div class="fx-slider"><label>左栏遮挡</label><input id="fx-playlistdensity" type="range" min="0.55" max="1" step="0.01"><output></output></div>
+  <div class="fx-slider"><label>左栏唤出秒数</label><input id="fx-playlistopen" type="range" min="0.08" max="0.72" step="0.01"><output></output></div>
+  <div class="fx-slider"><label>左栏收起秒数</label><input id="fx-playlistclose" type="range" min="0.06" max="0.48" step="0.01"><output></output></div>
   <div class="fx-slider"><label>控制台玻璃色差</label><input id="fx-glassaberration" type="range" min="0" max="140" step="1"><output></output></div>
 
   <div class="fx-section-label">主控</div>
@@ -446,6 +476,45 @@ try {
       <span>高级参数</span><span class="arrow">▶</span>
     </div>
     <div class="fx-advanced-body">
+      <div class="fx-section-label">启动与退出</div>
+      <div class="fx-toggle-grid">
+        <div class="fx-toggle" id="t-startupAutoplay" onclick="toggleStartupAutoplay()" title="打开软件后从上次保存进度自动继续播放"><span>启动自动播放</span><span class="dot"></span></div>
+        <div class="fx-toggle" id="t-startupFastSkip" onclick="toggleStartupFastSkip()" title="打开软件后直接进入主页，不等待启动动画"><span>秒启动跳过启动页</span><span class="dot"></span></div>
+      </div>
+      <div class="fx-seg" id="startup-resume-mode-seg" title="控制恢复上次播放时从哪里开始">
+        <button data-startup-resume-mode="resume">按上次进度</button>
+        <button data-startup-resume-mode="restart">重播整首</button>
+      </div>
+      <div class="fx-section-label">内存压缩 / Mem Reduct</div>
+      <div class="memory-status-chip" id="memory-status-chip">系统内存读取中...</div>
+      <div class="fx-sub memory-status-sub" id="memory-status-sub">后台先压缩播放器进程；系统级释放可清工作集、修改页、待机页</div>
+      <div class="fx-toggle-grid">
+        <div class="fx-toggle" id="t-memoryAutoTrimApp" onclick="toggleFx('memoryAutoTrimApp')" title="最小化、托盘后台或深度后台时压缩 Mineradio / Electron 工作集"><span>自动压缩播放器</span><span class="dot"></span></div>
+        <div class="fx-toggle" id="t-memoryAutoTrimOnBackground" onclick="toggleFx('memoryAutoTrimOnBackground')" title="只在最小化、隐藏或不可见后台触发自动压缩，前台播放不打断"><span>后台触发压缩</span><span class="dot"></span></div>
+        <div class="fx-toggle" id="t-memoryAutoSystemTrim" onclick="toggleFx('memoryAutoSystemTrim')" title="按阈值和间隔启用系统级 Mem Reduct；默认不自动弹管理员权限"><span>系统级定时释放</span><span class="dot"></span></div>
+        <div class="fx-toggle" id="t-memorySystemAutoElevate" onclick="toggleFx('memorySystemAutoElevate')" title="完整释放工作集/修改页/待机页可能需要 UAC；关闭时只尝试当前权限可完成的部分"><span>需要时请求管理员</span><span class="dot"></span></div>
+      </div>
+      <div class="fx-seg memory-mask-seg" id="memory-mask-seg" title="Mem Reduct 系统释放范围">
+        <button data-memory-mask="workingSet" class="active">工作集</button>
+        <button data-memory-mask="modifiedList" class="active">修改页</button>
+        <button data-memory-mask="standbyList" class="active">待机页</button>
+        <button data-memory-mask="standbyLow" class="active">低优先待机</button>
+      </div>
+      <div class="fx-slider"><label>定时释放(分)</label><input id="fx-memory-interval" type="range" min="5" max="180" step="1"><output></output></div>
+      <div class="fx-slider"><label>占用阈值(%)</label><input id="fx-memory-threshold" type="range" min="50" max="98" step="1"><output></output></div>
+      <div class="memory-action-row">
+        <button class="fx-mini-btn ghost" type="button" onclick="runAppMemoryTrim('manual')">压缩播放器</button>
+        <button class="fx-mini-btn ghost" type="button" onclick="runSystemMemoryPurge(false)">系统释放</button>
+        <button class="fx-mini-btn ghost" type="button" onclick="runSystemMemoryPurge(true)">提权释放</button>
+      </div>
+      <div class="fx-section-label">输出接口</div>
+      <div class="audio-output-section" id="audio-output-panel">
+        <div class="quality-output-head"><span>播放输出设备</span><span class="quality-output-actions">
+          <button class="quality-output-refresh" type="button" id="audio-output-refresh">刷新</button>
+          <button class="quality-output-refresh" type="button" id="audio-output-default">系统默认</button>
+        </span></div>
+        <div id="audio-output-device-list"><div class="fx-sub audio-output-empty">读取中...</div></div>
+      </div>
       <div class="fx-section-label">直播 / 后台</div>
       <div class="fx-seg" id="performance-background-seg" title="控制窗口隐藏、最小化或后台运行时的渲染策略">
         <button data-performance-background="auto">自动优化</button>
@@ -458,6 +527,14 @@ try {
         <button data-performance-quality="balanced">中</button>
         <button data-performance-quality="high">高</button>
         <button data-performance-quality="ultra">超高</button>
+      </div>
+      <div class="fx-seg" id="foreground-fps-seg" role="group" aria-label="前台帧率上限" title="默认跟随屏幕垂直同步；固定档位用于节能或降低负载">
+        <button data-foreground-fps="vsync">跟随屏幕</button>
+        <button data-foreground-fps="45">45</button>
+        <button data-foreground-fps="60">60</button>
+        <button data-foreground-fps="75">75</button>
+        <button data-foreground-fps="90">90</button>
+        <button data-foreground-fps="120">120</button>
       </div>
       <div class="fx-toggle-grid">
         <div class="fx-toggle" id="t-liveBackgroundKeep" onclick="toggleFx('liveBackgroundKeep')" title="开启后后台或最小化时保持视觉渲染，不进入低占用暂停"><span>直播后台保持</span><span class="dot"></span></div>
@@ -475,6 +552,7 @@ try {
   <div class="fx-actions">
     <button class="fx-mini-btn" onclick="resetFx()">恢复默认</button>
   </div>
+  <div class="fx-toggle" id="t-fullDesktopMode" onclick="toggleFullDesktopMode(this)" title="把整个 Mineradio 挂到桌面，Esc 退出；与 Wallpaper Engine 桌面场景配合"><span>完整桌面模式<em class="fx-dev-badge">NEW</em></span><span class="dot"></span></div>
 </div>
 
 <!-- 歌单/队列面板 (左侧贴边自动显示, 无关闭按钮) -->
@@ -898,8 +976,11 @@ var FX_FAB_AUTO_HIDE_STORE_KEY = 'mineradio-fx-fab-auto-hide-v1';
 var CONTROLS_AUTO_HIDE_STORE_KEY = 'mineradio-controls-auto-hide-v1';
 var FREE_CAMERA_STORE_KEY = 'mineradio-free-camera-v1';
 var HOTKEY_SETTINGS_STORE_KEY = 'mineradio-hotkey-settings-v1';
-var VISUAL_GUIDE_SEEN_STORE_KEY = 'mineradio-visual-guide-seen-v2';
-var LOCAL_BEATMAP_STORE_KEY = 'mineradio-local-beatmaps-v1';
+var VISUAL_GUIDE_SEEN_STORE_KEY = 'mineradio-visual-guide-seen-v2';          
+var LOCAL_BEATMAP_STORE_KEY = 'mineradio-local-beatmaps-v1';                 
+var STARTUP_AUTOPLAY_STORE_KEY = 'mineradio-startup-autoplay-v1';
+var STARTUP_FAST_SKIP_STORE_KEY = 'mineradio-startup-fast-skip-v1';
+var STARTUP_RESUME_MODE_STORE_KEY = 'mineradio-startup-resume-mode-v1';
 var LOCAL_BEAT_PREF_STORE_KEY = 'mineradio-local-beatmap-prefs-v1';
 var LOCAL_BEAT_COMBOS = ['', 'downbeat', 'push', 'drop', 'rebound', 'accent'];
 var HOTKEY_ACTIONS = [
@@ -1358,6 +1439,11 @@ var fxDefaults = {
   backgroundColorMode: 'cover',
   backgroundColor: '#000000',
   backgroundOpacity: 1,
+  windowBackgroundOpacity: 1,
+  backgroundGlassOpacity: 0,
+  backgroundMediaCropX: 50,
+  backgroundMediaCropY: 50,
+  backgroundMediaZoom: 1,
   controlGlassChromaticOffset: 90,
   backgroundColorCustom: false,
   backgroundImage: '',
@@ -1394,7 +1480,20 @@ var fxDefaults = {
   shelfAccentColor: '#ffffff',
   performanceBackground: 'auto',
   performanceQuality: 'high',
+  foregroundFpsMode: 'vsync',
+  playlistPanelGlassBlur: 40,
+  playlistPanelGlassDensity: 0.55,
+  playlistPanelOpenDuration: 0.55,
+  playlistPanelCloseDuration: 0.45,
   liveBackgroundKeep: false,
+  memoryAutoTrimApp: true,
+  memoryAutoTrimOnBackground: true,
+  memoryAutoSystemTrim: false,
+  memorySystemAutoElevate: false,
+  memorySystemIntervalMin: 30,
+  memorySystemThresholdPercent: 78,
+  memorySystemMask: 29,
+  memorySafetyRevision: 3,
   cam: 'off',
   sonicWorkshopInputGain: 82,
   sonicWorkshopAudioIntensity: 1.15,
@@ -1546,7 +1645,42 @@ var startupVisualPreviewActive = false;
 var fx = Object.assign({}, fxDefaults, readSavedLyricLayout());
 normalizeDevelopmentLockedFxState();
 var presetTransition = { active:false, start:-10, duration:0.92, from:0, to:0 };
-var controlsAutoHide = readBooleanPreference(CONTROLS_AUTO_HIDE_STORE_KEY, false);
+var controlsAutoHide = readBooleanPreference(CONTROLS_AUTO_HIDE_STORE_KEY, false);       
+var startupAutoplayPreference = readBooleanPreference(STARTUP_AUTOPLAY_STORE_KEY, false);
+var startupFastSkipPreference = readBooleanPreference(STARTUP_FAST_SKIP_STORE_KEY, false);
+function normalizeStartupResumeMode(v) {
+  return v === 'restart' ? 'restart' : 'resume';
+}
+function readStartupResumeModePreference() {
+  try { return normalizeStartupResumeMode(localStorage.getItem(STARTUP_RESUME_MODE_STORE_KEY) || 'resume'); } catch (e) { return 'resume'; }
+}
+function saveStartupResumeModePreference(v) {
+  try { localStorage.setItem(STARTUP_RESUME_MODE_STORE_KEY, normalizeStartupResumeMode(v)); } catch (e) { }
+}
+var startupResumeModePreference = readStartupResumeModePreference();
+function syncStartupResumeModeUi() {
+  document.querySelectorAll('#startup-resume-mode-seg [data-startup-resume-mode]').forEach(function (btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-startup-resume-mode') === startupResumeModePreference);
+  });
+}
+function setStartupResumeModePreference(v, opts) {
+  startupResumeModePreference = normalizeStartupResumeMode(v);
+  saveStartupResumeModePreference(startupResumeModePreference);
+  syncStartupResumeModeUi();
+  if (opts && opts.toast) showToast(startupResumeModePreference === 'restart' ? '恢复播放将重播整首' : '恢复播放将按上次进度继续');
+}
+function bindStartupResumeModeControls() {
+  var seg = document.getElementById('startup-resume-mode-seg');
+  if (!seg || seg._mineradioStartupResumeBound) return;
+  seg._mineradioStartupResumeBound = true;
+  seg.querySelectorAll('[data-startup-resume-mode]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      setStartupResumeModePreference(btn.getAttribute('data-startup-resume-mode'), { toast: true });
+    });
+  });
+  syncStartupResumeModeUi();
+}
+if (typeof bindStartupResumeModeControls === 'function') bindStartupResumeModeControls();
 var controlsHovering = false;
 var controlsHideTimer = null;
 var controlsHandleDimTimer = null;
@@ -5677,6 +5811,18 @@ function normalizePerformanceBackgroundMode(v, liveKeepFallback) {
 function normalizePerformanceQuality(v) {
   var value = String(v || '');
   return /^(eco|balanced|high|ultra)$/.test(value) ? value : fxDefaults.performanceQuality;
+}
+function normalizeForegroundFpsMode(v) {
+  var mode = String(v || '').trim().toLowerCase();
+  if (mode === 'vsync' || mode === 'adaptive') return mode;
+  if (/^(45|60|75|90|120)$/.test(mode)) return mode;
+  return (fxDefaults && fxDefaults.foregroundFpsMode) || 'vsync';
+}
+function foregroundFixedFpsForMode(mode) {
+  mode = normalizeForegroundFpsMode(mode);
+  if (mode === 'vsync') return 0;
+  if (mode === 'adaptive') return null;
+  return Math.max(1, Number(mode) || 60);
 }
 function coverParticleGridForResolution(v) {
   var grid = Math.round(118 * normalizeCoverResolution(v));
@@ -18862,24 +19008,48 @@ function resetVisualIconColor() {
 }
 function applyCustomBackground() {
   var color = normalizeHexColor(fx.backgroundColor || '#000000', '#000000');
+  var rgb = hexToRgb(color);
   var media = normalizeCustomBackgroundMedia(fx.backgroundMedia || fx.backgroundImage);
   var image = media && media.type === 'image' ? media.src : '';
   var hasVideo = !!(media && media.type === 'video');
   var opacity = clampRange(fx.backgroundOpacity == null ? 1 : Number(fx.backgroundOpacity), 0, 1);
+  var windowOpacity = clampRange(fx.windowBackgroundOpacity == null ? 1 : Number(fx.windowBackgroundOpacity), 0, 1);
+  var glassOpacity = clampRange(fx.backgroundGlassOpacity == null ? 0 : Number(fx.backgroundGlassOpacity), 0, 1);
+  var cropX = clampRange(fx.backgroundMediaCropX == null ? 50 : Number(fx.backgroundMediaCropX), 0, 100);
+  var cropY = clampRange(fx.backgroundMediaCropY == null ? 50 : Number(fx.backgroundMediaCropY), 0, 100);
+  var zoom = clampRange(fx.backgroundMediaZoom == null ? 1 : Number(fx.backgroundMediaZoom), 1, 2.8);
+  var glassActive = glassOpacity > 0.001;
+  var overlayOpacity = Math.max((media) ? 0.18 : 0, glassActive ? glassOpacity * 0.42 : 0);
+  var glassBlur = glassActive ? glassOpacity * 32 : 0;
+  var glassSaturate = 1 + glassOpacity * 0.55;
+  var glassBrightness = 1 + glassOpacity * 0.08;
+  var glassVeil = glassOpacity * 0.075;
   var customColor = fx.backgroundColorMode === 'custom' || !!fx.backgroundColorCustom;
-  var override = !!media || customColor || opacity < 1;
+  var override = !!media || customColor || opacity < 1 || windowOpacity < 0.999 || glassActive;
   var root = document.documentElement;
   var layer = document.getElementById('custom-bg');
   var video = document.getElementById('custom-bg-video');
   root.style.setProperty('--custom-bg-color', color);
+  root.style.setProperty('--custom-bg-color-rgb', rgb.r + ', ' + rgb.g + ', ' + rgb.b);
+  root.style.setProperty('--custom-bg-position-x', cropX.toFixed(1) + '%');
+  root.style.setProperty('--custom-bg-position-y', cropY.toFixed(1) + '%');
+  root.style.setProperty('--custom-bg-zoom', zoom.toFixed(3));
   document.body.classList.toggle('custom-background-override', override);
   document.body.classList.toggle('custom-background-flat', override && !media);
   document.body.classList.toggle('custom-background-video', hasVideo);
+  document.body.classList.toggle('custom-window-transparent', windowOpacity < 0.999);
+  document.body.classList.toggle('custom-bg-glass-active', glassActive);
   if (layer) {
     layer.style.setProperty('--custom-bg-image', image ? 'url("' + cssImageUrl(image) + '")' : 'none');
     layer.style.setProperty('--custom-bg-image-opacity', image ? opacity.toFixed(3) : '0');
     layer.style.setProperty('--custom-bg-video-opacity', hasVideo ? opacity.toFixed(3) : '0');
-    layer.style.setProperty('--custom-bg-overlay-opacity', media ? '0.18' : '0');
+    layer.style.setProperty('--custom-bg-overlay-opacity', overlayOpacity.toFixed(3));
+    layer.style.setProperty('--custom-bg-base-opacity', windowOpacity.toFixed(3));
+    layer.style.setProperty('--custom-bg-glass-opacity', glassOpacity.toFixed(3));
+    layer.style.setProperty('--custom-bg-glass-blur', glassBlur.toFixed(1) + 'px');
+    layer.style.setProperty('--custom-bg-glass-saturate', glassSaturate.toFixed(3));
+    layer.style.setProperty('--custom-bg-glass-brightness', glassBrightness.toFixed(3));
+    layer.style.setProperty('--custom-bg-glass-veil', glassVeil.toFixed(3));
   }
   var token = ++customBgApplyToken;
   if (!video) return;
@@ -18928,6 +19098,11 @@ function updateCustomBackgroundControls() {
     if (row) row.classList.toggle('bg-cover-mode', !customColor);
   }
   setRange('fx-bgopacity', fx.backgroundOpacity == null ? 1 : fx.backgroundOpacity);
+  setRange('fx-windowbgopacity', fx.windowBackgroundOpacity == null ? 1 : fx.windowBackgroundOpacity);
+  setRange('fx-bgglassopacity', fx.backgroundGlassOpacity == null ? 0 : fx.backgroundGlassOpacity);
+  setRange('fx-bgcropx', fx.backgroundMediaCropX == null ? 50 : fx.backgroundMediaCropX);
+  setRange('fx-bgcropy', fx.backgroundMediaCropY == null ? 50 : fx.backgroundMediaCropY);
+  setRange('fx-bgzoom', fx.backgroundMediaZoom == null ? 1 : fx.backgroundMediaZoom);
   if (imageValue) imageValue.textContent = customBackgroundMediaLabel(fx.backgroundMedia || fx.backgroundImage);
   applyBackgroundMediaHint();
 }
@@ -18957,6 +19132,75 @@ function setCustomBackgroundOpacity(value, silent) {
   updateCustomBackgroundControls();
   saveLyricLayout();
   if (!silent) showToast('背景透明度: ' + Math.round(fx.backgroundOpacity * 100) + '%');
+}
+function setWindowBackgroundOpacity(value, silent) {
+  fx.windowBackgroundOpacity = clampRange(Number(value), 0, 1);
+  updateCustomBackgroundControls();
+  saveLyricLayout();
+  if (!silent) showToast('窗口背景透明: ' + Math.round(fx.windowBackgroundOpacity * 100) + '%');
+}
+function setBackgroundGlassOpacity(value, silent) {
+  fx.backgroundGlassOpacity = clampRange(Number(value), 0, 1);
+  updateCustomBackgroundControls();
+  saveLyricLayout();
+  if (!silent) showToast('毛玻璃透明: ' + Math.round(fx.backgroundGlassOpacity * 100) + '%');
+}
+function setCustomBackgroundCrop(key, value, silent) {
+  if (key === 'backgroundMediaCropX' || key === 'backgroundMediaCropY') {
+    fx[key] = clampRange(Number(value), 0, 100);
+  } else if (key === 'backgroundMediaZoom') {
+    fx[key] = clampRange(Number(value), 1, 2.8);
+  } else {
+    return;
+  }
+  updateCustomBackgroundControls();
+  saveLyricLayout();
+  if (!silent) {
+    showToast(key === 'backgroundMediaZoom' ? ('裁切缩放: ' + fx[key].toFixed(2) + 'x') : (key === 'backgroundMediaCropX' ? ('裁切左右: ' + Math.round(fx[key]) + '%') : ('裁切上下: ' + Math.round(fx[key]) + '%')));
+  }
+}
+function clampPlaylistPanelFxSettings() {
+  if (!fx) return;
+  fx.playlistPanelGlassBlur = Math.round(clampRange(fx.playlistPanelGlassBlur == null ? 40 : Number(fx.playlistPanelGlassBlur), 14, 60));
+  fx.playlistPanelGlassDensity = clampRange(fx.playlistPanelGlassDensity == null ? 0.55 : Number(fx.playlistPanelGlassDensity), 0.55, 1);
+  fx.playlistPanelOpenDuration = clampRange(fx.playlistPanelOpenDuration == null ? 0.55 : Number(fx.playlistPanelOpenDuration), 0.08, 0.72);
+  fx.playlistPanelCloseDuration = clampRange(fx.playlistPanelCloseDuration == null ? 0.45 : Number(fx.playlistPanelCloseDuration), 0.06, 0.48);
+}
+function playlistPanelAlphaVars(density) {
+  density = clampRange(Number(density) || 0.55, 0.55, 1);
+  return {
+    sticky1: clampRange(0.52 + density * 0.46, 0.55, 0.98),
+    sticky2: clampRange(0.46 + density * 0.48, 0.50, 0.94),
+    sticky3: clampRange(0.28 + density * 0.56, 0.36, 0.84),
+    toolbar1: clampRange(0.48 + density * 0.46, 0.52, 0.94),
+    toolbar2: clampRange(0.42 + density * 0.46, 0.46, 0.88),
+    toolbar3: clampRange(0.24 + density * 0.48, 0.30, 0.74)
+  };
+}
+function setPlaylistPanelCssVar(name, value) {
+  document.documentElement.style.setProperty(name, value);
+  var panel = document.getElementById('playlist-panel');
+  if (panel) panel.style.setProperty(name, value);
+}
+function applyPlaylistPanelFxSettings() {
+  clampPlaylistPanelFxSettings();
+  var blur = isFinite(fx.playlistPanelGlassBlur) ? fx.playlistPanelGlassBlur : 40;
+  var density = isFinite(fx.playlistPanelGlassDensity) ? fx.playlistPanelGlassDensity : 0.55;
+  var openMs = Math.round((isFinite(fx.playlistPanelOpenDuration) ? fx.playlistPanelOpenDuration : 0.55) * 1000);
+  var closeMs = Math.round((isFinite(fx.playlistPanelCloseDuration) ? fx.playlistPanelCloseDuration : 0.45) * 1000);
+  var alphas = playlistPanelAlphaVars(density);
+  setPlaylistPanelCssVar('--mineradio-playlist-panel-open-ms', openMs + 'ms');
+  setPlaylistPanelCssVar('--mineradio-playlist-panel-close-ms', closeMs + 'ms');
+  setPlaylistPanelCssVar('--playlist-panel-open-ms', openMs + 'ms');
+  setPlaylistPanelCssVar('--playlist-panel-close-ms', closeMs + 'ms');
+  setPlaylistPanelCssVar('--playlist-sticky-blur', blur + 'px');
+  setPlaylistPanelCssVar('--playlist-toolbar-blur', Math.round(clampRange(blur * 0.74, 12, 46)) + 'px');
+  setPlaylistPanelCssVar('--playlist-sticky-a1', alphas.sticky1.toFixed(3));
+  setPlaylistPanelCssVar('--playlist-sticky-a2', alphas.sticky2.toFixed(3));
+  setPlaylistPanelCssVar('--playlist-sticky-a3', alphas.sticky3.toFixed(3));
+  setPlaylistPanelCssVar('--playlist-toolbar-a1', alphas.toolbar1.toFixed(3));
+  setPlaylistPanelCssVar('--playlist-toolbar-a2', alphas.toolbar2.toFixed(3));
+  setPlaylistPanelCssVar('--playlist-toolbar-a3', alphas.toolbar3.toFixed(3));
 }
 function setCustomBackgroundImage(src, silent) {
   var image = normalizeCustomBackgroundImage(src);
@@ -19522,6 +19766,11 @@ function updatePerformanceControls() {
   document.querySelectorAll('#performance-quality-seg [data-performance-quality]').forEach(function(btn){
     btn.classList.toggle('active', btn.getAttribute('data-performance-quality') === fx.performanceQuality);
   });
+  document.querySelectorAll('#foreground-fps-seg [data-foreground-fps]').forEach(function(btn){
+    var active = normalizeForegroundFpsMode(btn.getAttribute('data-foreground-fps')) === fx.foregroundFpsMode;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
   var liveBackgroundKeepToggle = document.getElementById('t-liveBackgroundKeep');
   if (liveBackgroundKeepToggle) liveBackgroundKeepToggle.classList.toggle('on', fx.liveBackgroundKeep === true);
 }
@@ -19550,6 +19799,13 @@ function setPerformanceQualityMode(mode, silent) {
     showToast('画质档位: ' + label);
   }
 }
+function setForegroundFpsMode(mode, silent) {
+  var next = normalizeForegroundFpsMode(mode);
+  fx.foregroundFpsMode = next;
+  updatePerformanceControls();
+  saveLyricLayout();
+  if (!silent) showToast(next === 'vsync' ? '前台帧率: 跟随屏幕垂直同步' : ('前台帧率上限: ' + next + ' FPS'));
+}
 function updateFxInputs() {
   normalizeDevelopmentLockedFxState();
   applyShelfCameraDefaultAngle(false);
@@ -19560,6 +19816,16 @@ function updateFxInputs() {
   setRange('fx-lyricglow', fx.lyricGlowStrength);
   setRange('fx-bgopacity', fx.backgroundOpacity == null ? 1 : fx.backgroundOpacity);
   setRange('fx-glassaberration', fx.controlGlassChromaticOffset);
+  setRange('fx-windowbgopacity', fx.windowBackgroundOpacity == null ? 1 : fx.windowBackgroundOpacity);
+  setRange('fx-bgglassopacity', fx.backgroundGlassOpacity == null ? 0 : fx.backgroundGlassOpacity);
+  setRange('fx-bgcropx', fx.backgroundMediaCropX == null ? 50 : fx.backgroundMediaCropX);
+  setRange('fx-bgcropy', fx.backgroundMediaCropY == null ? 50 : fx.backgroundMediaCropY);
+  setRange('fx-bgzoom', fx.backgroundMediaZoom == null ? 1 : fx.backgroundMediaZoom);
+  setRange('fx-playlistblur', fx.playlistPanelGlassBlur == null ? 40 : fx.playlistPanelGlassBlur);
+  setRange('fx-playlistdensity', fx.playlistPanelGlassDensity == null ? 0.55 : fx.playlistPanelGlassDensity);
+  setRange('fx-playlistopen', fx.playlistPanelOpenDuration == null ? 0.55 : fx.playlistPanelOpenDuration);
+  setRange('fx-playlistclose', fx.playlistPanelCloseDuration == null ? 0.45 : fx.playlistPanelCloseDuration);
+  applyPlaylistPanelFxSettings();
   setRange('fx-desktoplyricssize', fx.desktopLyricsSize);
   setRange('fx-desktoplyricsopacity', fx.desktopLyricsOpacity);
   setRange('fx-desktoplyricsy', fx.desktopLyricsY);
@@ -19684,10 +19950,13 @@ function ensureFxSliderResetButton(id, key) {
   });
   el.parentElement.appendChild(btn);
 }
-var fxPanelTab = 'presets';
+var fxPanelTab = 'home';
 function setFxPanelTab(tab) {
-  var allowed = { presets:1, appearance:1, lyrics:1, motion:1, advanced:1 };
-  fxPanelTab = allowed[tab] ? tab : 'presets';
+  var allowed = { home:1, interface:1, lyrics:1, motion:1, shelf:1, system:1, presets:1, appearance:1, advanced:1 };
+  if (tab === 'presets') tab = 'home';
+  else if (tab === 'appearance') tab = 'interface';
+  else if (tab === 'advanced') tab = 'system';
+  fxPanelTab = allowed[tab] ? tab : 'home';
   var panel = document.getElementById('fx-panel');
   if (panel) panel.setAttribute('data-active-tab', fxPanelTab);
   document.querySelectorAll('#fx-panel-tabs [data-fx-tab]').forEach(function(btn){
@@ -19718,6 +19987,10 @@ function fxPanelTargetForNode(node, current) {
   return current || 'presets';
 }
 function organizeFxPanel() {
+  if (typeof organizeFxConsoleWorkspace === 'function') {
+    organizeFxConsoleWorkspace();
+    return;
+  }
   var panel = document.getElementById('fx-panel');
   if (!panel) return;
   if (panel._fxPanelOrganized) {
@@ -20360,6 +20633,7 @@ function setSonicWorkshopRegionColorFromPicker(id, color, silent) {
 function bindFxPanel() {
   liftFxFloatingPopups();
   organizeFxPanel();
+  if (typeof initFxConsoleSearchAndHistory === 'function') initFxConsoleSearchAndHistory();
   relabelFxPanelControls();
   bindHotkeySettings();
   buildPresetGrid();
@@ -20367,6 +20641,8 @@ function bindFxPanel() {
   buildLyricColorControls();
   var ids = [
     ['fx-intensity','intensity'],['fx-depth','depth'],['fx-coverres','coverResolution'],['fx-cineshake','cinemaShake'],['fx-lyricglow','lyricGlowStrength'],['fx-bgopacity','backgroundOpacity'],['fx-glassaberration','controlGlassChromaticOffset'],
+    ['fx-bgcropx','backgroundMediaCropX'],['fx-bgcropy','backgroundMediaCropY'],['fx-bgzoom','backgroundMediaZoom'],['fx-windowbgopacity','windowBackgroundOpacity'],['fx-bgglassopacity','backgroundGlassOpacity'],
+    ['fx-playlistblur','playlistPanelGlassBlur'],['fx-playlistdensity','playlistPanelGlassDensity'],['fx-playlistopen','playlistPanelOpenDuration'],['fx-playlistclose','playlistPanelCloseDuration'],
     ['fx-desktoplyricssize','desktopLyricsSize'],['fx-desktoplyricsopacity','desktopLyricsOpacity'],['fx-desktoplyricsy','desktopLyricsY'],['fx-wallpaperopacity','wallpaperOpacity'],
     ['fx-shelfsize','shelfSize'],['fx-shelfx','shelfOffsetX'],['fx-shelfy','shelfOffsetY'],['fx-shelfz','shelfOffsetZ'],['fx-shelfangle','shelfAngleY'],['fx-shelfopacity','shelfOpacity'],['fx-shelfbgalpha','shelfBgOpacity'],
     ['fx-lyricspacing','lyricLetterSpacing'],['fx-lyriclineheight','lyricLineHeight'],['fx-lyricweight','lyricWeight'],
@@ -20392,6 +20668,20 @@ function bindFxPanel() {
         fx.backgroundColorMode = 'custom';
         fx.backgroundColorCustom = true;
         updateCustomBackgroundControls();
+      }
+      if (pair[1] === 'backgroundMediaCropX' || pair[1] === 'backgroundMediaCropY' || pair[1] === 'backgroundMediaZoom') {
+        setCustomBackgroundCrop(pair[1], fx[pair[1]], true);
+      }
+      if (pair[1] === 'windowBackgroundOpacity') {
+        fx.windowBackgroundOpacity = clampRange(fx.windowBackgroundOpacity, 0, 1);
+        updateCustomBackgroundControls();
+      }
+      if (pair[1] === 'backgroundGlassOpacity') {
+        fx.backgroundGlassOpacity = clampRange(fx.backgroundGlassOpacity, 0, 1);
+        updateCustomBackgroundControls();
+      }
+      if (/^playlistPanel(GlassBlur|GlassDensity|OpenDuration|CloseDuration)$/.test(pair[1])) {
+        applyPlaylistPanelFxSettings();
       }
       if (pair[1] === 'controlGlassChromaticOffset') {
         fx.controlGlassChromaticOffset = normalizeControlGlassChromaticOffset(fx.controlGlassChromaticOffset);
@@ -20596,6 +20886,11 @@ function bindFxPanel() {
       setPerformanceQualityMode(btn.getAttribute('data-performance-quality'));
     });
   });
+  document.querySelectorAll('#foreground-fps-seg [data-foreground-fps]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      setForegroundFpsMode(btn.getAttribute('data-foreground-fps'));
+    });
+  });
   updateFxInputs();
 }
 function toggleFx(key) {
@@ -20634,6 +20929,11 @@ function toggleFx(key) {
     updateRenderPowerClasses();
     applyRendererPowerMode();
     if (fx.liveBackgroundKeep) recoverVisualsAfterBackground('live-background-keep');
+  }
+  if (/^memory/.test(key)) {
+    saveLyricLayout();
+    updateMemoryControls();
+    if (typeof configureMemoryReductFromFx === 'function') configureMemoryReductFromFx('toggle', false);
   }
   if (key === 'lyricGlow') showToast(fx.lyricGlow ? '歌词溢光已开启' : '歌词溢光已关闭');
   if (key === 'lyricGlowBeat') showToast(fx.lyricGlowBeat ? '歌词溢光跟随鼓点' : '歌词溢光已脱离鼓点');
@@ -24284,6 +24584,7 @@ function dismissSplash() {
     document.body.classList.remove('splash-active');
     document.body.classList.remove('splash-revealing');
     markAppPerf('home-revealed');
+    setTimeout(maybeResumeStartupPlayback, 1400);
     if (s && s.parentNode) s.style.display = 'none';
     requestAnimationFrame(function(){
       var homeShown = updateEmptyHomeVisibility({ forceLoad: true });
@@ -24314,6 +24615,92 @@ function markSplashReadyToEnter() {
   s.setAttribute('aria-label', '点击进入 Mineradio');
 }
 
+function applyStartupPreferenceUi() {
+  var autoplayBtn = document.getElementById('t-startupAutoplay');
+  if (autoplayBtn) autoplayBtn.classList.toggle('on', !!startupAutoplayPreference);
+  var skipBtn = document.getElementById('t-startupFastSkip');
+  if (skipBtn) skipBtn.classList.toggle('on', !!startupFastSkipPreference);
+}
+
+window.toggleStartupAutoplay = function toggleStartupAutoplay() {
+  startupAutoplayPreference = !startupAutoplayPreference;
+  saveBooleanPreference(STARTUP_AUTOPLAY_STORE_KEY, startupAutoplayPreference);
+  applyStartupPreferenceUi();
+  showToast(startupAutoplayPreference ? '启动自动播放已开启' : '启动自动播放已关闭');
+  if (startupAutoplayPreference) {
+    saveStartupPlaybackSnapshot(true);
+  }
+};
+
+window.toggleStartupFastSkip = function toggleStartupFastSkip() {
+  startupFastSkipPreference = !startupFastSkipPreference;
+  saveBooleanPreference(STARTUP_FAST_SKIP_STORE_KEY, startupFastSkipPreference);
+  applyStartupPreferenceUi();
+  showToast(startupFastSkipPreference ? '秒启动已开启' : '秒启动已关闭');
+};
+
+var STARTUP_SNAPSHOT_STORE_KEY = 'mineradio-startup-playback-snapshot-v1';
+var startupSnapshotSaveAt = 0;
+var startupAutoplayAttempted = false;
+
+function startupSongSnapshotSafe(song) {
+  if (!song || typeof song !== 'object') return null;
+  var out = {};
+  ['id','key','name','title','artist','ar','author','album','cover','source','provider','type','url','localPath','localUrl','radioId','radioContext','duration','dur','lyric','lrcUrl'].forEach(function (k) {
+    if (song[k] !== undefined) out[k] = song[k];
+  });
+  return Object.keys(out).length ? out : null;
+}
+
+function saveStartupPlaybackSnapshot(force) {
+  if (!startupAutoplayPreference && !force) return;
+  var song = playQueue[currentIdx];
+  if (!song || !playing) return;
+  var now = Date.now();
+  if (!force && now - startupSnapshotSaveAt < 5000) return;
+  startupSnapshotSaveAt = now;
+  var queue = playQueue.slice(0, 200).map(startupSongSnapshotSafe).filter(Boolean);
+  if (!queue.length) return;
+  try {
+    localStorage.setItem(STARTUP_SNAPSHOT_STORE_KEY, JSON.stringify({
+      at: now,
+      index: currentIdx,
+      position: audio && isFinite(audio.currentTime) ? audio.currentTime : 0,
+      queue: queue
+    }));
+  } catch (e) { }
+}
+
+function maybeResumeStartupPlayback() {
+  if (startupAutoplayAttempted || !startupAutoplayPreference) return;
+  startupAutoplayAttempted = true;
+  var raw = null;
+  try { raw = JSON.parse(localStorage.getItem(STARTUP_SNAPSHOT_STORE_KEY) || 'null'); } catch (e) { }
+  if (!raw || !Array.isArray(raw.queue) || !raw.queue.length) return;
+  var idx = Math.max(0, Math.min(raw.queue.length - 1, Number(raw.index) || 0));
+  var position = startupResumeModePreference === 'restart' ? 0 : Math.max(0, Number(raw.position) || 0);
+  playQueue = raw.queue.slice(0, 200);
+  currentIdx = idx;
+  safePlaybackStep('startup-autoplay', function () {
+    playQueueAt(idx, { preserveHomeState: true, startupResume: true }).catch(function () { });
+  });
+  function trySeek() {
+    if (!audio) return;
+    if (audio.readyState >= 1 && isFinite(audio.duration) && audio.duration > 0) {
+      audio.currentTime = Math.min(position, Math.max(0, audio.duration - 0.5));
+      audio.removeEventListener('loadedmetadata', trySeek);
+      audio.removeEventListener('playing', trySeek);
+    }
+  }
+  audio.addEventListener('loadedmetadata', trySeek);
+  audio.addEventListener('playing', trySeek);
+  setTimeout(trySeek, 6000);
+}
+
+setInterval(function () {
+  if (startupAutoplayPreference) saveStartupPlaybackSnapshot(false);
+}, 6000);
+
 document.addEventListener('DOMContentLoaded', function(){
   var s = document.getElementById('splash');
   if (!s) return;
@@ -24338,7 +24725,14 @@ document.addEventListener('DOMContentLoaded', function(){
     return;
   }
   playMineradioIntroSound();
-  splashTimer = setTimeout(markSplashReadyToEnter, 5000);
+  if (startupFastSkipPreference) {
+    splashTimer = setTimeout(function(){
+      markSplashReadyToEnter();
+      requestSplashEnter();
+    }, 120);
+  } else {
+    splashTimer = setTimeout(markSplashReadyToEnter, 5000);
+  }
 });
 
 var desktopOverlayPushState = {
@@ -24790,6 +25184,9 @@ function isMainSceneCoveredBySplash() {
 }
 function getAdaptiveRenderFps() {
   if (isDeepBackgroundMode()) return 1;
+  var fgMode = (typeof normalizeForegroundFpsMode === 'function') ? normalizeForegroundFpsMode(fx && fx.foregroundFpsMode) : 'vsync';
+  var fgFixed = (typeof foregroundFixedFpsForMode === 'function') ? foregroundFixedFpsForMode(fgMode) : 0;
+  if (fgFixed) return fgFixed;
   if (RENDER_VISIBLE_VSYNC) return 0;
   var tier = (typeof getRenderLoadTier === 'function') ? getRenderLoadTier() : 0;
   if (typeof isRenderInteractionActive === 'function' && isRenderInteractionActive()) {
@@ -25116,5 +25513,77 @@ animate();
 })();
 
 </script>
+<script src="js/wallpaper-engine-library.js"></script>
+<script src="js/system-memory-controls.js"></script>
+<script src="js/audio-output-controls.js"></script>
+<script>
+function toggleFullDesktopMode(btn) {
+  var api = window.desktopWindow;
+  if (!api || typeof api.setFullDesktopMode !== 'function') {
+    if (typeof showToast === 'function') showToast('完整桌面模式不可用：主进程未接入');
+    return;
+  }
+  var enabled = !(btn && btn.classList.contains('on'));
+  api.setFullDesktopMode(enabled, { reason: 'console-toggle' }).then(function (result) {
+    if (result && result.ok) {
+      if (btn) btn.classList.toggle('on', result.enabled === true);
+      if (result.enabled === true && result.backdropReady && typeof showToast === 'function') {
+        showToast('已进入完整桌面模式 · Esc 退出');
+      } else if (result.enabled !== true && typeof showToast === 'function') {
+        showToast('已退出完整桌面模式');
+      }
+    } else if (result && result.error && typeof showToast === 'function') {
+      showToast('完整桌面模式: ' + String(result.error).slice(0, 80));
+    }
+  }).catch(function (error) {
+    if (typeof showToast === 'function') showToast('完整桌面模式失败: ' + String(error && error.message || error).slice(0, 80));
+  });
+}
+</script>
+<div id="wallpaper-engine-modal" class="modal-mask" role="dialog" aria-modal="true"
+  aria-labelledby="wallpaper-engine-modal-title" onclick="if(event.target===this)closeWallpaperEngineLibrary()">
+  <div class="modal wallpaper-engine-library-modal">
+    <div class="wallpaper-engine-library-head">
+      <div>
+        <div class="wallpaper-engine-kicker">LOCAL WALLPAPER LIBRARY</div>
+        <h2 id="wallpaper-engine-modal-title">Wallpaper Engine 壁纸导入</h2>
+        <p>只建立本地索引，不复制大型项目；Video 直接播放，Scene 项目与有效 PKGV 场景包由本机 Wallpaper Engine 原生引擎实时运行。</p>
+      </div>
+      <button class="wallpaper-engine-close" type="button" onclick="closeWallpaperEngineLibrary()" aria-label="关闭">×</button>
+    </div>
+    <div class="wallpaper-engine-toolbar">
+      <input id="wallpaper-engine-search" type="search" placeholder="搜索壁纸名称" autocomplete="off"
+        oninput="scheduleWallpaperEngineLibraryRender()">
+      <button class="fx-mini-btn ghost" type="button" onclick="chooseWallpaperEngineProjectFile()">导入项目 / 场景包</button>
+      <button class="fx-mini-btn ghost" type="button" onclick="chooseWallpaperEngineDirectory()">导入目录</button>
+      <button class="fx-mini-btn ghost" type="button" onclick="refreshWallpaperEngineLibrary()">刷新识别</button>
+      <button class="fx-mini-btn ghost" type="button" onclick="restoreHiddenWallpaperEngineItems()">恢复隐藏</button>
+    </div>
+    <div id="wallpaper-engine-library-status" class="wallpaper-engine-library-status">等待识别本机 Wallpaper Engine 库</div>
+    <div id="wallpaper-engine-manual-roots" class="wallpaper-engine-manual-roots"></div>
+    <div id="wallpaper-engine-grid" class="wallpaper-engine-grid" aria-live="polite"></div>
+    <div id="wallpaper-engine-details-drawer" class="wallpaper-engine-details-drawer" aria-hidden="true"
+      onclick="if(event.target===this)closeWallpaperEngineProjectDetails()">
+      <section class="wallpaper-engine-details-panel" aria-labelledby="wallpaper-engine-details-title">
+        <div class="wallpaper-engine-details-head">
+          <div>
+            <div class="wallpaper-engine-kicker">PROJECT PROPERTIES</div>
+            <h3 id="wallpaper-engine-details-title">项目设置</h3>
+          </div>
+          <button class="wallpaper-engine-close" type="button" onclick="closeWallpaperEngineProjectDetails()" aria-label="关闭项目设置">×</button>
+        </div>
+        <p id="wallpaper-engine-details-summary" class="wallpaper-engine-details-summary"></p>
+        <div id="wallpaper-engine-details-properties" class="wallpaper-engine-details-properties"></div>
+        <div class="wallpaper-engine-details-actions">
+          <button id="wallpaper-engine-details-we" class="fx-mini-btn" type="button"
+            onclick="launchWallpaperEngineProjectDetails('we')">在 WE 中打开设置（实验）</button>
+          <button id="wallpaper-engine-details-workshop" class="fx-mini-btn ghost" type="button"
+            onclick="launchWallpaperEngineProjectDetails('workshop')">创意工坊详情</button>
+        </div>
+        <small class="wallpaper-engine-details-note">每次载入自动应用静音值（音量 0 / 静音开启 / 音频关闭）；Scene 包只处理缓存副本，原文件不变。其他视觉设置仍由 Wallpaper Engine 管理。</small>
+      </section>
+    </div>
+  </div>
+</div>
 </body>
 </html>
