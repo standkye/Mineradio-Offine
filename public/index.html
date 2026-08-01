@@ -515,6 +515,37 @@ try {
         </span></div>
         <div id="audio-output-device-list"><div class="fx-sub audio-output-empty">读取中...</div></div>
       </div>
+      <div class="fx-section-label">音域地形</div>
+      <div class="fx-slider"><label>地面起伏</label><input id="fx-sonicamp" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>起伏速度</label><input id="fx-sonicspeed" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>地形密度</label><input id="fx-sonicdensity" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>地面范围</label><input id="fx-sonicrange" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>歌词避让</label><input id="fx-soniclower" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>地面远近</label><input id="fx-sonicdepth" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>地形自转</label><input id="fx-sonicautorotate" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>音域光强</label><input id="fx-sonicglow" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider lyric-color-row"><label>地形暗部</label><input id="sonic-ground-base-picker" class="lyric-color-picker" type="color" value="#05070c"><output></output></div>
+      <div class="fx-slider lyric-color-row"><label>冷色峰值</label><input id="sonic-ground-cool-picker" class="lyric-color-picker" type="color" value="#0066ff"><output></output></div>
+      <div class="fx-slider lyric-color-row"><label>暖色峰值</label><input id="sonic-ground-warm-picker" class="lyric-color-picker" type="color" value="#ff3c19"><output></output></div>
+      <div class="fx-slider lyric-color-row"><label>涟漪高光</label><input id="sonic-ground-accent-picker" class="lyric-color-picker" type="color" value="#33e6ff"><output></output></div>
+      <div class="fx-section-label">音域方块</div>
+      <div class="fx-toggle-grid">
+        <div class="fx-toggle" id="t-sonicGroundFloatingEnabled" onclick="toggleFx('sonicGroundFloatingEnabled')"><span>浮空方块</span><span class="dot"></span></div>
+      </div>
+      <div class="fx-slider"><label>方块数量</label><input id="fx-sonicfloatcount" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>方块强度</label><input id="fx-sonicfloatintensity" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>方块小值</label><input id="fx-sonicfloatmin" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>方块大值</label><input id="fx-sonicfloatmax" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>方块速度</label><input id="fx-sonicfloatspeed" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-section-label">频谱响应</div>
+      <div class="fx-slider"><label>中心低频</label><input id="fx-sonicsubbass" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>低频重量</label><input id="fx-sonicbass" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>慢波流动</label><input id="fx-soniclowmid" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>方向流</label><input id="fx-sonicmid" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>尖峰</label><input id="fx-sonichighmid" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>闪光触发</label><input id="fx-sonicpresence" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>边缘微闪</label><input id="fx-sonicbrilliance" type="range" min="0" max="100" step="1"><output></output></div>
+      <div class="fx-slider"><label>空气颗粒</label><input id="fx-sonicair" type="range" min="0" max="100" step="1"><output></output></div>
       <div class="fx-section-label">直播 / 后台</div>
       <div class="fx-seg" id="performance-background-seg" title="控制窗口隐藏、最小化或后台运行时的渲染策略">
         <button data-performance-background="auto">自动优化</button>
@@ -1496,6 +1527,32 @@ var fxDefaults = {
   memorySafetyRevision: 3,
   cam: 'off',
   sonicWorkshopInputGain: 82,
+  sonicGroundMotionSpeed: 50,
+  sonicGroundAmplitude: 50,
+  sonicGroundDensity: 46,
+  sonicGroundRange: 82,
+  sonicGroundLower: 68,
+  sonicGroundDepth: 62,
+  sonicGroundAutoRotate: 50,
+  sonicGroundGlow: 68,
+  sonicGroundBaseColor: '#05070c',
+  sonicGroundCoolColor: '#0066ff',
+  sonicGroundWarmColor: '#ff3c19',
+  sonicGroundAccentColor: '#33e6ff',
+  sonicGroundFloatingEnabled: true,
+  sonicGroundFloatingCount: 80,
+  sonicGroundFloatingIntensity: 55,
+  sonicGroundFloatingMinSize: 9,
+  sonicGroundFloatingMaxSize: 26,
+  sonicGroundFloatingSpeed: 77,
+  sonicGroundSubBass: 90,
+  sonicGroundBass: 92,
+  sonicGroundLowMid: 50,
+  sonicGroundMid: 50,
+  sonicGroundHighMid: 50,
+  sonicGroundPresence: 50,
+  sonicGroundBrilliance: 50,
+  sonicGroundAir: 48,
   sonicWorkshopAudioIntensity: 1.15,
   sonicWorkshopResponseRange: 1.30,
   sonicWorkshopPeakIntensity: 0.62,
@@ -19620,6 +19677,9 @@ function setPreset(p, opts) {
   if (changed && window.MineradioSonicWorkshop && typeof MineradioSonicWorkshop.onPresetChange === 'function') {
     MineradioSonicWorkshop.onPresetChange(prev, p, { skipTransition: !!opts.skipTransition });
   }
+  if (changed && window.MineradioSonicTopography && typeof MineradioSonicTopography.onPresetChange === 'function') {
+    MineradioSonicTopography.onPresetChange(prev, p, { skipTransition: !!opts.skipTransition, scene: scene, fx: fx });
+  }
   if (changed && prev === SKULL_PRESET_INDEX && p !== SKULL_PRESET_INDEX) clearSkullPresetResidue();
   if (p === SKULL_PRESET_INDEX) loadSkullParticleAsset();
   uniforms.uPreset.value = p;
@@ -19825,6 +19885,31 @@ function updateFxInputs() {
   setRange('fx-playlistdensity', fx.playlistPanelGlassDensity == null ? 0.55 : fx.playlistPanelGlassDensity);
   setRange('fx-playlistopen', fx.playlistPanelOpenDuration == null ? 0.55 : fx.playlistPanelOpenDuration);
   setRange('fx-playlistclose', fx.playlistPanelCloseDuration == null ? 0.45 : fx.playlistPanelCloseDuration);
+  setRange('fx-sonicamp', fx.sonicGroundAmplitude == null ? 50 : fx.sonicGroundAmplitude);
+  setRange('fx-sonicspeed', fx.sonicGroundMotionSpeed == null ? 50 : fx.sonicGroundMotionSpeed);
+  setRange('fx-sonicdensity', fx.sonicGroundDensity == null ? 46 : fx.sonicGroundDensity);
+  setRange('fx-sonicrange', fx.sonicGroundRange == null ? 82 : fx.sonicGroundRange);
+  setRange('fx-soniclower', fx.sonicGroundLower == null ? 68 : fx.sonicGroundLower);
+  setRange('fx-sonicdepth', fx.sonicGroundDepth == null ? 62 : fx.sonicGroundDepth);
+  setRange('fx-sonicautorotate', fx.sonicGroundAutoRotate == null ? 50 : fx.sonicGroundAutoRotate);
+  setRange('fx-sonicglow', fx.sonicGroundGlow == null ? 68 : fx.sonicGroundGlow);
+  setRange('fx-sonicfloatcount', fx.sonicGroundFloatingCount == null ? 80 : fx.sonicGroundFloatingCount);
+  setRange('fx-sonicfloatintensity', fx.sonicGroundFloatingIntensity == null ? 55 : fx.sonicGroundFloatingIntensity);
+  setRange('fx-sonicfloatmin', fx.sonicGroundFloatingMinSize == null ? 9 : fx.sonicGroundFloatingMinSize);
+  setRange('fx-sonicfloatmax', fx.sonicGroundFloatingMaxSize == null ? 26 : fx.sonicGroundFloatingMaxSize);
+  setRange('fx-sonicfloatspeed', fx.sonicGroundFloatingSpeed == null ? 77 : fx.sonicGroundFloatingSpeed);
+  setRange('fx-sonicsubbass', fx.sonicGroundSubBass == null ? 90 : fx.sonicGroundSubBass);
+  setRange('fx-sonicbass', fx.sonicGroundBass == null ? 92 : fx.sonicGroundBass);
+  setRange('fx-soniclowmid', fx.sonicGroundLowMid == null ? 50 : fx.sonicGroundLowMid);
+  setRange('fx-sonicmid', fx.sonicGroundMid == null ? 50 : fx.sonicGroundMid);
+  setRange('fx-sonichighmid', fx.sonicGroundHighMid == null ? 50 : fx.sonicGroundHighMid);
+  setRange('fx-sonicpresence', fx.sonicGroundPresence == null ? 50 : fx.sonicGroundPresence);
+  setRange('fx-sonicbrilliance', fx.sonicGroundBrilliance == null ? 50 : fx.sonicGroundBrilliance);
+  setRange('fx-sonicair', fx.sonicGroundAir == null ? 48 : fx.sonicGroundAir);
+  [['sonic-ground-base-picker','sonicGroundBaseColor','#05070c'],['sonic-ground-cool-picker','sonicGroundCoolColor','#0066ff'],['sonic-ground-warm-picker','sonicGroundWarmColor','#ff3c19'],['sonic-ground-accent-picker','sonicGroundAccentColor','#33e6ff']].forEach(function(pair){
+    var el = document.getElementById(pair[0]);
+    if (el) el.value = fx[pair[1]] || pair[2];
+  });
   applyPlaylistPanelFxSettings();
   setRange('fx-desktoplyricssize', fx.desktopLyricsSize);
   setRange('fx-desktoplyricsopacity', fx.desktopLyricsOpacity);
@@ -20643,6 +20728,10 @@ function bindFxPanel() {
     ['fx-intensity','intensity'],['fx-depth','depth'],['fx-coverres','coverResolution'],['fx-cineshake','cinemaShake'],['fx-lyricglow','lyricGlowStrength'],['fx-bgopacity','backgroundOpacity'],['fx-glassaberration','controlGlassChromaticOffset'],
     ['fx-bgcropx','backgroundMediaCropX'],['fx-bgcropy','backgroundMediaCropY'],['fx-bgzoom','backgroundMediaZoom'],['fx-windowbgopacity','windowBackgroundOpacity'],['fx-bgglassopacity','backgroundGlassOpacity'],
     ['fx-playlistblur','playlistPanelGlassBlur'],['fx-playlistdensity','playlistPanelGlassDensity'],['fx-playlistopen','playlistPanelOpenDuration'],['fx-playlistclose','playlistPanelCloseDuration'],
+    ['fx-sonicamp','sonicGroundAmplitude'],['fx-sonicspeed','sonicGroundMotionSpeed'],['fx-sonicdensity','sonicGroundDensity'],
+    ['fx-sonicrange','sonicGroundRange'],['fx-soniclower','sonicGroundLower'],['fx-sonicdepth','sonicGroundDepth'],['fx-sonicautorotate','sonicGroundAutoRotate'],['fx-sonicglow','sonicGroundGlow'],
+    ['fx-sonicfloatcount','sonicGroundFloatingCount'],['fx-sonicfloatintensity','sonicGroundFloatingIntensity'],['fx-sonicfloatmin','sonicGroundFloatingMinSize'],['fx-sonicfloatmax','sonicGroundFloatingMaxSize'],['fx-sonicfloatspeed','sonicGroundFloatingSpeed'],
+    ['fx-sonicsubbass','sonicGroundSubBass'],['fx-sonicbass','sonicGroundBass'],['fx-soniclowmid','sonicGroundLowMid'],['fx-sonicmid','sonicGroundMid'],['fx-sonichighmid','sonicGroundHighMid'],['fx-sonicpresence','sonicGroundPresence'],['fx-sonicbrilliance','sonicGroundBrilliance'],['fx-sonicair','sonicGroundAir'],
     ['fx-desktoplyricssize','desktopLyricsSize'],['fx-desktoplyricsopacity','desktopLyricsOpacity'],['fx-desktoplyricsy','desktopLyricsY'],['fx-wallpaperopacity','wallpaperOpacity'],
     ['fx-shelfsize','shelfSize'],['fx-shelfx','shelfOffsetX'],['fx-shelfy','shelfOffsetY'],['fx-shelfz','shelfOffsetZ'],['fx-shelfangle','shelfAngleY'],['fx-shelfopacity','shelfOpacity'],['fx-shelfbgalpha','shelfBgOpacity'],
     ['fx-lyricspacing','lyricLetterSpacing'],['fx-lyriclineheight','lyricLineHeight'],['fx-lyricweight','lyricWeight'],
@@ -20663,6 +20752,10 @@ function bindFxPanel() {
         applyCoverParticleResolution(fx.coverResolution, { reload: true });
       }
       if (pair[1] === 'lyricWeight') fx.lyricWeight = Math.round(clampRange(fx.lyricWeight, 500, 900) / 50) * 50;
+      if (/^sonicGround/.test(pair[1]) && pair[1] !== 'sonicGroundFloatingEnabled') {
+        fx[pair[1]] = Math.round(clampRange(fx[pair[1]], 0, 100));
+        if (window.MineradioSonicTopography && typeof MineradioSonicTopography.pushProperties === 'function') MineradioSonicTopography.pushProperties(true);
+      }
       if (pair[1] === 'backgroundOpacity') {
         fx.backgroundOpacity = clampRange(fx.backgroundOpacity, 0, 1);
         fx.backgroundColorMode = 'custom';
@@ -20891,6 +20984,16 @@ function bindFxPanel() {
       setForegroundFpsMode(btn.getAttribute('data-foreground-fps'));
     });
   });
+  [['sonic-ground-base-picker','sonicGroundBaseColor'],['sonic-ground-cool-picker','sonicGroundCoolColor'],['sonic-ground-warm-picker','sonicGroundWarmColor'],['sonic-ground-accent-picker','sonicGroundAccentColor']].forEach(function(pair){
+    var el = document.getElementById(pair[0]);
+    if (!el || el._mineradioSonicColorBound) return;
+    el._mineradioSonicColorBound = true;
+    el.addEventListener('input', function(){
+      fx[pair[1]] = el.value;
+      if (window.MineradioSonicTopography && typeof MineradioSonicTopography.pushProperties === 'function') MineradioSonicTopography.pushProperties(true);
+      saveLyricLayout();
+    });
+  });
   updateFxInputs();
 }
 function toggleFx(key) {
@@ -20934,6 +21037,11 @@ function toggleFx(key) {
     saveLyricLayout();
     updateMemoryControls();
     if (typeof configureMemoryReductFromFx === 'function') configureMemoryReductFromFx('toggle', false);
+  }
+  if (key === 'sonicGroundFloatingEnabled') {
+    saveLyricLayout();
+    if (window.MineradioSonicTopography && typeof MineradioSonicTopography.pushProperties === 'function') MineradioSonicTopography.pushProperties(true);
+    showToast(fx.sonicGroundFloatingEnabled !== false ? '浮空方块已开启' : '浮空方块已关闭');
   }
   if (key === 'lyricGlow') showToast(fx.lyricGlow ? '歌词溢光已开启' : '歌词溢光已关闭');
   if (key === 'lyricGlowBeat') showToast(fx.lyricGlowBeat ? '歌词溢光跟随鼓点' : '歌词溢光已脱离鼓点');

@@ -116,6 +116,38 @@ var FX_CONSOLE_LAYOUT = [
         fxConsoleItem("fx-scatter", "离散感", "粒子散开"),
         fxConsoleItem("fx-bgfade", "背景压暗", "背景压缩 暗度")
       ] },
+      { key: "sonic-terrain", title: "音域地形", hint: "地面起伏、地形密度与配色", items: [
+        fxConsoleItem("fx-sonicamp", "地面起伏", "音域振幅"),
+        fxConsoleItem("fx-sonicspeed", "起伏速度", "地形 速度"),
+        fxConsoleItem("fx-sonicdensity", "地形密度", "网格 密度"),
+        fxConsoleItem("fx-sonicrange", "地面范围", "地面 范围"),
+        fxConsoleItem("fx-soniclower", "歌词避让", "歌词 避让"),
+        fxConsoleItem("fx-sonicdepth", "地面远近", "地形 深度"),
+        fxConsoleItem("fx-sonicautorotate", "地形自转", "自动 旋转"),
+        fxConsoleItem("sonic-ground-base-picker", "地形暗部", "地形 底色"),
+        fxConsoleItem("sonic-ground-cool-picker", "冷色峰值", "冷色 峰值"),
+        fxConsoleItem("sonic-ground-warm-picker", "暖色峰值", "暖色 峰值"),
+        fxConsoleItem("sonic-ground-accent-picker", "涟漪高光", "波纹 高光"),
+        fxConsoleItem("fx-sonicglow", "音域光强", "地形 光晕")
+      ] },
+      { key: "sonic-audio", title: "频谱响应", hint: "各频段对地形的驱动强度", items: [
+        fxConsoleItem("fx-sonicsubbass", "中心低频", "低频 重低音"),
+        fxConsoleItem("fx-sonicbass", "低频重量", "Bass 重量"),
+        fxConsoleItem("fx-soniclowmid", "慢波流动", "低中频 流动"),
+        fxConsoleItem("fx-sonicmid", "方向流", "中频 方向"),
+        fxConsoleItem("fx-sonichighmid", "尖峰", "高中频 尖峰"),
+        fxConsoleItem("fx-sonicpresence", "闪光触发", "存在感 闪光"),
+        fxConsoleItem("fx-sonicbrilliance", "边缘微闪", "高频 微闪"),
+        fxConsoleItem("fx-sonicair", "空气颗粒", "空气 颗粒")
+      ] },
+      { key: "sonic-blocks", title: "音域方块", hint: "浮空方块数量、大小与速度", items: [
+        fxConsoleItem("t-sonicGroundFloatingEnabled", "浮空方块", "方块 开关"),
+        fxConsoleItem("fx-sonicfloatcount", "方块数量", "浮空数量"),
+        fxConsoleItem("fx-sonicfloatintensity", "方块强度", "浮空强度"),
+        fxConsoleItem("fx-sonicfloatmin", "方块小值", "浮空 最小"),
+        fxConsoleItem("fx-sonicfloatmax", "方块大值", "浮空 最大"),
+        fxConsoleItem("fx-sonicfloatspeed", "方块速度", "浮空 速度")
+      ] },
       { key: "sonic-we", title: "音域回响 · WE", hint: "Wallpaper Engine 派生地形的响应与配色", items: [
         fxConsoleItem("fx-sonicwegain", "输入压制", "WE 输入增益"),
         fxConsoleItem("fx-sonicweaudio", "音频响应", "WE 音频强度"),
