@@ -506,11 +506,11 @@ async function fetchOnlineMeta(artist, track, album) {
   const cached = readMetaCache(cacheKey);
   if (cached) return cached;
   let result = null;
-  // 中文源优先：网易云 → QQ → Spotify（可用时）→ iTunes → Deezer
-  result = await searchNetease(a, t);
+  // 中文源优先：QQ → 网易云 → Spotify（可用时）→ iTunes → Deezer
+  result = await searchQQ(a, t);
   if (!result || !result.coverUrl) {
-    const qq = await searchQQ(a, t);
-    if (qq && qq.coverUrl) result = Object.assign(result || {}, qq);
+    const ne = await searchNetease(a, t);
+    if (ne && ne.coverUrl) result = Object.assign(result || {}, ne);
   }
   if ((!result || !result.coverUrl) && spotifyConfig() && !spotifyDisabled) {
     const sp = await searchSpotify(a, t);
@@ -1349,17 +1349,17 @@ const server = http.createServer(async (req, res) => {
       const lrclibUrl =
         'https://lrclib.net/api/get?artist_name=' + artist + '&track_name=' + track + '&album_name=' + album;
       let lrcContent = '';
-      // 优先网易云/QQ 歌词（中文覆盖最全）
+      // 优先 QQ/网易云歌词（中文覆盖最全）
       try {
-        lrcContent = await fetchNeteaseLyric(song.artist || '', song.name || song.title || baseName);
+        lrcContent = await fetchQQLyric(song.artist || '', song.name || song.title || baseName);
       } catch (e) {
-        /* netease lyric failed */
+        /* qq lyric failed */
       }
       if (!lrcContent) {
         try {
-          lrcContent = await fetchQQLyric(song.artist || '', song.name || song.title || baseName);
+          lrcContent = await fetchNeteaseLyric(song.artist || '', song.name || song.title || baseName);
         } catch (e) {
-          /* qq lyric failed */
+          /* netease lyric failed */
         }
       }
       // Try LRCLib
