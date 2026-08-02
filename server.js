@@ -1241,6 +1241,26 @@ const server = http.createServer(async (req, res) => {
       }
       // Otherwise try to extract embedded cover from audio file
       // Try music-metadata first (better FLAC/Vorbis support), fallback to jsmediatags
+      // 部分 ID3 写入器会把描述终止符等垃圾字节混入图片数据开头（如 0x00 前缀），
+      // 导致浏览器按 image/* 解码失败、封面空白；返回前剥离到真实图片起始位置。
+      function normalizeEmbeddedPicture(data, mime) {
+        if (!data || !data.length) return data;
+        const buf = Buffer.isBuffer(data) ? data : Buffer.from(data);
+        if (/jpe?g/i.test(mime || '')) {
+          const idx = buf.indexOf(Buffer.from([0xff, 0xd8, 0xff]));
+          if (idx > 0) return buf.slice(idx);
+        } else if (/png/i.test(mime || '')) {
+          const idx = buf.indexOf(Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+          if (idx > 0) return buf.slice(idx);
+        } else if (/gif/i.test(mime || '')) {
+          const idx = buf.indexOf(Buffer.from([0x47, 0x49, 0x46, 0x38]));
+          if (idx > 0) return buf.slice(idx);
+        } else if (/webp/i.test(mime || '')) {
+          const idx = buf.indexOf(Buffer.from([0x52, 0x49, 0x46, 0x46]));
+          if (idx > 0) return buf.slice(idx);
+        }
+        return buf;
+      }
       let sent = false;
       try {
         const mm = require('music-metadata');
@@ -1249,12 +1269,13 @@ const server = http.createServer(async (req, res) => {
         if (pictures && pictures.length > 0) {
           const pic = pictures[0];
           const mime = pic.format || 'image/jpeg';
+          const imgData = normalizeEmbeddedPicture(pic.data, mime);
           res.writeHead(200, {
             'Content-Type': mime,
-            'Content-Length': pic.data.length,
+            'Content-Length': imgData.length,
             'Cache-Control': 'public, max-age=86400',
           });
-          res.end(pic.data);
+          res.end(imgData);
           sent = true;
         }
       } catch (e) {
@@ -1282,12 +1303,13 @@ const server = http.createServer(async (req, res) => {
                     }
                     if (imgBuffer) {
                       const mime = picture.format || 'image/jpeg';
+                      const finalImg = normalizeEmbeddedPicture(imgBuffer, mime);
                       res.writeHead(200, {
                         'Content-Type': mime,
-                        'Content-Length': imgBuffer.length,
+                        'Content-Length': finalImg.length,
                         'Cache-Control': 'public, max-age=86400',
                       });
-                      res.end(imgBuffer);
+                      res.end(finalImg);
                       sent = true;
                     }
                   }
