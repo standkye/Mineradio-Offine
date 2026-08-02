@@ -1,13 +1,16 @@
 # Changelog
 
-## Unreleased
+## v2.0.0
 
-- 代码健康度优化与安全加固：
+- 代码健康度优化与安全加固（自 v1.1.1 起累计提交）：
   - 安全：`server.js` 增加 Host 头校验（防 DNS rebinding）；`/api/local/audio|cover|lyric|artist-image` 增加绝对路径 + 扩展名白名单（防任意文件读取）；`/api/local/search`、`/api/beatmap/cache` 增加 `x-mineradio-app` 校验；音频/封面流补 `.on('error')`（文件失效不再导致进程退出）；全部外部 `fetch` 增加超时，批量歌词/封面任务增加总时限。
   - 安全：`main.js` 全部 26 个 IPC handler 增加 sender 校验（仅信任本应用窗口页面），与壁纸桥接侧既有校验策略对齐。
-  - 死代码清理：删除 `dj-analyzer.js`（945 行无消费者）、`DesktopWallpaperRuntime` 整类（453 行）、`scheduleAppMemoryTrim`、壁纸桥接 5 个死函数与 4 个死导出、`setLyricsDrag` 死链路、`index.html` 空函数与 200ms 空转定时器、被覆盖的 `console-workspace` 布局（282 行）、preset 死字段等，累计约 940 行。
+  - 死代码清理：删除 `dj-analyzer.js`（945 行无消费者）、`DesktopWallpaperRuntime` 整类（453 行）、`scheduleAppMemoryTrim`、壁纸桥接 5 个死函数与 4 个死导出、`setLyricsDrag` 死链路、`index.html` 空函数与 200ms 空转定时器、被覆盖的 `console-workspace` 布局（282 行）、preset 死字段、孤儿文件（`app-memory.js`、sonic-workshop `preview.gif`/`project.json`）等，累计约 2000 行。
   - lint：ESLint 从 12 errors + 6 warnings 清零（补充 `Response`/`AbortController` 全局声明）。
   - 错误处理：`app.whenReady()` / `activate` 增加 `.catch`，避免未捕获 promise rejection。
+  - 依赖：显式声明 `music-metadata`（此前为传递依赖的幽灵依赖，升级随时可能运行时报错）；移除零引用的 `NeteaseCloudMusicApi` 死依赖（`package-lock.json` 减 1124 行）。
+  - 性能：`animate()` 主循环缩略图元素缓存（不再每帧 `getElementById`）；桌面歌词全局中键轮询 `24ms→40ms`，PowerShell 进程 CPU 占用减半；移除 topography 冗余 `pushProperties` 调用（每帧 `update()` 实时读 fx，无需推送）。
+  - 修复：`/api/local/cover` 剥离内嵌封面前导垃圾字节（部分 ID3 写入器在 APIC 图片数据前混入 `0x00`，导致浏览器解码失败、封面显示空白且补封面被 `hasCover` 跳过），JPEG/PNG/GIF/WebP 提取路径统一生效。
 
 ## v1.1.1
 

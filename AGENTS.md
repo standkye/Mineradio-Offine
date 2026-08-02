@@ -9,7 +9,7 @@ Mineradio 是 Windows Electron 桌面音乐播放器，核心体验包括搜索�
 - 注意：旧 `runner\Mineradio.exe` 与 `runner\resources\app` 目录当前不存在，旧运行版已停用，`sync-to-runner.bat` 暂停使用
 - 当前开发仓库/Git 仓库：`D:\Programming project\Mineradio-upgrade`
 - GitHub 仓库：`https://github.com/XxHuberrr/Mineradio.git`
-- 当前源码版本：`v1.1.1`
+- 当前源码版本：`v2.0.0`
 - 统一备份区：`E:\桌面\播放器软件\工作区备份`
 
 ## Start Every New Codex Thread Here
