@@ -15526,6 +15526,7 @@ var musicTaskInProgress = false;
 async function integrateMusic() {
   if (musicTaskInProgress) return;
   musicTaskInProgress = true;
+  console.log('[INTEGRATE] start v3');
   var btn = document.getElementById('integrateBtn');
   if (btn) { btn.textContent = '整合中...'; btn.style.opacity = '0.6'; btn.disabled = true; }
   try {
@@ -15542,12 +15543,16 @@ async function integrateMusic() {
     var msg = '';
     if (scanData.songs && scanData.songs.length) {
       showToast('\u2462 \u4e0b\u8f7d\u6b4c\u8bcd...');
+      console.log('[INTEGRATE] lyrics begin');
       var dlData = await runTaskBatches(scanData.songs, '/api/local/download-lyrics', 10);
+      console.log('[INTEGRATE] lyrics done', JSON.stringify(dlData));
       var dlMsg = dlData.completed > 0 ? '\u2713\u4e0b\u8f7d' + dlData.completed + '\u9996\u6b4c\u8bcd' : '';
       if (dlData.failed > 0) dlMsg += '(' + dlData.failed + '\u5931\u8d25)';
       if (dlMsg) msg += '\n' + dlMsg;
       showToast('\u2463 \u8865\u5c01\u9762\u4e0e\u6b4c\u624b\u7167\u7247...');
+      console.log('[INTEGRATE] covers begin');
       var cvData = await runTaskBatches(scanData.songs, '/api/local/fetch-covers', 8);
+      console.log('[INTEGRATE] covers done', JSON.stringify(cvData));
       var cvMsg = cvData.completed > 0 ? '\u2713\u8865\u5c01\u9762' + cvData.completed + '\u9996' : '';
       if (cvData.skipped > 0) cvMsg += '(\u8df3\u8fc7' + cvData.skipped + ')';
       if (cvData.failed > 0) cvMsg += '(' + cvData.failed + '\u5931\u8d25)';

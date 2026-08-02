@@ -1520,6 +1520,17 @@ async function createWindow() {
   });
 
   await mainWindow.loadURL(`http://127.0.0.1:${port}`);
+  // 渲染进程日志转发到主进程 stdout（调试用）
+  mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
+    console.log('[renderer][' + level + ']', message, '(' + String(sourceId || '') + ':' + line + ')');
+  });
+  // 清除 HTTP 缓存，确保加载最新前端页面
+  try {
+    await session.defaultSession.clearCache();
+  } catch (e) {
+    /* ignore */
+  }
+  mainWindow.webContents.reloadIgnoringCache();
 }
 
 app.setName(APP_NAME);
