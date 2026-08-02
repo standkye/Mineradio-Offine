@@ -15435,7 +15435,6 @@ function renderLocalMusicResults(songs) {
     '<button id="integrateBtn" onclick="integrateMusic()" style="height:28px;padding:0 12px;border-radius:999px;border:1px solid rgba(244,210,138,.3);background:rgba(244,210,138,.08);color:rgba(244,210,138,.9);font:inherit;font-size:10.5px;cursor:pointer">整合音乐</button>' +
     '<button id="fetchCoversBtn" onclick="fetchCoversForLocal()" style="height:28px;padding:0 12px;border-radius:999px;border:1px solid rgba(120,200,255,.3);background:rgba(120,200,255,.08);color:rgba(150,215,255,.9);font:inherit;font-size:10.5px;cursor:pointer">补封面</button>' +
     '<button onclick="leaveLocalMode()" style="height:28px;padding:0 12px;border-radius:999px;border:1px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.5);font:inherit;font-size:10.5px;cursor:pointer">退出本地模式</button>' +
-    '<span style="font-size:9px;color:rgba(255,255,255,.28);letter-spacing:.5px">进度条版 v2</span>' +
   '</div>' +
   songs.map(function(s, i){
     var LOCAL_SERVER = ''; /* same-origin local server */
@@ -15503,68 +15502,6 @@ async function loadLocalMusic() {
     results.innerHTML = '<div class="search-empty">扫描失败: ' + escHtml(err.message || '') + '</div>';
   }
 }
-var ipOverlayEl = null;
-function openIntegrateProgress() {
-  if (ipOverlayEl) return;
-  var ov = document.createElement('div');
-  ov.style.cssText = 'position:fixed;z-index:99999;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px)';
-  var box = document.createElement('div');
-  box.style.cssText = 'width:440px;max-width:92vw;background:#15161d;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:22px 24px;box-shadow:0 24px 80px rgba(0,0,0,.6)';
-  box.innerHTML =
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">' +
-      '<div style="font-size:15px;font-weight:700;color:#fff">整合音乐</div>' +
-      '<span id="ip-percent" style="font-size:15px;font-weight:700;color:rgba(0,245,212,.9)">0%</span>' +
-    '</div>' +
-    '<div id="ip-stage" style="font-size:12px;color:rgba(255,255,255,.55);margin-bottom:14px">准备中...</div>' +
-    '<div style="height:6px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden">' +
-      '<div id="ip-bar" style="height:100%;width:0%;border-radius:999px;background:rgba(0,245,212,.85);transition:width .3s ease"></div>' +
-    '</div>' +
-    '<div id="ip-stats" style="display:flex;justify-content:space-between;margin-top:10px;font-size:11px;color:rgba(255,255,255,.45)"></div>' +
-    '<div id="ip-detail" style="margin-top:6px;font-size:11px;color:rgba(255,255,255,.35)"></div>';
-  ov.appendChild(box);
-  document.body.appendChild(ov);
-  ipOverlayEl = ov;
-}
-function updateIntegrateProgress(stage, done, total, completed, failed, skipped) {
-  if (!ipOverlayEl) return;
-  var stageEl = document.getElementById('ip-stage');
-  if (stageEl) stageEl.textContent = stage;
-  var pct = total > 0 ? Math.round(Math.min(done, total) / total * 100) : 0;
-  var bar = document.getElementById('ip-bar');
-  if (bar) bar.style.width = pct + '%';
-  var pctEl = document.getElementById('ip-percent');
-  if (pctEl) pctEl.textContent = pct + '%';
-  var statsEl = document.getElementById('ip-stats');
-  if (statsEl) statsEl.textContent = '\u5df2\u5904\u7406 ' + Math.min(done, total) + '/' + total;
-  var detailEl = document.getElementById('ip-detail');
-  if (detailEl) detailEl.textContent = '\u6210\u529f ' + completed + ' \u00b7 \u5931\u8d25 ' + failed + ' \u00b7 \u8df3\u8fc7 ' + skipped;
-}
-function closeIntegrateProgress() {
-  if (ipOverlayEl) { ipOverlayEl.remove(); ipOverlayEl = null; }
-}
-// 分批执行任务并实时更新进度（每批一次接口调用）
-async function runBatchedTask(songs, apiPath, chunkSize, onEach) {
-  var total = songs.length;
-  var done = 0, completed = 0, failed = 0, skipped = 0;
-  for (var i = 0; i < total; i += chunkSize) {
-    var chunk = songs.slice(i, i + chunkSize);
-    var data = null;
-    try {
-      data = await apiJson(apiPath + '?songs=' + encodeURIComponent(JSON.stringify(chunk)));
-    } catch (e) { data = null; }
-    if (data && data.results) {
-      done += data.results.length;
-      completed += data.completed || 0;
-      failed += data.failed || 0;
-      skipped += data.skipped || 0;
-    } else {
-      done += chunk.length;
-      failed += chunk.length;
-    }
-    if (onEach) onEach(done, total, completed, failed, skipped);
-  }
-  return { completed: completed, failed: failed, skipped: skipped };
-}
 var musicTaskInProgress = false;
 async function integrateMusic() {
   if (musicTaskInProgress) return;
@@ -15572,36 +15509,30 @@ async function integrateMusic() {
   var btn = document.getElementById('integrateBtn');
   if (btn) { btn.textContent = '整合中...'; btn.style.opacity = '0.6'; btn.disabled = true; }
   try {
-    openIntegrateProgress();
-    updateIntegrateProgress('① 扫描音乐...', 0, 1, 0, 0, 0);
+    showToast('\u2460 \u626b\u63cf\u97f3\u4e50...');
     var scanData = await apiJson('/api/local/scan?path=E:\\MyMusic');
     var songs = scanData.songs || [];
     var totalSongs = songs.length;
-    updateIntegrateProgress('② 整理文件...', 0, 1, 0, 0, 0);
+    showToast('\u2461 \u6574\u7406\u6587\u4ef6...');
     await apiJson('/api/local/organize?path=E:\\MyMusic');
     // 整理后路径已变化，先重扫更新服务端歌曲列表
     window.__localMusicCache = null;
     scanData = await apiJson('/api/local/scan?path=E:\\MyMusic');
     window.__localMusicCache = scanData.songs || [];
     var msg = '';
-    var lyricRes = { completed: 0, failed: 0, skipped: 0 };
-    var coverRes = { completed: 0, failed: 0, skipped: 0 };
     if (scanData.songs && scanData.songs.length) {
-      lyricRes = await runBatchedTask(scanData.songs, '/api/local/download-lyrics', 10, function(done, total, c, f, s){
-        updateIntegrateProgress('③ 下载歌词（网易云/QQ）...', done, total, c, f, s);
-      });
-      var dlMsg = lyricRes.completed > 0 ? '✓下载' + lyricRes.completed + '首歌词' : '';
-      if (lyricRes.failed > 0) dlMsg += '(' + lyricRes.failed + '失败)';
+      showToast('\u2462 \u4e0b\u8f7d\u6b4c\u8bcd...');
+      var dlData = await apiJson('/api/local/download-lyrics?songs=[]');
+      var dlMsg = dlData.completed > 0 ? '\u2713\u4e0b\u8f7d' + dlData.completed + '\u9996\u6b4c\u8bcd' : '';
+      if (dlData.failed > 0) dlMsg += '(' + dlData.failed + '\u5931\u8d25)';
       if (dlMsg) msg += '\n' + dlMsg;
-      coverRes = await runBatchedTask(scanData.songs, '/api/local/fetch-covers', 8, function(done, total, c, f, s){
-        updateIntegrateProgress('④ 补封面与歌手照片（网易云/QQ）...', done, total, c, f, s);
-      });
-      var cvMsg = coverRes.completed > 0 ? '✓补封面' + coverRes.completed + '首' : '';
-      if (coverRes.skipped > 0) cvMsg += '(跳过' + coverRes.skipped + ')';
-      if (coverRes.failed > 0) cvMsg += '(' + coverRes.failed + '失败)';
+      showToast('\u2463 \u8865\u5c01\u9762\u4e0e\u6b4c\u624b\u7167\u7247...');
+      var cvData = await apiJson('/api/local/fetch-covers?songs=[]');
+      var cvMsg = cvData.completed > 0 ? '\u2713\u8865\u5c01\u9762' + cvData.completed + '\u9996' : '';
+      if (cvData.skipped > 0) cvMsg += '(\u8df3\u8fc7' + cvData.skipped + ')';
+      if (cvData.failed > 0) cvMsg += '(' + cvData.failed + '\u5931\u8d25)';
       if (cvMsg) msg += '\n' + cvMsg;
     }
-    updateIntegrateProgress('⑤ 刷新界面...', 1, 1, 0, 0, 0);
     window.__localMusicCache = null;
     scanData = await apiJson('/api/local/scan?path=E:\\MyMusic');
     window.__localMusicCache = scanData.songs || [];
@@ -15609,15 +15540,11 @@ async function integrateMusic() {
     if (resultsEl && scanData.songs && scanData.songs.length) {
       renderLocalMusicResults(scanData.songs);
     }
-    var finalMsg = '✓ 整合完成，共 ' + totalSongs + ' 首歌';
+    var finalMsg = '\u2713 \u6574\u5408\u5b8c\u6210\uff0c\u5171 ' + totalSongs + ' \u9996\u6b4c\u66f2';
     if (msg) finalMsg += msg;
-    updateIntegrateProgress('✓ 整合完成，共 ' + totalSongs + ' 首歌', 1, 1, lyricRes.completed, coverRes.completed, 0);
-    setTimeout(closeIntegrateProgress, 1200);
     showToast(finalMsg);
   } catch (err) {
-    updateIntegrateProgress('整合失败: ' + (err.message || ''), 0, 1, 0, 0, 0);
-    setTimeout(closeIntegrateProgress, 2000);
-    showToast('操作失败: ' + (err.message || ''), 'error');
+    showToast('\u64cd\u4f5c\u5931\u8d25: ' + (err.message || ''), 'error');
   } finally {
     musicTaskInProgress = false;
     if (btn) { btn.textContent = '\u6574\u5408\u97f3\u4e50'; btn.style.opacity = '1'; btn.disabled = false; }
