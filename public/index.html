@@ -6858,7 +6858,7 @@ function lyricTextPaletteFromHsl(hsl, avgL, chroma) {
     return silverBlueLyricPalette();
   }
   var hue = hsl.h;
-  if (avgL < 0.30 && (hue < 0.06 || hue > 0.86 || (hue > 0.75 && hue < 0.86))) return silverBlueLyricPalette();
+  if (avgL < 0.30 && hue > 0.75 && hue < 0.86) return silverBlueLyricPalette();
   if (avgL > 0.82 && chroma < 0.12) {
     return {
       primary: '#064b5b',
