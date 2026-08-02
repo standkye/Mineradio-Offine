@@ -209,8 +209,8 @@ body.simple-mode #fx-fab-hide-btn,
 body.simple-mode #fx-panel{display:none!important}
 html.simple-mode-preload #search-area,
 body.simple-mode #search-area{--search-offset:0;left:50%;width:min(620px,calc(100vw - 56px));transform:translateX(-50%) translateY(-30px) scale(.94);align-items:stretch}
-body.simple-mode #search-area.peek{top:24px}
-body.desktop-shell.simple-mode #search-area.peek{top:34px}
+body.simple-mode #search-area.peek{top:24px;transform:translateX(-50%) translateY(0) scale(1)}
+body.desktop-shell.simple-mode #search-area.peek{top:34px;transform:translateX(-50%) translateY(0) scale(1)}
 html.simple-mode-preload #search-stack,
 body.simple-mode #search-stack{width:100%}
 body.simple-mode #search-box{height:58px;border-radius:22px;background:var(--glass-bg);border-color:var(--glass-border);box-shadow:var(--glass-shadow)}
