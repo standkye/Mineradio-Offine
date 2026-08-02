@@ -22273,7 +22273,7 @@ function renderHome(hero, grid, rail) {
     {l: pc + ' playlists', t: '我的歌单', sub: '创建和管理歌单', col: '#b8e0ff', accent: '#74b9ff', icon: 'playlist', fn: function(){ showPlaylistsView(); } },
     {l: ac + ' artists', t: '歌手', sub: '按歌手浏览', col: '#ffd8dd', accent: '#ff7675', icon: 'artist', fn: function(){ showArtistsView(); } },
     {l: alc + ' albums', t: '专辑', sub: '按专辑浏览', col: '#f0ffc8', accent: '#a8e6cf', icon: 'album', fn: function(){ showAlbumsView(); } },
-    {l: 'integrate', t: '整合音乐', sub: '扫描+整理+下载歌词', col: '#f4d28a', accent: '#fdcb6e', icon: 'integrate', fn: function(){ integrateFromHome(); } }
+    {l: 'integrate', t: '整合音乐', sub: '扫描+整理+歌词+封面+歌手照', col: '#f4d28a', accent: '#fdcb6e', icon: 'integrate', fn: function(){ integrateFromHome(); } }
   ];
   cardData.forEach(function(c) {
     var card = document.createElement('button');
@@ -22642,11 +22642,18 @@ function integrateFromHome() {
   }).then(function(scanData) {
     var songs = scanData.songs || [];
     localAllSongs = songs;
-    return apiJson('/api/local/download-lyrics?songs=[]');
+    return runTaskBatches(songs, '/api/local/download-lyrics', 10);
   }).then(function(dlData) {
     var msg = '\u2713 \u6574\u5408\u5b8c\u6210';
     if (dlData.completed > 0) msg += '\n\u2713\u4e0b\u8f7d' + dlData.completed + '\u9996\u6b4c\u8bcd';
     if (dlData.failed > 0) msg += '\n' + dlData.failed + '\u9996\u5931\u8d25';
+    return runTaskBatches(localAllSongs || [], '/api/local/fetch-covers', 8).then(function(cvData) {
+      if (cvData.completed > 0) msg += '\n\u2713\u8865\u5c01\u9762' + cvData.completed + '\u9996';
+      if (cvData.skipped > 0) msg += '(\u8df3\u8fc7' + cvData.skipped + ')';
+      if (cvData.failed > 0) msg += '(' + cvData.failed + '\u5931\u8d25)';
+      return msg;
+    });
+  }).then(function(msg) {
     showToast(msg);
     window.__localMusicCache = null;
     loadLocalData();
