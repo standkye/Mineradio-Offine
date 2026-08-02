@@ -15502,6 +15502,26 @@ async function loadLocalMusic() {
     results.innerHTML = '<div class="search-empty">扫描失败: ' + escHtml(err.message || '') + '</div>';
   }
 }
+// 分批调用后端任务，避免单个长请求挂起（不弹窗，静默执行）
+async function runTaskBatches(songs, apiPath, chunkSize) {
+  var completed = 0, failed = 0, skipped = 0;
+  for (var i = 0; i < songs.length; i += chunkSize) {
+    var chunk = songs.slice(i, i + chunkSize);
+    try {
+      var data = await apiJson(apiPath + '?songs=' + encodeURIComponent(JSON.stringify(chunk)));
+      if (data) {
+        completed += data.completed || 0;
+        failed += data.failed || 0;
+        skipped += data.skipped || 0;
+      } else {
+        failed += chunk.length;
+      }
+    } catch (e) {
+      failed += chunk.length;
+    }
+  }
+  return { completed: completed, failed: failed, skipped: skipped };
+}
 var musicTaskInProgress = false;
 async function integrateMusic() {
   if (musicTaskInProgress) return;
@@ -15522,12 +15542,12 @@ async function integrateMusic() {
     var msg = '';
     if (scanData.songs && scanData.songs.length) {
       showToast('\u2462 \u4e0b\u8f7d\u6b4c\u8bcd...');
-      var dlData = await apiJson('/api/local/download-lyrics?songs=[]');
+      var dlData = await runTaskBatches(scanData.songs, '/api/local/download-lyrics', 10);
       var dlMsg = dlData.completed > 0 ? '\u2713\u4e0b\u8f7d' + dlData.completed + '\u9996\u6b4c\u8bcd' : '';
       if (dlData.failed > 0) dlMsg += '(' + dlData.failed + '\u5931\u8d25)';
       if (dlMsg) msg += '\n' + dlMsg;
       showToast('\u2463 \u8865\u5c01\u9762\u4e0e\u6b4c\u624b\u7167\u7247...');
-      var cvData = await apiJson('/api/local/fetch-covers?songs=[]');
+      var cvData = await runTaskBatches(scanData.songs, '/api/local/fetch-covers', 8);
       var cvMsg = cvData.completed > 0 ? '\u2713\u8865\u5c01\u9762' + cvData.completed + '\u9996' : '';
       if (cvData.skipped > 0) cvMsg += '(\u8df3\u8fc7' + cvData.skipped + ')';
       if (cvData.failed > 0) cvMsg += '(' + cvData.failed + '\u5931\u8d25)';
