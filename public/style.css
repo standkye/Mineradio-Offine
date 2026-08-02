@@ -42,7 +42,6 @@ body.local-mode #upload-actions{display:none!important}
 body.local-mode .home-hero{grid-row:1/3!important}
 body.local-mode .empty-home-shell{height:100%!important}
 
-body.desktop-shell #search-area{top:-92px}
 body.desktop-shell #search-area.peek{top:34px}
 body.desktop-shell #search-area.stage-mode.peek{top:32px}
 body.desktop-shell #top-right{top:58px;right:24px}
@@ -142,7 +141,7 @@ body.splash-active.splash-revealing #hint:not(.hidden){opacity:1;transform:trans
 body.splash-active.splash-revealing #top-right{opacity:1;transition:opacity 1100ms 520ms cubic-bezier(.32,0,.1,1)}
 
 /* ---------- 椤堕儴鎼滅储 (鍗婇殣钘? ---------- */
-#search-area{--search-offset:0px;position:fixed;z-index:10;top:-76px;left:50%;transform:translateX(calc(-50% + var(--search-offset))) translateY(-30px) scale(.94);width:auto;display:flex;align-items:flex-start;gap:12px;transition:top .46s cubic-bezier(.16,1,.3,1),opacity .34s cubic-bezier(.16,1,.3,1),transform .46s cubic-bezier(.16,1,.3,1);opacity:0;pointer-events:none}
+#search-area{--search-offset:0px;position:fixed;z-index:10;top:24px;left:50%;transform:translateX(calc(-50% + var(--search-offset))) translateY(-120px) scale(.96);width:auto;display:flex;align-items:flex-start;gap:12px;transition:opacity .34s cubic-bezier(.16,1,.3,1),transform .46s cubic-bezier(.16,1,.3,1);opacity:0;pointer-events:none}
 #search-area.has-cover-action{--search-offset:0px}
 #search-area.peek{top:24px;opacity:1;pointer-events:auto;transform:translateX(calc(-50% + var(--search-offset))) translateY(0) scale(1)}
 #search-area.stage-mode #search-stack{width:min(360px,52vw)}
@@ -208,7 +207,7 @@ body.simple-mode #fx-fab,
 body.simple-mode #fx-fab-hide-btn,
 body.simple-mode #fx-panel{display:none!important}
 html.simple-mode-preload #search-area,
-body.simple-mode #search-area{--search-offset:0;left:50%;width:min(620px,calc(100vw - 56px));transform:translateX(-50%) translateY(-30px) scale(.94);align-items:stretch}
+body.simple-mode #search-area{--search-offset:0;left:50%;width:min(620px,calc(100vw - 56px));transform:translateX(-50%) translateY(-120px) scale(.96);align-items:stretch}
 body.simple-mode #search-area.peek{top:24px;transform:translateX(-50%) translateY(0) scale(1)}
 body.desktop-shell.simple-mode #search-area.peek{top:34px;transform:translateX(-50%) translateY(0) scale(1)}
 html.simple-mode-preload #search-stack,
