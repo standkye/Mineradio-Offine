@@ -81,6 +81,8 @@ for (const [name, value] of CHROMIUM_PERFORMANCE_SWITCHES) {
   if (value == null) app.commandLine.appendSwitch(name);
   else app.commandLine.appendSwitch(name, value);
 }
+// 开发期禁用 HTTP 缓存，确保页面/CSS/JS 改动重启后必然生效
+app.commandLine.appendSwitch('disable-http-cache');
 const gotSingleInstanceLock = app.requestSingleInstanceLock();
 
 const QQ_LOGIN_COOKIE_PRIORITY = [
