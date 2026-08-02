@@ -361,9 +361,9 @@ body.user-capsule-auto-hide #top-right::before{content:'';position:absolute;righ
 #home-btn:active{transform:scale(.94)}
 #home-btn:hover{border-color:rgba(0,245,212,.44);background:rgba(0,245,212,.075);color:#fff;box-shadow:0 14px 38px rgba(0,245,212,.08)}
 body.empty-home-active #home-btn{border-color:rgba(255,83,103,.36);background:rgba(255,83,103,.11);color:#fff}
-/* Home 键自动隐藏 */
-body.home-btn-auto-hide #home-btn{opacity:0;visibility:hidden;width:0;min-width:0;padding:0;margin:0;border-width:0;pointer-events:none;transform:translateX(-6px) scale(.88);transition:opacity .28s cubic-bezier(.16,1,.3,1),width .28s cubic-bezier(.16,1,.3,1),min-width .28s,transform .28s,margin .28s,padding .28s,border-width .28s}
-body.home-btn-auto-hide #top-right:hover #home-btn,body.home-btn-auto-hide.home-btn-peek #home-btn{opacity:1;visibility:visible;width:44px;min-width:44px;padding:0;margin:0 2px;border-width:1px;pointer-events:auto;transform:translateX(0) scale(1);transition:opacity .28s cubic-bezier(.16,1,.3,1),width .28s cubic-bezier(.16,1,.3,1),min-width .28s,transform .28s,margin .28s,padding .28s,border-width .28s}
+/* Home 键自动隐藏（视觉控制台同款：滑出/滑回） */
+body.home-btn-auto-hide #home-btn,body.home-btn-auto-hide #home-btn-hide-btn{opacity:0;visibility:hidden;pointer-events:none;transform:translateX(120px) scale(.92);transition:transform .28s cubic-bezier(.16,1,.3,1),opacity .2s,visibility 0s linear .28s}
+body.home-btn-auto-hide #top-right:hover #home-btn,body.home-btn-auto-hide #top-right:hover #home-btn-hide-btn,body.home-btn-auto-hide.home-btn-peek #home-btn,body.home-btn-auto-hide.home-btn-peek #home-btn-hide-btn{opacity:1;visibility:visible;pointer-events:auto;transform:translateX(0) scale(1);transition:transform .28s cubic-bezier(.16,1,.3,1),opacity .16s}
 body.desktop-shell #empty-home{top:132px;bottom:46px;width:calc(100vw - 44px)}
 body.desktop-shell .empty-home-shell{min-height:0}
 body.desktop-shell .home-hero{min-height:390px}
