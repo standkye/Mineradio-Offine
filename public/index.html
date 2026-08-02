@@ -24123,6 +24123,12 @@ function setPeek(el, on, key) {
       delete el.dataset.preserveTabOnOpen;
     }
     el.classList.add('peek');
+    if (key === 'search') {
+      try {
+        var st = getComputedStyle(el);
+        console.log('[SEARCH-PEEK] show top=' + st.top + ' transform=' + st.transform + ' transition=' + st.transition);
+      } catch (e) {}
+    }
     if (key === 'pl' && !wasPeek) {
       scheduleUiWarmTask(function(){
         flushDeferredQueuePanel('playlist-panel-peek');
