@@ -24040,6 +24040,12 @@ window.addEventListener('resize', function(){
 });
 document.addEventListener('keydown', function(e){
   if (isTypingTarget(e.target)) return;
+  if (e.code === 'Tab') {
+    try {
+      var tabT = document.activeElement;
+      console.log('[TAB] focus=' + (tabT ? (tabT.id || tabT.className || tabT.tagName) : 'none') + ' body=' + document.body.className);
+    } catch (e2) {}
+  }
   if (handleConfiguredLocalHotkey(e)) return;
   if (shouldSuppressDefaultConfiguredHotkey(e)) return;
   if (e.code === 'Space') {
