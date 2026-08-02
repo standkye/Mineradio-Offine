@@ -24041,10 +24041,14 @@ window.addEventListener('resize', function(){
 document.addEventListener('keydown', function(e){
   if (isTypingTarget(e.target)) return;
   if (e.code === 'Tab') {
+    // 阻止默认焦点循环：Tab 会聚焦到屏幕外元素（canvas/视觉控制台面板），
+    // 触发浏览器自动滚动导致页面只剩一半
+    e.preventDefault();
     try {
       var tabT = document.activeElement;
-      console.log('[TAB] focus=' + (tabT ? (tabT.id || tabT.className || tabT.tagName) : 'none') + ' body=' + document.body.className);
+      console.log('[TAB] blocked focus=' + (tabT ? (tabT.id || tabT.className || tabT.tagName) : 'none'));
     } catch (e2) {}
+    return;
   }
   if (handleConfiguredLocalHotkey(e)) return;
   if (shouldSuppressDefaultConfiguredHotkey(e)) return;
