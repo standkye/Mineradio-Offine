@@ -24123,6 +24123,15 @@ function setPeek(el, on, key) {
       delete el.dataset.preserveTabOnOpen;
     }
     el.classList.add('peek');
+    if (key === 'search' && !wasPeek && el.animate) {
+      // JS 驱动弹入动画（不依赖 CSS transition，必然播放）
+      try {
+        el.animate([
+          { transform: 'translateX(-50%) translateY(-120px) scale(.96)', opacity: 0 },
+          { transform: 'translateX(-50%) translateY(0) scale(1)', opacity: 1 }
+        ], { duration: 460, easing: 'cubic-bezier(.16,1,.3,1)' });
+      } catch (e) {}
+    }
     if (key === 'search') {
       try {
         var st = getComputedStyle(el);
@@ -24143,6 +24152,15 @@ function setPeek(el, on, key) {
     if (peekTimers[key]) clearTimeout(peekTimers[key]);
     peekTimers[key] = setTimeout(function(){
       el.classList.remove('peek');
+      if (key === 'search' && el.animate) {
+        // JS 驱动收起动画
+        try {
+          el.animate([
+            { transform: 'translateX(-50%) translateY(0) scale(1)', opacity: 1 },
+            { transform: 'translateX(-50%) translateY(-120px) scale(.96)', opacity: 0 }
+          ], { duration: 340, easing: 'cubic-bezier(.16,1,.3,1)' });
+        } catch (e) {}
+      }
       if (key === 'fx') {
         var fabOff = document.getElementById('fx-fab');
         if (fabOff && !el.classList.contains('show')) fabOff.classList.remove('active');
