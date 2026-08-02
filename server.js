@@ -45,8 +45,8 @@ function serveStatic(res, filePath) {
       return;
     }
     const headers = { 'Content-Type': MIME[ext] || 'text/plain' };
-    // HTML 禁止缓存，避免 Electron 加载到旧页面
-    if (ext === '.html') {
+    // HTML/CSS 禁止缓存，避免 Electron 加载到旧页面/旧样式
+    if (ext === '.html' || ext === '.css') {
       headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
       headers.Pragma = 'no-cache';
       headers.Expires = '0';
