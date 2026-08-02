@@ -91,7 +91,6 @@
     "jsmediatags": "^3.9.7",
     "mpg123-decoder": "^1.0.3",
     "music-metadata": "^7.14.0",
-    "NeteaseCloudMusicApi": "^4.32.0",
     "node-id3": "^0.2.9"
   },
   "devDependencies": {
