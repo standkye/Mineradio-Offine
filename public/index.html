@@ -8403,6 +8403,8 @@ function applyCoverCanvas(cv, thumbSrc, opts) {
   coverTex.image = cv; coverTex.needsUpdate = true;
   coverPickerCanvas = cv;
   uniforms.uHasCover.value = 1;
+  // 歌词取色立即执行（不依赖重型深度分析链，避免交互活跃时被延迟任务跳过）
+  try { updateLyricPaletteFromCover(cv); } catch (e) {}
   if (cachedDepth && cachedDepth.canvas) {
     coverEdgeTex.image = cachedDepth.canvas;
     coverEdgeTex.needsUpdate = true;
