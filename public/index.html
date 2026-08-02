@@ -25572,6 +25572,8 @@ function sampleRenderPerf(now, dt) {
   }
   maybeTrimRuntimeCaches(now);
 }
+// 每帧缩略图脉动的元素缓存（避免主循环内每帧 getElementById）
+var thumbCoverElCache = null;
 function animate() {
   requestAnimationFrame(animate);
   var now = performance.now();
@@ -25842,8 +25844,9 @@ function animate() {
   // 缩略图脉动
   if (currentIdx >= 0) {
     var s = 1 + bass * 0.08;
-    var thumbCoverEl = document.getElementById('thumb-cover');
-    if (thumbCoverEl) thumbCoverEl.style.transform = 'scale(' + s + ')';
+    if (thumbCoverElCache && !thumbCoverElCache.isConnected) thumbCoverElCache = null;
+    if (!thumbCoverElCache) thumbCoverElCache = document.getElementById('thumb-cover');
+    if (thumbCoverElCache) thumbCoverElCache.style.transform = 'scale(' + s + ')';
   }
 
   renderer.render(scene, camera);
