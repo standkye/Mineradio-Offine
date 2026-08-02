@@ -24151,16 +24151,19 @@ function setPeek(el, on, key) {
   } else {
     if (peekTimers[key]) clearTimeout(peekTimers[key]);
     peekTimers[key] = setTimeout(function(){
-      el.classList.remove('peek');
       if (key === 'search' && el.animate) {
-        // JS 驱动收起动画
+        // 先播收起动画，动画结束再移除 peek（避免先隐藏导致动画不可见）
         try {
-          el.animate([
+          var closeAnim = el.animate([
             { transform: 'translateX(-50%) translateY(0) scale(1)', opacity: 1 },
             { transform: 'translateX(-50%) translateY(-120px) scale(.96)', opacity: 0 }
           ], { duration: 340, easing: 'cubic-bezier(.16,1,.3,1)' });
+          closeAnim.onfinish = function(){ el.classList.remove('peek'); };
+          closeAnim.oncancel = function(){ el.classList.remove('peek'); };
+          return;
         } catch (e) {}
       }
+      el.classList.remove('peek');
       if (key === 'fx') {
         var fabOff = document.getElementById('fx-fab');
         if (fabOff && !el.classList.contains('show')) fabOff.classList.remove('active');
