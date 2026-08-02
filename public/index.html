@@ -6907,7 +6907,10 @@ function updateLyricPaletteFromCover(coverCanvas) {
     var hsl = rgbToHsl(best.r, best.g, best.b);
     stageLyrics.coverPalette = lyricTextPaletteFromHsl(hsl, avgL, Math.max(0, best.score));
     if (fx.lyricColorMode !== 'custom') setStageLyricPalette(stageLyrics.coverPalette);
-  } catch (e) {}
+    try { console.log('[COVER-PALETTE] ok', coverCanvas.width + 'x' + coverCanvas.height, 'hsl=' + Math.round(hsl.h*360) + ' avgL=' + avgL.toFixed(2), 'primary=' + stageLyrics.coverPalette.primary); } catch (e) {}
+  } catch (e) {
+    try { console.log('[COVER-PALETTE] FAIL', e && e.message); } catch (e2) {}
+  }
 }
 
 function wrapLyricText(ctx, text, maxWidth, maxLines, fontSize) {
