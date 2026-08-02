@@ -271,7 +271,7 @@ body.home-wallpaper-preview #canvas-container{filter:none}
 .home-mosaic-cell:nth-child(2):not(.has-cover)::before{background:linear-gradient(135deg,rgba(122,215,194,.74),rgba(157,184,207,.46) 48%,rgba(10,10,14,.24)),repeating-linear-gradient(0deg,rgba(255,255,255,.16) 0 2px,transparent 2px 16px)}
 .home-mosaic-cell:nth-child(3):not(.has-cover)::before{background:linear-gradient(135deg,rgba(248,244,238,.38),rgba(0,245,212,.40) 58%,rgba(10,10,14,.24)),repeating-linear-gradient(90deg,rgba(255,255,255,.15) 0 2px,transparent 2px 15px)}
 .home-mosaic-cell::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.05),transparent 42%,rgba(0,0,0,.42));pointer-events:none}
-.home-section-head{display:flex;align-items:end;justify-content:space-between;gap:12px;min-height:24px}
+.home-section-head{display:flex;align-items:end;justify-content:space-between;gap:12px;min-height:24px;opacity:0;transition:opacity .72s cubic-bezier(.16,1,.3,1)}
 .home-section-title{font-size:13px;font-weight:760;color:rgba(255,255,255,.84);letter-spacing:.04em}
 .home-section-note{font-size:11px;color:rgba(255,255,255,.38);white-space:nowrap}
 .home-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,auto));gap:12px;align-content:start}
@@ -284,6 +284,7 @@ body.home-wallpaper-preview #canvas-container{filter:none}
 .home-card:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--tone-a) 42%,rgba(255,255,255,.18));background:linear-gradient(142deg,rgba(36,33,39,.72),rgba(10,10,14,.84));box-shadow:0 28px 84px rgba(0,0,0,.36),0 0 34px color-mix(in srgb,var(--tone-a) 16%,transparent),inset 0 1px 0 rgba(255,255,255,.085)}
 body.empty-home-active .home-card{opacity:1;animation:home-card-float 7.4s ease-in-out infinite}
 body.empty-home-active .home-hero{opacity:1}
+body.empty-home-active .home-tile,body.empty-home-active .home-section-head{opacity:1}
 body.empty-home-active .home-card:hover{animation:none}
 body.empty-home-active .home-card:nth-of-type(2){animation-delay:-1.4s}
 body.empty-home-active .home-card:nth-of-type(3){animation-delay:-2.6s}
@@ -301,7 +302,7 @@ body.empty-home-active .home-visual{animation:home-visual-drift 8.8s ease-in-out
 .home-card-art::after{content:'';position:absolute;inset:0;background:linear-gradient(145deg,rgba(255,255,255,.12),transparent 42%,rgba(0,0,0,.28));pointer-events:none}
 .home-rail{align-self:stretch;min-height:0;display:grid;grid-template-rows:auto 1fr;gap:8px}
 .home-tile-row{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-auto-rows:auto;gap:10px;min-height:0;align-content:start}
-.home-tile{--tone-a:#00f5d4;--tone-b:#2442ff;--tone-c:#f8f4ee;position:relative;min-width:0;min-height:166px;border:1px solid color-mix(in srgb,var(--home-accent) 9%,rgba(255,255,255,.075));border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.060),rgba(255,255,255,.025));box-shadow:0 16px 50px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.052);backdrop-filter:blur(20px) saturate(1.10);-webkit-backdrop-filter:blur(20px) saturate(1.10);padding:10px;color:#fff;text-align:left;font-family:inherit;cursor:pointer;transition:transform .2s,border-color .2s,background .2s,box-shadow .2s;overflow:hidden}
+.home-tile{--tone-a:#00f5d4;--tone-b:#2442ff;--tone-c:#f8f4ee;position:relative;min-width:0;min-height:166px;border:1px solid color-mix(in srgb,var(--home-accent) 9%,rgba(255,255,255,.075));border-radius:20px;background:linear-gradient(145deg,rgba(255,255,255,.060),rgba(255,255,255,.025));box-shadow:0 16px 50px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.052);backdrop-filter:blur(20px) saturate(1.10);-webkit-backdrop-filter:blur(20px) saturate(1.10);padding:10px;color:#fff;text-align:left;font-family:inherit;cursor:pointer;opacity:0;transition:opacity .72s cubic-bezier(.16,1,.3,1),transform .2s,border-color .2s,background .2s,box-shadow .2s;overflow:hidden}
 .home-tile[data-home-tone="search"],.home-tile[data-home-tone="playlist"]{--tone-a:#9db8cf;--tone-b:#00f5d4;--tone-c:#2442ff}
 .home-tile[data-home-tone="local"],.home-tile[data-home-tone="podcast"]{--tone-a:#f8f4ee;--tone-b:#00f5d4;--tone-c:#2442ff}
 .home-tile[data-home-tone="guide"],.home-tile[data-home-tone="library"]{--tone-a:#00f5d4;--tone-b:#f8f4ee;--tone-c:#2442ff}
