@@ -1526,13 +1526,6 @@ async function createWindow() {
   mainWindow.webContents.on('console-message', (event, level, message, line, sourceId) => {
     console.log('[renderer][' + level + ']', message, '(' + String(sourceId || '') + ':' + line + ')');
   });
-  // 清除 HTTP 缓存，确保加载最新前端页面
-  try {
-    await session.defaultSession.clearCache();
-  } catch (e) {
-    /* ignore */
-  }
-  mainWindow.webContents.reloadIgnoringCache();
 }
 
 app.setName(APP_NAME);
