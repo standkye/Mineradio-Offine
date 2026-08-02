@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- 代码健康度优化与安全加固：
+  - 安全：`server.js` 增加 Host 头校验（防 DNS rebinding）；`/api/local/audio|cover|lyric|artist-image` 增加绝对路径 + 扩展名白名单（防任意文件读取）；`/api/local/search`、`/api/beatmap/cache` 增加 `x-mineradio-app` 校验；音频/封面流补 `.on('error')`（文件失效不再导致进程退出）；全部外部 `fetch` 增加超时，批量歌词/封面任务增加总时限。
+  - 安全：`main.js` 全部 26 个 IPC handler 增加 sender 校验（仅信任本应用窗口页面），与壁纸桥接侧既有校验策略对齐。
+  - 死代码清理：删除 `dj-analyzer.js`（945 行无消费者）、`DesktopWallpaperRuntime` 整类（453 行）、`scheduleAppMemoryTrim`、壁纸桥接 5 个死函数与 4 个死导出、`setLyricsDrag` 死链路、`index.html` 空函数与 200ms 空转定时器、被覆盖的 `console-workspace` 布局（282 行）、preset 死字段等，累计约 940 行。
+  - lint：ESLint 从 12 errors + 6 warnings 清零（补充 `Response`/`AbortController` 全局声明）。
+  - 错误处理：`app.whenReady()` / `activate` 增加 `.catch`，避免未捕获 promise rejection。
+
 ## v1.1.1
 
 - P0 installer safety fix: installation now defaults to the first available non-C drive from `D:\Mineradio` through `Z:\Mineradio`; it falls back to `C:\Mineradio` only when no D-Z drive exists.

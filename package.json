@@ -10,10 +10,10 @@
     "start": "electron .",
     "build:win": "electron-builder --win nsis",
     "build:win:dir": "electron-builder --win dir",
-    "lint": "eslint desktop/ server.js dj-analyzer.js build/",
-    "lint:fix": "eslint --fix desktop/ server.js dj-analyzer.js build/",
-    "format": "prettier --check desktop/ server.js dj-analyzer.js build/",
-    "format:fix": "prettier --write desktop/ server.js dj-analyzer.js build/"
+    "lint": "eslint desktop/ server.js build/",
+    "lint:fix": "eslint --fix desktop/ server.js build/",
+    "format": "prettier --check desktop/ server.js build/",
+    "format:fix": "prettier --write desktop/ server.js build/"
   },
   "build": {
     "appId": "com.mineradio.desktop",
@@ -31,7 +31,6 @@
       "public/**/*",
       "build/**/*",
       "server.js",
-      "dj-analyzer.js",
       "package.json",
       "!public/index.*.html",
       "public/index.html"

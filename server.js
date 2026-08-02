@@ -67,6 +67,20 @@ function sendJSON(res, data, status) {
 function requireAppHeader(req) {
   return req.headers['x-mineradio-app'] === '1';
 }
+const AUDIO_EXTS = new Set(['.mp3', '.flac', '.wav', '.ogg', '.m4a', '.aac', '.wma']);
+const IMAGE_EXTS = new Set(['.jpg', '.jpeg', '.png', '.webp']);
+function isAllowedLocalFile(filePath, exts) {
+  if (typeof filePath !== 'string' || !filePath) return false;
+  if (!path.isAbsolute(filePath)) return false;
+  return exts.has(path.extname(filePath).toLowerCase());
+}
+function fetchWithTimeout(urlOrRequest, options, timeoutMs) {
+  const ms = timeoutMs || 15000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  const merged = Object.assign({}, options, { signal: controller.signal });
+  return fetch(urlOrRequest, merged).finally(() => clearTimeout(timer));
+}
 function readPackageInfo() {
   try {
     const raw = fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8');
@@ -248,7 +262,7 @@ async function getSpotifyToken() {
   }
   try {
     const auth = Buffer.from(cfg.clientId + ':' + cfg.clientSecret).toString('base64');
-    const resp = await fetch('https://accounts.spotify.com/api/token', {
+    const resp = await fetchWithTimeout('https://accounts.spotify.com/api/token', {
       method: 'POST',
       headers: {
         Authorization: 'Basic ' + auth,
@@ -274,7 +288,7 @@ async function searchSpotify(artist, track) {
   try {
     const clean = (s) => String(s || '').replace(/"/g, '').trim();
     const q = encodeURIComponent('track:"' + clean(track) + '" artist:"' + clean(artist) + '"');
-    const resp = await fetch('https://api.spotify.com/v1/search?q=' + q + '&type=track&limit=3', {
+    const resp = await fetchWithTimeout('https://api.spotify.com/v1/search?q=' + q + '&type=track&limit=3', {
       headers: { Authorization: 'Bearer ' + token },
     });
     if (!resp.ok) {
@@ -290,7 +304,7 @@ async function searchSpotify(artist, track) {
     const ar = t.artists && t.artists[0];
     if (ar && ar.id) {
       try {
-        const arResp = await fetch('https://api.spotify.com/v1/artists/' + ar.id, {
+        const arResp = await fetchWithTimeout('https://api.spotify.com/v1/artists/' + ar.id, {
           headers: { Authorization: 'Bearer ' + token },
         });
         if (arResp.ok) {
@@ -357,7 +371,7 @@ async function searchNetease(artist, track) {
       offset: '0',
       limit: '5',
     });
-    const resp = await fetch('https://music.163.com/api/search/get', {
+    const resp = await fetchWithTimeout('https://music.163.com/api/search/get', {
       method: 'POST',
       headers: NETEASE_HEADERS,
       body: body.toString(),
@@ -375,7 +389,7 @@ async function searchNetease(artist, track) {
     );
     if (!best || !best.id) return null;
     // 二次请求 song detail 拿可用的封面 URL 与歌手头像
-    const dResp = await fetch('https://music.163.com/api/song/detail?ids=[' + best.id + ']', {
+    const dResp = await fetchWithTimeout('https://music.163.com/api/song/detail?ids=[' + best.id + ']', {
       headers: NETEASE_HEADERS,
     });
     if (!dResp.ok) return null;
@@ -401,7 +415,7 @@ const QQ_HEADERS = {
 async function searchQQ(artist, track) {
   try {
     const w = encodeURIComponent((track || '') + ' ' + (artist || ''));
-    const resp = await fetch(
+    const resp = await fetchWithTimeout(
       'https://c.y.qq.com/soso/fcgi-bin/client_search_cp?w=' + w + '&format=json&n=5&p=1&cr=1&t=0',
       { headers: QQ_HEADERS }
     );
@@ -428,7 +442,7 @@ async function searchQQ(artist, track) {
 async function searchItunes(artist, track) {
   try {
     const term = encodeURIComponent((String(track || '') + ' ' + String(artist || '')).trim());
-    const resp = await fetch('https://itunes.apple.com/search?term=' + term + '&media=music&limit=5');
+    const resp = await fetchWithTimeout('https://itunes.apple.com/search?term=' + term + '&media=music&limit=5');
     if (!resp.ok) return null;
     const data = await resp.json();
     const item = data.results && data.results[0];
@@ -444,7 +458,7 @@ async function searchDeezer(artist, track) {
   try {
     const clean = (s) => String(s || '').replace(/"/g, '').trim();
     const q = encodeURIComponent('track:"' + clean(track) + '" artist:"' + clean(artist) + '"');
-    const resp = await fetch('https://api.deezer.com/search?q=' + q + '&limit=3');
+    const resp = await fetchWithTimeout('https://api.deezer.com/search?q=' + q + '&limit=3');
     if (!resp.ok) return null;
     const data = await resp.json();
     const t = data.data && data.data[0];
@@ -453,7 +467,7 @@ async function searchDeezer(artist, track) {
     let artistPhotoUrl = '';
     if (t.artist && t.artist.id) {
       try {
-        const arResp = await fetch('https://api.deezer.com/artist/' + t.artist.id);
+        const arResp = await fetchWithTimeout('https://api.deezer.com/artist/' + t.artist.id);
         if (arResp.ok) {
           const arData = await arResp.json();
           if (arData.picture_xl) artistPhotoUrl = arData.picture_xl;
@@ -472,7 +486,7 @@ async function fetchNeteaseLyric(artist, track) {
   try {
     const meta = await searchNetease(artist, track);
     if (!meta || !meta.songId) return '';
-    const resp = await fetch('https://music.163.com/api/song/lyric?id=' + meta.songId + '&lv=1&kv=1&tv=-1', {
+    const resp = await fetchWithTimeout('https://music.163.com/api/song/lyric?id=' + meta.songId + '&lv=1&kv=1&tv=-1', {
       headers: NETEASE_HEADERS,
     });
     if (!resp.ok) return '';
@@ -487,7 +501,7 @@ async function fetchQQLyric(artist, track) {
   try {
     const meta = await searchQQ(artist, track);
     if (!meta || !meta.songMid) return '';
-    const resp = await fetch(
+    const resp = await fetchWithTimeout(
       'https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg?songmid=' + meta.songMid + '&format=json',
       { headers: QQ_HEADERS }
     );
@@ -562,10 +576,21 @@ async function fetchOnlineMeta(artist, track, album) {
 //  HTTP Server
 // ====================================================================
 const server = http.createServer(async (req, res) => {
+  const reqHost = String(req.headers.host || '');
+  const reqHostname = reqHost.split(':')[0].toLowerCase().replace(/^\[|\]$/g, '');
+  if (reqHostname !== '127.0.0.1' && reqHostname !== 'localhost' && reqHostname !== '::1') {
+    res.writeHead(403, { 'Content-Type': 'text/plain' });
+    res.end('FORBIDDEN');
+    return;
+  }
   const url = new URL(req.url, 'http://localhost:' + PORT);
   const pn = url.pathname;
 
   if (pn === '/api/beatmap/cache/status') {
+    if (!requireAppHeader(req)) {
+      sendJSON(res, { ok: false, error: 'FORBIDDEN' }, 403);
+      return;
+    }
     const info = beatCacheRootInfo();
     sendJSON(res, {
       enabled: info.allowed && info.available,
@@ -578,6 +603,10 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (pn === '/api/beatmap/cache') {
+    if (!requireAppHeader(req)) {
+      sendJSON(res, { ok: false, error: 'FORBIDDEN' }, 403);
+      return;
+    }
     if (req.method === 'GET') {
       const key = url.searchParams.get('key') || '';
       try {
@@ -1062,6 +1091,10 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (pn === '/api/local/search') {
+    if (!requireAppHeader(req)) {
+      sendJSON(res, { error: 'FORBIDDEN', songs: [] }, 403);
+      return;
+    }
     try {
       const q = (url.searchParams.get('keywords') || url.searchParams.get('q') || '').toLowerCase().trim();
       if (!q) {
@@ -1090,6 +1123,11 @@ const server = http.createServer(async (req, res) => {
       if (!filePath) {
         res.writeHead(400);
         res.end('Missing path');
+        return;
+      }
+      if (!isAllowedLocalFile(filePath, AUDIO_EXTS)) {
+        res.writeHead(403);
+        res.end('FORBIDDEN');
         return;
       }
       if (!fs.existsSync(filePath)) {
@@ -1142,6 +1180,11 @@ const server = http.createServer(async (req, res) => {
           'Accept-Ranges': 'bytes',
         });
         const stream = fs.createReadStream(filePath, { start, end });
+        stream.on('error', (err) => {
+          console.error('[LocalAudio:stream]', err);
+          if (!res.headersSent) res.writeHead(500);
+          res.destroy();
+        });
         stream.pipe(res);
       } else {
         res.writeHead(200, {
@@ -1150,6 +1193,11 @@ const server = http.createServer(async (req, res) => {
           'Accept-Ranges': 'bytes',
         });
         const stream = fs.createReadStream(filePath);
+        stream.on('error', (err) => {
+          console.error('[LocalAudio:stream]', err);
+          if (!res.headersSent) res.writeHead(500);
+          res.destroy();
+        });
         stream.pipe(res);
       }
     } catch (err) {
@@ -1168,8 +1216,12 @@ const server = http.createServer(async (req, res) => {
         res.end();
         return;
       }
+      if (!isAllowedLocalFile(filePath, AUDIO_EXTS) && !isAllowedLocalFile(filePath, IMAGE_EXTS)) {
+        res.writeHead(403);
+        res.end();
+        return;
+      }
       const ext = path.extname(filePath).toLowerCase();
-      // If it's a JPG/PNG/WEBP file directly, serve it
       if (['.jpg', '.jpeg', '.png', '.webp'].includes(ext)) {
         const mimeMap = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' };
         const stat = fs.statSync(filePath);
@@ -1179,6 +1231,11 @@ const server = http.createServer(async (req, res) => {
           'Cache-Control': 'public, max-age=86400',
         });
         const stream = fs.createReadStream(filePath);
+        stream.on('error', (err) => {
+          console.error('[LocalCover:stream]', err);
+          if (!res.headersSent) res.writeHead(500);
+          res.destroy();
+        });
         stream.pipe(res);
         return;
       }
@@ -1266,6 +1323,10 @@ const server = http.createServer(async (req, res) => {
         sendJSON(res, { lyric: '', yrc: '' });
         return;
       }
+      if (!isAllowedLocalFile(filePath, AUDIO_EXTS)) {
+        sendJSON(res, { lyric: '', yrc: '' }, 403);
+        return;
+      }
       const dir = path.dirname(filePath);
       const ext = path.extname(filePath);
       const baseName = path.basename(filePath, ext);
@@ -1313,6 +1374,11 @@ const server = http.createServer(async (req, res) => {
         res.end();
         return;
       }
+      if (!isAllowedLocalFile(artistImagePath, IMAGE_EXTS)) {
+        res.writeHead(403);
+        res.end();
+        return;
+      }
       const ext = path.extname(artistImagePath).toLowerCase();
       const mimeMap = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp' };
       const stat = fs.statSync(artistImagePath);
@@ -1322,6 +1388,11 @@ const server = http.createServer(async (req, res) => {
         'Cache-Control': 'public, max-age=86400',
       });
       const stream = fs.createReadStream(artistImagePath);
+      stream.on('error', (err) => {
+        console.error('[LocalArtistImage:stream]', err);
+        if (!res.headersSent) res.writeHead(500);
+        res.destroy();
+      });
       stream.pipe(res);
     } catch (err) {
       console.error('[LocalArtistImage]', err);
@@ -1356,7 +1427,13 @@ const server = http.createServer(async (req, res) => {
     const results = [];
     let completed = 0,
       failed = 0;
+    const lyricsDeadline = Date.now() + 10 * 60 * 1000;
     for (const song of songs) {
+      if (Date.now() > lyricsDeadline) {
+        results.push({ song: song.name || '?', status: 'timeout', reason: '批量下载超过 10 分钟总时限' });
+        failed++;
+        continue;
+      }
       const fp = song.localPath || song.localUrl || '';
       if (!fp || !fs.existsSync(fp)) {
         failed++;
@@ -1393,7 +1470,7 @@ const server = http.createServer(async (req, res) => {
       }
       // Try LRCLib
       try {
-        const resp = await fetch(lrclibUrl);
+        const resp = await fetchWithTimeout(lrclibUrl);
         if (resp.ok) {
           const data = await resp.json();
           lrcContent = data.syncedLyrics || data.plainLyrics || '';
@@ -1408,12 +1485,12 @@ const server = http.createServer(async (req, res) => {
       if (!lrcContent) {
         try {
           const q = encodeURIComponent((song.name || song.title || baseName) + ' ' + (song.artist || ''));
-          const sr = await fetch('https://www.gequhai.com/s/' + q);
+          const sr = await fetchWithTimeout('https://www.gequhai.com/s/' + q);
           if (sr.ok) {
             const sh = await sr.text();
             const pm = sh.match(/\/play\/(\d+)/);
             if (pm) {
-              const pr = await fetch('https://www.gequhai.com/play/' + pm[1]);
+              const pr = await fetchWithTimeout('https://www.gequhai.com/play/' + pm[1]);
               if (pr.ok) {
                 const ph = await pr.text();
                 const lm = ph.match(/(\[[\d.:]+\].*?(?:\r?\n|$)){3,}/);
@@ -1498,7 +1575,13 @@ const server = http.createServer(async (req, res) => {
     let completed = 0,
       failed = 0,
       skipped = 0;
+    const coversDeadline = Date.now() + 10 * 60 * 1000;
     for (const song of songs) {
+      if (Date.now() > coversDeadline) {
+        skipped++;
+        results.push({ song: song.name || '?', status: 'timeout', reason: '批量补封面超过 10 分钟总时限' });
+        continue;
+      }
       const fp = song.localPath || song.localUrl || '';
       const name = song.name || song.title || '';
       if (!fp || !fs.existsSync(fp)) {
@@ -1541,7 +1624,7 @@ const server = http.createServer(async (req, res) => {
       // 封面：仅当无本地封面时下载（有内嵌封面保持跳过）
       if (!hasLocalCover && meta.coverUrl) {
         try {
-          const imgResp = await fetch(meta.coverUrl);
+          const imgResp = await fetchWithTimeout(meta.coverUrl, undefined, 30000);
           if (imgResp.ok) {
             const buf = Buffer.from(await imgResp.arrayBuffer());
             if (buf.length >= 100) {
@@ -1556,7 +1639,7 @@ const server = http.createServer(async (req, res) => {
       // 歌手照片：独立下载（已有则跳过）
       if (needSinger && meta.artistPhotoUrl) {
         try {
-          const sResp = await fetch(meta.artistPhotoUrl);
+          const sResp = await fetchWithTimeout(meta.artistPhotoUrl, undefined, 30000);
           if (sResp.ok) {
             const sBuf = Buffer.from(await sResp.arrayBuffer());
             if (sBuf.length >= 100) {

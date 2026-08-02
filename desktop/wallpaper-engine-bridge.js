@@ -267,20 +267,6 @@ function createWallpaperEngineBridge(options = {}) {
     return grant;
   }
 
-  function isTransientWallpaperEngineCaptureError(value) {
-    return /NotReadableError|WALLPAPER_ENGINE_REFRESH_SUPERSEDED|WALLPAPER_CAPTURE_FAILED|WALLPAPER_CAPTURE_PREPARED_STREAM_MISSING/i
-      .test(String(value || ''));
-  }
-
-  function resetWallpaperEngineCaptureGrantForRetry(grant) {
-    if (!grant || wallpaperEngineCaptureGrant !== grant) return false;
-    const active = wallpaperEngineRuntime.getStatus();
-    if (!active || !active.active || active.sessionId !== grant.sessionId) return false;
-    grant.requestStarted = false;
-    grant.expiresAt = Date.now() + WALLPAPER_ENGINE_CAPTURE_GRANT_MS;
-    return true;
-  }
-
   function isTrustedWallpaperEngineDisplayCapturePermission(webContents, origin, details) {
     try {
       const win = mainWindow();
@@ -305,44 +291,6 @@ function createWallpaperEngineBridge(options = {}) {
     if (mediaType && !mediaType.includes('video')) return false;
     if (mediaTypes.length && !mediaTypes.every((value) => value.includes('video'))) return false;
     return isTrustedWallpaperEngineDisplayCapturePermission(webContents, origin, details);
-  }
-
-  async function prepareWallpaperEngineRendererCapture(sessionId, fps) {
-    const win = mainWindow();
-    if (!win || win.isDestroyed() || !/^[a-f0-9]{24}$/i.test(String(sessionId || ''))) {
-      return { ok: false, error: 'WALLPAPER_CAPTURE_RENDERER_UNAVAILABLE' };
-    }
-    const safeSessionId = String(sessionId);
-    const safeFps = Math.max(24, Math.min(WALLPAPER_ENGINE_MAX_CAPTURE_FPS, Number(fps) || 60));
-    const grant = getWallpaperEngineCaptureGrant();
-    if (!grant || grant.sessionId !== safeSessionId) return { ok: false, error: 'WALLPAPER_CAPTURE_GRANT_MISSING' };
-    const safeSourceId = /^window:\d+:\d+$/.test(String(grant.sourceId || '')) ? String(grant.sourceId) : '';
-    if (!safeSourceId) return { ok: false, error: 'WALLPAPER_CAPTURE_SOURCE_INVALID' };
-    const script = `(() => {
-      const prepare = window.__mineradioPrepareWallpaperEngineCapture;
-      if (typeof prepare !== 'function') return { ok: false, error: 'WALLPAPER_CAPTURE_PREPARE_HANDLER_MISSING' };
-      return Promise.resolve(prepare(${JSON.stringify(safeSessionId)}, ${safeFps}, ${JSON.stringify(safeSourceId)}))
-        .then((value) => value && typeof value === 'object' ? value : { ok: false, error: 'WALLPAPER_CAPTURE_PREPARE_RESULT_INVALID' })
-        .catch((error) => ({ ok: false, error: String(error && (error.message || error.name) || error || 'WALLPAPER_CAPTURE_PREPARE_FAILED').slice(0, 500) }));
-    })()`;
-    let timeout;
-    try {
-      wallpaperEngineCapturePreparationOperation = grant.operation;
-      const result = await Promise.race([
-        win.webContents.executeJavaScript(script, true),
-        new Promise((resolve) => {
-          timeout = setTimeout(() => resolve({ ok: false, error: 'WALLPAPER_CAPTURE_PREPARE_TIMEOUT' }), WALLPAPER_ENGINE_CAPTURE_PREPARE_TIMEOUT_MS);
-        }),
-      ]);
-      return result && typeof result === 'object'
-        ? { ok: result.ok === true, error: String(result.error || '').slice(0, 500) }
-        : { ok: false, error: 'WALLPAPER_CAPTURE_PREPARE_RESULT_INVALID' };
-    } catch (error) {
-      return { ok: false, error: String(error && (error.message || error.name) || error || 'WALLPAPER_CAPTURE_PREPARE_FAILED').slice(0, 500) };
-    } finally {
-      if (wallpaperEngineCapturePreparationOperation === grant.operation) wallpaperEngineCapturePreparationOperation = 0;
-      if (timeout) clearTimeout(timeout);
-    }
   }
 
   async function prepareWallpaperEngineRendererGlassCapture(sessionId, fps, sourceId) {
@@ -652,11 +600,6 @@ function createWallpaperEngineBridge(options = {}) {
       && status.iconShapeActive === true;
   }
 
-  function isEscapeAccelerator(value) {
-    const normalized = String(value || '').trim().toLowerCase();
-    return normalized === 'escape' || normalized === 'esc';
-  }
-
   function requestFullDesktopEscapeExit(reason = 'escape-key') {
     const status = fullDesktopModeRuntime.getStatus(`${reason}-request`);
     if (fullDesktopEscapeExitPending || (status.enabled !== true && fullDesktopEnablePending !== true)) return false;
@@ -764,20 +707,6 @@ function createWallpaperEngineBridge(options = {}) {
     try {
       if (value === true) await syncWallpaperEngineDesktopIconLayering(`${reason}-coexist-preflight`, true);
       return await fullDesktopModeRuntime.setInteractive(value, reason);
-    } finally {
-      await syncWallpaperEngineDesktopIconLayering(`${reason}-settled`).catch(() => false);
-      fullDesktopModeHostVisibilityTransitionDepth = Math.max(0, fullDesktopModeHostVisibilityTransitionDepth - 1);
-      syncWallpaperEngineWithFullDesktopMode(mainWindow(), `${reason}-settled`);
-      syncFullDesktopEscapeShortcut(`${reason}-escape`);
-    }
-  }
-
-  async function toggleFullDesktopModeInteraction(reason = 'interaction-toggled') {
-    fullDesktopModeHostVisibilityTransitionDepth += 1;
-    try {
-      const before = fullDesktopModeRuntime.getStatus(`${reason}-before`);
-      if (before.interactive !== true) await syncWallpaperEngineDesktopIconLayering(`${reason}-coexist-preflight`, true);
-      return await fullDesktopModeRuntime.toggleInteractive(reason);
     } finally {
       await syncWallpaperEngineDesktopIconLayering(`${reason}-settled`).catch(() => false);
       fullDesktopModeHostVisibilityTransitionDepth = Math.max(0, fullDesktopModeHostVisibilityTransitionDepth - 1);
@@ -1619,7 +1548,6 @@ function createWallpaperEngineBridge(options = {}) {
   registerIpcHandlers();
 
   return {
-    registerScheme: (protocol) => registerWallpaperEngineScheme(protocol),
     installProtocol,
     installWindow,
     dispose,
@@ -1649,9 +1577,6 @@ function createWallpaperEngineBridge(options = {}) {
       const status = fullDesktopModeRuntime.getStatus('bridge-query');
       return status.enabled === true && status.interactive === true;
     },
-    getWallpaperEngineStatus: () => wallpaperEngineRuntime.getStatus(),
-    broadcastStatus: () => broadcastDesktopWallpaperStatus(),
-    requestWallpaperEngineStop: (reason) => stopWallpaperEngineRuntimeForRenderer(reason || 'bridge-request'),
   };
 }
 

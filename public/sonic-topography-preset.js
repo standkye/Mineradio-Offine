@@ -63,7 +63,6 @@
     scene: null,
     opacity: 0,
     gridSize: 0,
-    gridSpacing: 0,
     floatingCount: DEFAULT_FLOATING_BLOCK_COUNT,
     initialized: false,
     sonicTime: 0,
@@ -98,8 +97,7 @@
     dummyQuat: null,
     dummyScale: null,
     dummyMat4: null,
-    dummyEuler: null,
-    dummyObj: null
+    dummyEuler: null
   };
 
   function clamp(v, a, b) {
@@ -700,9 +698,7 @@
     clearLayer();
     state.scene = scene;
     state.gridSize = settings.gridSize;
-    state.gridSpacing = settings.spacing;
     state.floatingCount = settings.floatingCount;
-    state.dummyObj = new THREE.Object3D();
     state.dummyPos = new THREE.Vector3();
     state.dummyQuat = new THREE.Quaternion();
     state.dummyScale = new THREE.Vector3();

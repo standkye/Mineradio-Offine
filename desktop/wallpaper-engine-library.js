@@ -200,10 +200,6 @@ function analyzeSceneProperties(project) {
   };
 }
 
-function deriveSceneMuteProperties(project) {
-  return analyzeSceneProperties(project).muteProperties;
-}
-
 function deriveWorkshopId(project, projectRoot, sourceKind = '') {
   const directCandidates = [
     project && project.workshopid,
@@ -897,5 +893,4 @@ module.exports = {
   registerWallpaperEngineScheme,
   parseByteRange,
   analyzeSceneProperties,
-  deriveSceneMuteProperties,
 };

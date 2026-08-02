@@ -23,6 +23,9 @@ export default [
         document: 'readonly',
         localStorage: 'readonly',
         navigator: 'readonly',
+        Response: 'readonly',
+        AbortController: 'readonly',
+        AbortSignal: 'readonly',
         fetch: 'readonly',
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
@@ -91,7 +94,7 @@ export default [
     },
   },
   {
-    files: ['server.js', 'dj-analyzer.js'],
+    files: ['server.js'],
     languageOptions: {
       sourceType: 'script',
     },

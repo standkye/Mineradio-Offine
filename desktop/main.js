@@ -31,7 +31,6 @@ let wallpaperState = {};
 let htmlFullscreenActive = false;
 let windowFullscreenActive = false;
 let mainWindowStateTimer = null;
-let appMemoryTrimTimer = null;
 let appMemoryTrimInFlight = false;
 let lastAppMemoryTrimAt = 0;
 let lastAppMemoryTrimReason = '';
@@ -301,6 +300,20 @@ function getWindowState(win) {
 
 function getSenderWindow(event) {
   return BrowserWindow.fromWebContents(event.sender);
+}
+
+function isTrustedRendererSender(event, allowedWindow) {
+  try {
+    if (!event || !event.sender || event.sender.isDestroyed()) return false;
+    if (event.senderFrame && event.senderFrame.parent) return false;
+    const win = allowedWindow || mainWindow;
+    if (!win || win.isDestroyed() || event.sender !== win.webContents) return false;
+    const sourceUrl = (event.senderFrame && event.senderFrame.url) || event.sender.getURL();
+    const u = new URL(String(sourceUrl || ''));
+    return u.protocol === 'http:' && (u.hostname === '127.0.0.1' || u.hostname === 'localhost');
+  } catch (_) {
+    return false;
+  }
 }
 
 function focusMainWindow() {
@@ -1194,6 +1207,7 @@ function closeOverlayWindows() {
 }
 
 ipcMain.handle('desktop-window-minimize', (event) => {
+  if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
   const win = getSenderWindow(event);
   if (win === mainWindow && wallpaperEngineBridge && wallpaperEngineBridge.isFullDesktopInteractive()) {
     return wallpaperEngineBridge.setInteractive(false, 'window-minimize');
@@ -1202,6 +1216,7 @@ ipcMain.handle('desktop-window-minimize', (event) => {
 });
 
 ipcMain.handle('desktop-window-toggle-maximize', (event) => {
+  if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
   const win = getSenderWindow(event);
   if (win === mainWindow && wallpaperEngineBridge && wallpaperEngineBridge.isFullDesktopInteractive()) {
     return getWindowState(win);
@@ -1210,6 +1225,7 @@ ipcMain.handle('desktop-window-toggle-maximize', (event) => {
 });
 
 ipcMain.handle('desktop-window-toggle-fullscreen', (event) => {
+  if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
   const win = getSenderWindow(event);
   if (win === mainWindow && wallpaperEngineBridge && wallpaperEngineBridge.isFullDesktopInteractive()) {
     return getWindowState(win);
@@ -1218,6 +1234,7 @@ ipcMain.handle('desktop-window-toggle-fullscreen', (event) => {
 });
 
 ipcMain.handle('desktop-window-exit-fullscreen-windowed', (event) => {
+  if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
   const win = getSenderWindow(event);
   if (win === mainWindow && wallpaperEngineBridge && wallpaperEngineBridge.isFullDesktopInteractive()) {
     return getWindowState(win);
@@ -1226,10 +1243,12 @@ ipcMain.handle('desktop-window-exit-fullscreen-windowed', (event) => {
 });
 
 ipcMain.handle('desktop-window-get-state', (event) => {
+  if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
   return getWindowState(getSenderWindow(event));
 });
 
 ipcMain.handle('desktop-window-close', (event) => {
+  if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
   const win = getSenderWindow(event);
   if (!win) return;
   if (win === mainWindow && wallpaperEngineBridge && wallpaperEngineBridge.isFullDesktopEnabled()) {
@@ -1243,11 +1262,13 @@ ipcMain.handle('desktop-window-close', (event) => {
   win?.close();
 });
 
-ipcMain.handle('mineradio-hotkeys-configure-global', (_event, bindings) => {
+ipcMain.handle('mineradio-hotkeys-configure-global', (event, bindings) => {
+  if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
   return configureMineradioGlobalHotkeys(bindings);
 });
 
 ipcMain.handle('mineradio-export-json-file', async (event, payload = {}) => {
+  if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
   try {
     const owner = getSenderWindow(event);
     const defaultName = String(payload.defaultName || 'mineradio-export.json').replace(/[\\/:*?"<>|]+/g, '-');
@@ -1266,6 +1287,7 @@ ipcMain.handle('mineradio-export-json-file', async (event, payload = {}) => {
 });
 
 ipcMain.handle('mineradio-import-json-file', async (event) => {
+  if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
   try {
     const owner = getSenderWindow(event);
     const result = await dialog.showOpenDialog(owner, {
@@ -1283,22 +1305,27 @@ ipcMain.handle('mineradio-import-json-file', async (event) => {
 });
 
 ipcMain.handle('netease-music-open-login', async (event) => {
+  if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
   return openNeteaseMusicLoginWindow(getSenderWindow(event));
 });
 
-ipcMain.handle('netease-music-clear-login', async () => {
+ipcMain.handle('netease-music-clear-login', async (event) => {
+  if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
   return clearNeteaseMusicLoginSession();
 });
 
 ipcMain.handle('qq-music-open-login', async (event) => {
+  if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
   return openQQMusicLoginWindow(getSenderWindow(event));
 });
 
-ipcMain.handle('qq-music-clear-login', async () => {
+ipcMain.handle('qq-music-clear-login', async (event) => {
+  if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
   return clearQQMusicLoginSession();
 });
 
-ipcMain.handle('mineradio-desktop-lyrics-set-enabled', async (_event, enabled, payload) => {
+ipcMain.handle('mineradio-desktop-lyrics-set-enabled', async (event, enabled, payload) => {
+  if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
   try {
     if (enabled) {
       createDesktopLyricsWindow(payload || {});
@@ -1312,7 +1339,8 @@ ipcMain.handle('mineradio-desktop-lyrics-set-enabled', async (_event, enabled, p
   }
 });
 
-ipcMain.handle('mineradio-desktop-lyrics-update', async (_event, payload) => {
+ipcMain.handle('mineradio-desktop-lyrics-update', async (event, payload) => {
+  if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
   try {
     const nextState = { ...desktopLyricsState, ...(payload || {}) };
     if (nextState.enabled) {
@@ -1329,11 +1357,8 @@ ipcMain.handle('mineradio-desktop-lyrics-update', async (_event, payload) => {
   }
 });
 
-ipcMain.handle('mineradio-desktop-lyrics-set-dragging', async () => {
-  return { ok: true };
-});
-
-ipcMain.handle('mineradio-desktop-lyrics-set-pointer-capture', async (_event, active) => {
+ipcMain.handle('mineradio-desktop-lyrics-set-pointer-capture', async (event, active) => {
+  if (!isTrustedRendererSender(event, desktopLyricsWindow)) return { ok: false, error: 'FORBIDDEN' };
   try {
     desktopLyricsPointerCapture = !!active;
     applyDesktopLyricsMouseBehavior();
@@ -1343,7 +1368,8 @@ ipcMain.handle('mineradio-desktop-lyrics-set-pointer-capture', async (_event, ac
   }
 });
 
-ipcMain.handle('mineradio-desktop-lyrics-set-hot-bounds', async (_event, bounds) => {
+ipcMain.handle('mineradio-desktop-lyrics-set-hot-bounds', async (event, bounds) => {
+  if (!isTrustedRendererSender(event, desktopLyricsWindow)) return { ok: false, error: 'FORBIDDEN' };
   try {
     const left = clampNumber(bounds && bounds.left, -2000, 4000, 0);
     const top = clampNumber(bounds && bounds.top, -2000, 4000, 0);
@@ -1356,7 +1382,8 @@ ipcMain.handle('mineradio-desktop-lyrics-set-hot-bounds', async (_event, bounds)
   }
 });
 
-ipcMain.handle('mineradio-desktop-lyrics-set-lock-state', async (_event, locked) => {
+ipcMain.handle('mineradio-desktop-lyrics-set-lock-state', async (event, locked) => {
+  if (!isTrustedRendererSender(event, desktopLyricsWindow)) return { ok: false, error: 'FORBIDDEN' };
   try {
     desktopLyricsState = { ...desktopLyricsState, clickThrough: !!locked };
     if (desktopLyricsState.clickThrough !== false) desktopLyricsPointerCapture = false;
@@ -1368,7 +1395,8 @@ ipcMain.handle('mineradio-desktop-lyrics-set-lock-state', async (_event, locked)
   }
 });
 
-ipcMain.handle('mineradio-desktop-lyrics-move-by', async (_event, dx, dy) => {
+ipcMain.handle('mineradio-desktop-lyrics-move-by', async (event, dx, dy) => {
+  if (!isTrustedRendererSender(event, desktopLyricsWindow)) return { ok: false, error: 'FORBIDDEN' };
   try {
     if (!desktopLyricsWindow || desktopLyricsWindow.isDestroyed())
       return { ok: false, error: 'NO_DESKTOP_LYRICS_WINDOW' };
@@ -1387,7 +1415,8 @@ ipcMain.handle('mineradio-desktop-lyrics-move-by', async (_event, dx, dy) => {
   }
 });
 
-ipcMain.handle('mineradio-wallpaper-set-enabled', async (_event, enabled, payload) => {
+ipcMain.handle('mineradio-wallpaper-set-enabled', async (event, enabled, payload) => {
+  if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
   try {
     if (enabled) createWallpaperWindow(payload || {});
     else closeWallpaperWindow();
@@ -1397,7 +1426,8 @@ ipcMain.handle('mineradio-wallpaper-set-enabled', async (_event, enabled, payloa
   }
 });
 
-ipcMain.handle('mineradio-wallpaper-update', async (_event, payload) => {
+ipcMain.handle('mineradio-wallpaper-update', async (event, payload) => {
+  if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
   try {
     wallpaperState = { ...wallpaperState, ...(payload || {}) };
     if (wallpaperState.enabled) {
@@ -1566,6 +1596,9 @@ if (!gotSingleInstanceLock) {
       scheduleWindowStateSend(mainWindow);
     });
     await createWindow();
+  }).catch((e) => {
+    console.error('Mineradio main window initialization failed:', e);
+    app.quit();
   });
 
   // ============================================================
@@ -1618,19 +1651,6 @@ if (!gotSingleInstanceLock) {
     } finally {
       appMemoryTrimInFlight = false;
     }
-  }
-
-  function scheduleAppMemoryTrim(reason, delay = 9000) {
-    if (process.platform !== 'win32') return;
-    if (memoryAutoState.appTrimEnabled === false || memoryAutoState.backgroundTrimEnabled === false) return;
-    if (Date.now() - lastAppMemoryTrimAt < 120000) return;
-    if (appMemoryTrimTimer) clearTimeout(appMemoryTrimTimer);
-    appMemoryTrimTimer = setTimeout(() => {
-      appMemoryTrimTimer = null;
-      if (!mainWindow || mainWindow.isDestroyed()) return;
-      if (!mainWindow.isMinimized() && mainWindow.isVisible()) return;
-      trimAppMemoryNow(reason).catch(() => { });
-    }, Math.max(4000, delay));
   }
 
   function normalizeMemoryAutoState(payload = {}) {
@@ -1697,7 +1717,8 @@ if (!gotSingleInstanceLock) {
     }
   }
 
-  ipcMain.handle('mineradio-memory-get-snapshot', async () => {
+  ipcMain.handle('mineradio-memory-get-snapshot', async (event) => {
+    if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
     try {
       return {
         ok: true,
@@ -1715,7 +1736,8 @@ if (!gotSingleInstanceLock) {
     }
   });
 
-  ipcMain.handle('mineradio-memory-configure-auto', async (_event, payload = {}) => {
+  ipcMain.handle('mineradio-memory-configure-auto', async (event, payload = {}) => {
+    if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
     memoryAutoState = normalizeMemoryAutoState(payload);
     syncMemoryAutoTimer();
     if (memoryAutoState.enabled && payload.runNow === true && !isMainWindowForegroundVisible()) {
@@ -1729,11 +1751,13 @@ if (!gotSingleInstanceLock) {
     };
   });
 
-  ipcMain.handle('mineradio-memory-trim-app', async (_event, payload = {}) => {
+  ipcMain.handle('mineradio-memory-trim-app', async (event, payload = {}) => {
+    if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
     return trimAppMemoryNow(payload.reason || 'renderer');
   });
 
-  ipcMain.handle('mineradio-memory-purge-system', async (_event, payload = {}) => {
+  ipcMain.handle('mineradio-memory-purge-system', async (event, payload = {}) => {
+    if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
     const mask = systemMemory.normalizeMask(payload && payload.mask);
     const autoElevate = payload && payload.autoElevate === true;
     try {
@@ -1770,8 +1794,11 @@ if (!gotSingleInstanceLock) {
   });
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-    else focusMainWindow();
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow().catch((e) => console.error('Window restore failed:', e));
+    } else {
+      focusMainWindow();
+    }
   });
 
   app.on('window-all-closed', () => {

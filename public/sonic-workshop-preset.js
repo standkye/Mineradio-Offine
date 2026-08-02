@@ -346,26 +346,6 @@
     };
   }
 
-  function workshopCustomThemeForPalette(hexes, fallbackHex) {
-    hexes = Array.isArray(hexes) ? hexes.slice() : [];
-    fallbackHex = normalizeHex(fallbackHex || hexes[0] || '#cb6c89', '#cb6c89');
-    if (hexes.length <= 1) return workshopCustomThemeForColor(fallbackHex);
-    var primary = workshopPickPaletteHex(hexes, 'primary', fallbackHex);
-    var dark = workshopPickPaletteHex(hexes, 'dark', primary);
-    var warm = workshopPickPaletteHex(hexes, 'warm', primary, primary);
-    var cool = workshopPickPaletteHex(hexes, 'cool', primary, warm);
-    var light = workshopPickPaletteHex(hexes, 'light', primary);
-    var accent = workshopPickPaletteHex(hexes, 'accent', light, primary);
-    return workshopCustomThemeForRegions({
-      primary: primary,
-      base: dark,
-      warm: warm,
-      cool: cool,
-      ripple: light,
-      peak: colorDistance(cool, warm) > 0.14 ? cool : accent
-    });
-  }
-
   function workshopCustomThemeForRegions(regions) {
     regions = regions || {};
     var primary = normalizeHex(regions.primary || '#cb6c89', '#cb6c89');
@@ -656,7 +636,6 @@
     if (!force && key === state.lastMediaKey && now - state.lastMediaAt < MEDIA_PUSH_INTERVAL_MS) return;
     state.lastMediaKey = key;
     state.lastMediaAt = now;
-    state.media = media;
     postMessage('mineradio-sonic-workshop-media', { media: media });
   }
 
@@ -744,7 +723,6 @@
     if (!(global.playing && global.audio && !global.audio.paused)) {
       for (var k = 0; k < out.length; k++) out[k] = out[k] * WORKSHOP_AUDIO_PAUSED_GAIN;
     }
-    state.samples = out;
     return out;
   }
 
