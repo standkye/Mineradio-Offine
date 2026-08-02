@@ -44,7 +44,14 @@ function serveStatic(res, filePath) {
       res.end('Not Found');
       return;
     }
-    res.writeHead(200, { 'Content-Type': MIME[ext] || 'text/plain' });
+    const headers = { 'Content-Type': MIME[ext] || 'text/plain' };
+    // HTML 禁止缓存，避免 Electron 加载到旧页面
+    if (ext === '.html') {
+      headers['Cache-Control'] = 'no-cache, no-store, must-revalidate';
+      headers.Pragma = 'no-cache';
+      headers.Expires = '0';
+    }
+    res.writeHead(200, headers);
     res.end(data);
   });
 }
