@@ -907,6 +907,8 @@ function handleDesktopLyricsGlobalMiddleClick() {
 
 function startDesktopLyricsMousePoller() {
   if (process.platform !== 'win32' || desktopLyricsMousePoller) return;
+  // 轮询间隔 40ms（25Hz）：中键按下沿检测，兼顾 CPU 与点击灵敏度
+  // （原 24ms 约 41Hz，歌词窗口常驻期间 PowerShell 进程占用过高）
   const script = `
 $ErrorActionPreference = "SilentlyContinue"
 Add-Type @"
@@ -924,7 +926,7 @@ while ($true) {
     [Console]::Out.Flush()
   }
   $prev = $down
-  Start-Sleep -Milliseconds 24
+  Start-Sleep -Milliseconds 40
 }
 `;
   try {
