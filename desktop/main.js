@@ -8,6 +8,7 @@ const {
   registerWallpaperEngineScheme,
 } = require('./wallpaper-engine-bridge');
 const systemMemory = require('./system-memory');
+const audioEqEngine = require('./audio-eq-engine');
 
 registerWallpaperEngineScheme(protocol);
 
@@ -1756,6 +1757,11 @@ if (!gotSingleInstanceLock) {
   ipcMain.handle('mineradio-memory-trim-app', async (event, payload = {}) => {
     if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
     return trimAppMemoryNow(payload.reason || 'renderer');
+  });
+
+  ipcMain.handle('eq-analyze-genre', async (event, filePath) => {
+    if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
+    return audioEqEngine.analyzeGenreForIpc(filePath, app);
   });
 
   ipcMain.handle('mineradio-memory-purge-system', async (event, payload = {}) => {

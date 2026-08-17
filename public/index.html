@@ -486,6 +486,14 @@ try {
         <button data-startup-resume-mode="resume">按上次进度</button>
         <button data-startup-resume-mode="restart">重播整首</button>
       </div>
+      <div class="local-music-root-control" id="local-music-root-control">
+        <div class="local-music-root-title">文件存放地址</div>
+        <div class="local-music-root-row">
+          <input id="local-music-root-input" type="text" spellcheck="false" autocomplete="off" placeholder="E:\\MyMusic" aria-label="本地音乐文件存放地址">
+          <button class="fx-mini-btn ghost" type="button" onclick="saveLocalMusicRootSetting()">保存</button>
+        </div>
+        <div class="fx-sub" id="local-music-root-hint">本地音乐扫描、整理和主页读取都会使用这个目录。</div>
+      </div>
       <div class="fx-section-label">内存压缩 / Mem Reduct</div>
       <div class="memory-status-chip" id="memory-status-chip">系统内存读取中...</div>
       <div class="fx-sub memory-status-sub" id="memory-status-sub">后台先压缩播放器进程；系统级释放可清工作集、修改页、待机页</div>
@@ -608,6 +616,35 @@ try {
     <button class="fx-mini-btn" onclick="resetFx()">恢复默认</button>
   </div>
   <div class="fx-toggle" id="t-fullDesktopMode" onclick="toggleFullDesktopMode(this)" title="把整个 Mineradio 挂到桌面，Esc 退出；与 Wallpaper Engine 桌面场景配合"><span>完整桌面模式<em class="fx-dev-badge">NEW</em></span><span class="dot"></span></div>
+  <div class="eq-editor" id="eq-editor-section" data-fx-console-priority="1">
+    <div class="eq-editor-list" id="eq-editor-list"></div>
+    <div class="eq-editor-row">
+      <button class="fx-mini-btn ghost" type="button" onclick="openEqModal(false)">编辑 EQ…</button>
+      <button class="fx-mini-btn ghost" type="button" onclick="eqDeletePreset()">删除当前</button>
+    </div>
+    <div class="fx-sub" id="eq-editor-hint"></div>
+  </div>
+</div>
+
+<!-- 自定义 EQ 编辑弹窗 -->
+<div id="eq-editor-modal" class="eq-modal" aria-hidden="true">
+  <div class="eq-modal-mask" onclick="closeEqModal()"></div>
+  <div class="eq-modal-panel" role="dialog" aria-modal="true" aria-label="自定义均衡器">
+    <div class="eq-modal-head">
+      <div class="eq-modal-title">
+        <div class="eq-modal-name">自定义均衡器</div>
+        <div class="eq-modal-sub" id="eq-modal-sub">拖动滑杆调节频段增益，保存后可在播放栏「均衡器」里切换</div>
+      </div>
+      <button type="button" class="eq-modal-close" onclick="closeEqModal()" aria-label="关闭">×</button>
+    </div>
+    <div class="eq-modal-body">
+      <div class="eq-editor-sliders" id="eq-editor-sliders"></div>
+    </div>
+    <div class="eq-modal-foot">
+      <input id="eq-editor-name" class="eq-name-input" type="text" maxlength="24" placeholder="预设名称（如：人声增强）">
+      <button type="button" class="eq-modal-save" onclick="eqSaveCurrent()">保存预设</button>
+    </div>
+  </div>
 </div>
 
 <!-- 歌单/队列面板 (左侧贴边自动显示, 无关闭按钮) -->
@@ -758,6 +795,17 @@ try {
           <div id="control-title" class="control-title" onclick="openTrackDetailModal('song')" title="歌曲详情"></div>
           <div id="control-artist" class="control-artist" onclick="openTrackDetailModal('artist')" title="歌手详情"></div>
         </div>
+      </div>
+      <div class="eq-wrap" style="position:relative;flex:0 0 auto;display:flex">
+      <button id="eq-btn" class="ctrl-btn" type="button" title="均衡器 · 悬停展开" aria-label="均衡器" aria-haspopup="true"><svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><rect x="3" y="8" width="3" height="8" rx="1"/><rect x="10.5" y="4" width="3" height="16" rx="1"/><rect x="18" y="7" width="3" height="10" rx="1"/></svg></button>
+      <div id="eq-popover" class="eq-popover" onclick="event.stopPropagation()">
+        <div class="eq-pop-title">均衡器</div>
+        <button type="button" class="eq-pop-opt" data-eq-mode="auto" onclick="setEqMode('auto')"><span>自动按流派</span><span id="eq-check-auto" class="eq-check"></span></button>
+        <button type="button" class="eq-pop-opt" data-eq-mode="flat" onclick="setEqMode('flat')"><span>默认（平坦）</span><span id="eq-check-flat" class="eq-check"></span></button>
+        <div class="eq-pop-divider"></div>
+        <div id="eq-custom-list" class="eq-custom-list"></div>
+        <div class="eq-pop-foot"><button type="button" class="eq-pop-manage" onclick="openEqManager(event)">管理自定义 EQ…</button><span id="eq-status-hint" class="eq-status-hint"></span></div>
+      </div>
       </div>
       <button id="heart-btn" class="ctrl-btn" onclick="toggleLikeCurrent()" title="红心喜欢"><svg class="heart-svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.45c-.32 0-.62-.12-.86-.34l-1.23-1.12C5.54 16.03 2.25 13.05 2.25 8.9 2.25 5.48 4.88 2.9 8.28 2.9c1.7 0 3.35.72 4.52 1.96C13.97 3.62 15.62 2.9 17.32 2.9c3.4 0 6.03 2.58 6.03 6 0 4.15-3.29 7.13-7.66 11.09l-1.23 1.12c-.24.22-.54.34-.86.34z"/></svg></button>
       <button id="collect-btn" class="ctrl-btn" onclick="openCollectModalForCurrent()" title="收藏到歌单"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg></button>
@@ -981,6 +1029,30 @@ try {
 //  Global State
 // ============================================================
 var audio = null, audioCtx = null, source = null, analyser = null, beatAnalyser = null, gainNode = null, audioReady = false;
+// ---- 自动智能 EQ（按流派）----
+var EQ_BANDS = [31.5, 63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+var eqFilters = [];          // 10 段 peaking BiquadFilter（挂在 analyser -> gainNode 之间）
+var currentEqGains = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // 当前实际生效的 dB
+// 内置流派预设（dB），沿用"自动 EQ 设计方案"文档 §3
+var GENERIC_EQ_PRESETS = {
+  Flat:      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  Rock:      [5, 4, 2, -1, -2, 1, 2, 3, 3, 2],
+  Classical: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  Jazz:      [3, 2, 1, 0, 0, -1, 1, 2, 2, 1],
+  Pop:       [2, 2, 1, 1, 0, 0, 1, 2, 2, 1],
+  Electronic:[6, 5, 3, 2, 0, 0, 2, 3, 4, 3],
+  HipHop:    [6, 5, 4, 2, 0, 0, 2, 3, 3, 2],
+  Metal:     [3, 3, 2, 0, -1, 0, 3, 4, 4, 3],
+  Folk:      [0, 0, 1, 2, 1, 1, 1, 1, 0, 0],
+  Country:   [2, 1, 1, 2, 2, 1, 1, 1, 0, 0],
+  Reggae:    [6, 4, 2, 0, 0, 1, 1, 1, 0, 0],
+  Blues:     [4, 3, 2, 1, 0, -1, 1, 2, 2, 1],
+};
+// 播放栏状态：eqMode = 'auto' | 'flat' | 自定义预设名
+var eqModeSetting = 'auto';
+var eqModeBusy = false;      // 正在分析/切换中，避免并发重入
+var eqAnalyzeSeq = 0;         // 切歌竞态 token，丢弃过期结果
+var EQ_STORE_KEY = 'mineradio-eq-store-v1';
 var uiSfxCtx = null, lastShelfSelectSfxAt = 0;
 var FFT_SIZE = 2048;
 var frequencyData = new Uint8Array(FFT_SIZE / 2);
@@ -1137,6 +1209,46 @@ function readSavedVolume() {
   } catch (e) {
     return 1.0;
   }
+}
+var LOCAL_MUSIC_ROOT_KEY = 'mineradio-local-music-root-v1';
+var LOCAL_MUSIC_ROOT_DEFAULT = 'E:\\MyMusic';
+var localMusicRoot = LOCAL_MUSIC_ROOT_DEFAULT;
+function readLocalMusicRoot() {
+  try {
+    var value = String(localStorage.getItem(LOCAL_MUSIC_ROOT_KEY) || '').trim();
+    return value || LOCAL_MUSIC_ROOT_DEFAULT;
+  } catch (e) { return LOCAL_MUSIC_ROOT_DEFAULT; }
+}
+function getLocalMusicRoot() {
+  return String(localMusicRoot || LOCAL_MUSIC_ROOT_DEFAULT).trim() || LOCAL_MUSIC_ROOT_DEFAULT;
+}
+function localMusicRootQuery() {
+  return encodeURIComponent(getLocalMusicRoot());
+}
+function saveLocalMusicRootSetting() {
+  var input = document.getElementById('local-music-root-input');
+  var value = String(input && input.value || '').trim();
+  if (!value) {
+    if (input) input.value = getLocalMusicRoot();
+    showToast('文件存放地址不能为空');
+    return;
+  }
+  localMusicRoot = value.replace(/[\\/]+$/, '');
+  if (!localMusicRoot) localMusicRoot = LOCAL_MUSIC_ROOT_DEFAULT;
+  try { localStorage.setItem(LOCAL_MUSIC_ROOT_KEY, localMusicRoot); } catch (e) {}
+  if (input) input.value = localMusicRoot;
+  var hint = document.getElementById('local-music-root-hint');
+  if (hint) hint.textContent = '当前目录：' + localMusicRoot + '；重新扫描时生效。';
+  showToast('文件存放地址已保存');
+}
+function bindLocalMusicRootControl() {
+  localMusicRoot = readLocalMusicRoot();
+  var input = document.getElementById('local-music-root-input');
+  if (!input) return;
+  input.value = localMusicRoot;
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') { e.preventDefault(); saveLocalMusicRootSetting(); }
+  });
 }
 function readDiyModePreference() {
   try { return localStorage.getItem(DIY_MODE_STORE_KEY) === '1'; } catch (e) { return false; }
@@ -1324,7 +1436,7 @@ function toggleDiyMode() {
 }
 var targetVolume = readSavedVolume();
 var lastNonZeroVolume = targetVolume > 0.01 ? targetVolume : 0.8;
-var volumeCloseTimer = null;
+var volumeCloseTimer = null, eqCloseTimer = null;
 
 // v7.2: 离线节拍预解析
 //   每次切歌, fetch 完整音频 → OfflineAudioContext 分析 → 标出真鼓点
@@ -15495,15 +15607,15 @@ async function loadLocalMusic() {
   // Bypass cache and always do a fresh scan to get latest cover info
   if (localScanInProgress) return;
   localScanInProgress = true;
-  results.innerHTML = '<div class="search-empty">正在扫描 E:\\MyMusic ...</div>';
+  results.innerHTML = '<div class="search-empty">正在扫描 ' + escHtml(getLocalMusicRoot()) + ' ...</div>';
   try {
-    var data = await apiJson('/api/local/scan?path=E:\\MyMusic');
+    var data = await apiJson('/api/local/scan?path=' + localMusicRootQuery());
     window.__localMusicCache = data.songs || [];
     localScanInProgress = false;
     if (data.songs && data.songs.length) {
       renderLocalMusicResults(data.songs);
     } else {
-      results.innerHTML = '<div class="search-empty">未在 E:\\MyMusic 中找到音乐文件</div>';
+      results.innerHTML = '<div class="search-empty">未在 ' + escHtml(getLocalMusicRoot()) + ' 中找到音乐文件</div>';
     }
   } catch (err) {
     localScanInProgress = false;
@@ -15538,14 +15650,14 @@ async function integrateMusic() {
   if (btn) { btn.textContent = '整合中...'; btn.style.opacity = '0.6'; btn.disabled = true; }
   try {
     showToast('\u2460 \u626b\u63cf\u97f3\u4e50...');
-    var scanData = await apiJson('/api/local/scan?path=E:\\MyMusic');
+    var scanData = await apiJson('/api/local/scan?path=' + localMusicRootQuery());
     var songs = scanData.songs || [];
     var totalSongs = songs.length;
     showToast('\u2461 \u6574\u7406\u6587\u4ef6...');
-    await apiJson('/api/local/organize?path=E:\\MyMusic');
+    await apiJson('/api/local/organize?path=' + localMusicRootQuery());
     // 整理后路径已变化，先重扫更新服务端歌曲列表
     window.__localMusicCache = null;
-    scanData = await apiJson('/api/local/scan?path=E:\\MyMusic');
+    scanData = await apiJson('/api/local/scan?path=' + localMusicRootQuery());
     window.__localMusicCache = scanData.songs || [];
     var msg = '';
     if (scanData.songs && scanData.songs.length) {
@@ -15562,7 +15674,7 @@ async function integrateMusic() {
       if (cvMsg) msg += '\n' + cvMsg;
     }
     window.__localMusicCache = null;
-    scanData = await apiJson('/api/local/scan?path=E:\\MyMusic');
+    scanData = await apiJson('/api/local/scan?path=' + localMusicRootQuery());
     window.__localMusicCache = scanData.songs || [];
     var resultsEl = document.getElementById('search-results');
     if (resultsEl && scanData.songs && scanData.songs.length) {
@@ -15593,7 +15705,7 @@ async function fetchCoversForLocal() {
     if (data.failed > 0) msg += '\uff0c\u5931\u8d25 ' + data.failed + ' \u9996';
     showToast(msg);
     window.__localMusicCache = null;
-    var scanData = await apiJson('/api/local/scan?path=E:\\MyMusic');
+    var scanData = await apiJson('/api/local/scan?path=' + localMusicRootQuery());
     window.__localMusicCache = scanData.songs || [];
     if (scanData.songs && scanData.songs.length) renderLocalMusicResults(scanData.songs);
   } catch (err) {
@@ -16107,8 +16219,26 @@ function initAudio() {
   beatAnalyser.smoothingTimeConstant = 0.10;
   source.connect(analyser);
   source.connect(beatAnalyser);
-  analyser.connect(gainNode);
+  // 自动智能 EQ：在 analyser 与 gainNode 之间插入 10 段 peaking 均衡链
+  // （analyser/beatAnalyser 仍直连源，频谱测量不受 EQ 影响）
+  eqFilters = [];
+  var eqTail = analyser;
+  for (var ei = 0; ei < EQ_BANDS.length; ei++) {
+    var eqFilter = audioCtx.createBiquadFilter();
+    eqFilter.type = 'peaking';
+    eqFilter.frequency.value = EQ_BANDS[ei];
+    eqFilter.Q.value = 1.0;
+    eqFilter.gain.value = 0;
+    eqTail.connect(eqFilter);
+    eqTail = eqFilter;
+    eqFilters.push(eqFilter);
+  }
+  eqTail.connect(gainNode);
   gainNode.connect(audioCtx.destination);
+  // 把此前分析/设置得到的 EQ 增益落到新建的滤波器上（避免 EQ 链建立后被清零，导致听感与默认无差别）
+  for (var gi = 0; gi < eqFilters.length; gi++) {
+    eqFilters[gi].gain.value = Number(currentEqGains[gi]) || 0;
+  }
   applyVolumeToAudio();
   frequencyData.fill(0);
   beatFrequencyData.fill(0);
@@ -16120,6 +16250,379 @@ function resumeAudioAnalysis() {
   if (audioCtx && audioCtx.state === 'suspended') return audioCtx.resume().catch(function(e){ console.warn('audio context resume failed:', e); });
   return Promise.resolve();
 }
+
+// ============================================================
+//  自动智能 EQ（按流派）— 业务逻辑
+// ============================================================
+function saveCustomEqPresets(list) {
+  try {
+    localStorage.setItem(EQ_STORE_KEY, JSON.stringify(Array.isArray(list) ? list : []));
+  } catch (e) {}
+}
+function loadCustomEqPresets() {
+  try {
+    var raw = JSON.parse(localStorage.getItem(EQ_STORE_KEY) || '[]');
+    if (!Array.isArray(raw)) return [];
+    return raw.filter(function (p) { return p && typeof p.name === 'string' && Array.isArray(p.gains); });
+  } catch (e) { return []; }
+}
+// 播放栏当前自定义预设的 gains；名称为空则用内置 Flat
+function customEqGainsByName(name) {
+  if (!name) return null;
+  var list = loadCustomEqPresets();
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].name === name && Array.isArray(list[i].gains)) {
+      var g = list[i].gains.slice(0, EQ_BANDS.length);
+      while (g.length < EQ_BANDS.length) g.push(0);
+      return g;
+    }
+  }
+  return null;
+}
+// 平滑应用到当前 10 段滤波器
+function applyEqGainArray(gains, rampSeconds) {
+  if (!eqFilters.length) { currentEqGains = gains.slice(); return; }
+  var r = parseFloat(rampSeconds) || 0.8;
+  var t = audioCtx ? audioCtx.currentTime : 0;
+  for (var i = 0; i < eqFilters.length; i++) {
+    var target = Number(gains[i]) || 0;
+    if (audioCtx && eqFilters[i].gain.setTargetAtTime) {
+      eqFilters[i].gain.setTargetAtTime(target, t, Math.max(0.02, r * 0.3));
+    } else {
+      eqFilters[i].gain.value = target;
+    }
+  }
+  currentEqGains = gains.slice();
+}
+// 将 Essentia MSD 标签映射到内置流派预设名
+function eqPresetNameFromTag(tag) {
+  var t = String(tag || '').toLowerCase();
+  if (/heavy|metal|punk/.test(t)) return 'Metal';
+  if (/rock/.test(t)) return 'Rock';
+  if (/jazz|soul|blues/.test(t)) return 'Jazz';
+  if (/classic|orchestra|opera|piano|string/.test(t)) return 'Classical';
+  if (/pop/.test(t)) return 'Pop';
+  if (/electron|house|dance|techno|edm/.test(t)) return 'Electronic';
+  if (/hip|rap|rnb/.test(t)) return 'HipHop';
+  if (/folk|coun|indie|acoustic|guitar/.test(t)) return 'Folk';
+  if (/reggae/.test(t)) return 'Reggae';
+  // GTZAN 流派缩写（genre_tzanetakis 模型输出：blu/cla/cou/dis/hip/jaz/met/pop/reg/roc）
+  if (/^blu$|^blues$/.test(t)) return 'Blues';
+  if (/^cla$|^classical$/.test(t)) return 'Classical';
+  if (/^cou$|^country$/.test(t)) return 'Country';
+  if (/^dis$|^disco/.test(t)) return 'Pop';
+  if (/^jaz$/.test(t)) return 'Jazz';
+  if (/^met$/.test(t)) return 'Metal';
+  if (/^roc$/.test(t)) return 'Rock';
+  return 'Flat';
+}
+// 切歌时按当前模式应用 EQ：auto -> 用最近的流派分析结果；flat -> Flat；自定义名 -> 用户预设
+function applyEqForAutoGenre(result) {
+  if (!result || !result.ok || !result.genre) applyEqGainArray(GENERIC_EQ_PRESETS.Flat, 0.9);
+  else {
+    var presetName = eqPresetNameFromTag(result.genre);
+    applyEqGainArray(GENERIC_EQ_PRESETS[presetName] || GENERIC_EQ_PRESETS.Flat, 0.9);
+    updateEqStatus('自动EQ · ' + presetName + '（' + result.genre + ' ' + Math.round((Number(result.score) || 0) * 100) + '%）');
+  }
+}
+// 以当前播放入口触发：分析本地文件 -> 自动切换；非本地走模式逻辑
+function runAutoEqForTrack(filePath) {
+  var seq = ++eqAnalyzeSeq;
+  if (eqModeSetting === 'flat' || (eqModeSetting && eqModeSetting !== 'auto')) {
+    var customGains = eqModeSetting === 'auto' ? null : customEqGainsByName(eqModeSetting);
+    applyEqGainArray(customGains || GENERIC_EQ_PRESETS.Flat, 0.9);
+    return;
+  }
+  // auto 模式
+  applyEqGainArray(GENERIC_EQ_PRESETS.Flat, 0.8); // 先回平，避免旧 EQ 残留
+  if (!window.desktopWindow || typeof window.desktopWindow.analyzeGenre !== 'function') {
+    updateEqStatus('自动EQ · 引擎不可用');
+    return;
+  }
+  window.desktopWindow.analyzeGenre(String(filePath || ''))
+    .then(function (res) {
+      if (seq !== eqAnalyzeSeq || eqModeSetting !== 'auto') return; // 已切歌/切模式，丢弃
+      applyEqForAutoGenre(res);
+    })
+    .catch(function () {
+      if (seq === eqAnalyzeSeq) applyEqGainArray(GENERIC_EQ_PRESETS.Flat, 0.9);
+    });
+}
+function updateEqStatus(msg) {
+  try {
+    var el = document.getElementById('eq-status-hint');
+    if (el) el.textContent = msg || '';
+  } catch (e) {}
+}
+// ---- 播放栏 EQ 模式选择 ----
+function eqModeLabel(mode) {
+  if (!mode || mode === 'auto') return '自动按流派';
+  if (mode === 'flat') return '默认（平坦）';
+  var g = customEqGainsByName(mode);
+  return g ? mode : '默认（平坦）';
+}
+function persistEqMode() {
+  try { localStorage.setItem('mineradio-eq-mode-v1', eqModeSetting || 'auto'); } catch (e) {}
+}
+function loadEqModeSetting() {
+  try {
+    var v = localStorage.getItem('mineradio-eq-mode-v1') || 'auto';
+    if (v === 'auto' || v === 'flat') eqModeSetting = v;
+    else eqModeSetting = customEqGainsByName(v) ? v : 'auto';
+  } catch (e) { eqModeSetting = 'auto'; }
+}
+function openEqPopover() {
+  if (eqCloseTimer) { clearTimeout(eqCloseTimer); eqCloseTimer = null; }
+  var pop = document.getElementById('eq-popover');
+  if (!pop) return;
+  renderEqPopover();
+  pop.classList.add('open');
+}
+function closeEqPopover() {
+  if (eqCloseTimer) { clearTimeout(eqCloseTimer); eqCloseTimer = null; }
+  var pop = document.getElementById('eq-popover');
+  if (pop) pop.classList.remove('open');
+}
+function bindEqControls() {
+  var wrap = document.querySelector('.eq-wrap');
+  if (!wrap) return;
+  function closeEqPopoverSoon() {
+    if (eqCloseTimer) clearTimeout(eqCloseTimer);
+    eqCloseTimer = setTimeout(function () {
+      eqCloseTimer = null;
+      closeEqPopover();
+    }, 520);
+  }
+  wrap.addEventListener('mouseenter', openEqPopover);
+  wrap.addEventListener('mouseleave', closeEqPopoverSoon);
+  wrap.addEventListener('focusin', openEqPopover);
+  wrap.addEventListener('focusout', function () {
+    setTimeout(function () {
+      if (!wrap.contains(document.activeElement)) closeEqPopoverSoon();
+    }, 0);
+  });
+}
+// 从播放栏 EQ 弹层跳转：关闭弹层并打开视觉控制台的自定义 EQ 编辑器
+function openEqManager(e) {
+  if (e && e.stopPropagation) e.stopPropagation();
+  closeEqPopover();
+  // 打开视觉控制台，并明确定位到「系统」页；已打开时不要再次 toggle 把它关掉。
+  var panel = document.getElementById('fx-panel');
+  if (typeof toggleFxPanel === 'function' && panel && !panel.classList.contains('show') && !panel.classList.contains('peek')) toggleFxPanel();
+  if (typeof setFxPanelTab === 'function') setFxPanelTab('system');
+  // 展开「高级参数」折叠区
+  var adv = document.getElementById('fx-advanced');
+  if (adv) adv.classList.add('open');
+  renderEqEditor();
+  var eqGroup = window.fxConsoleGroups && window.fxConsoleGroups['system:eq'];
+  if (eqGroup) {
+    eqGroup.classList.add('open');
+    var eqGroupHead = eqGroup.querySelector('.fx-console-group-head');
+    if (eqGroupHead) eqGroupHead.setAttribute('aria-expanded', 'true');
+  }
+  // 滚动聚焦到自定义 EQ 编辑器
+  var section = document.getElementById('eq-editor-section');
+  if (section && section.scrollIntoView) {
+    setTimeout(function () {
+      if (typeof setFxPanelTab === 'function') setFxPanelTab('system');
+      // 只滚动右侧视觉控制台，避免 scrollIntoView 连带页面横向滚动造成右半屏被裁切。
+      var panelScroller = document.getElementById('fx-panel');
+      if (panelScroller && typeof panelScroller.scrollTo === 'function') {
+        var panelRect = panelScroller.getBoundingClientRect();
+        var sectionRect = section.getBoundingClientRect();
+        var targetTop = Math.max(0, panelScroller.scrollTop + (sectionRect.top - panelRect.top) - Math.max(0, (panelScroller.clientHeight - sectionRect.height) * 0.42));
+        panelScroller.scrollTo({ top: targetTop, behavior: 'smooth' });
+      } else {
+        section.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      }
+      section.classList.add('eq-editor-flash');
+      setTimeout(function () { section.classList.remove('eq-editor-flash'); }, 1300);
+    }, 60);
+  }
+}
+function setEqMode(mode) {
+  eqModeSetting = mode || 'auto';
+  persistEqMode();
+  renderEqPopover();
+  closeEqPopover();
+  // 立即按新模式应用到当前播放；auto 模式需重跑分析（若有当前本地歌曲与路径）
+  if (mode === 'auto') {
+    renderEqPopover();
+    if (typeof getCurrentLocalPathForEq === 'function') {
+      var p = getCurrentLocalPathForEq();
+      if (p) runAutoEqForTrack(p);
+      else applyEqGainArray(GENERIC_EQ_PRESETS.Flat, 0.9);
+    } else {
+      applyEqGainArray(GENERIC_EQ_PRESETS.Flat, 0.9);
+    }
+  } else if (mode === 'flat') {
+    applyEqGainArray(GENERIC_EQ_PRESETS.Flat, 0.9);
+    updateEqStatus('默认（平坦）');
+  } else {
+    var g = customEqGainsByName(mode);
+    applyEqGainArray(g || GENERIC_EQ_PRESETS.Flat, 0.9);
+    updateEqStatus('自定义 EQ · ' + mode);
+  }
+}
+function eqEscapeHtml(s) {
+  return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function renderEqPopover() {
+  try {
+    var btn = document.getElementById('eq-btn');
+    if (btn) btn.classList.toggle('active', eqModeSetting !== 'flat');
+    ['auto', 'flat'].forEach(function (m) {
+      var opt = document.querySelector('.eq-pop-opt[data-eq-mode="' + m + '"]');
+      if (opt) opt.classList.toggle('active', eqModeSetting === m);
+    });
+    var list = document.getElementById('eq-custom-list');
+    if (list) {
+      var presets = loadCustomEqPresets();
+      var html = '';
+      for (var i = 0; i < presets.length; i++) {
+        var p = presets[i];
+        var act = eqModeSetting === p.name ? ' active' : '';
+        html += '<button type="button" class="eq-pop-opt' + act + '" data-eq-name="' +
+          String(p.name).replace(/"/g, '&quot;') + '" onclick="setEqMode(this.getAttribute(\'data-eq-name\'))">' +
+          '<span>' + eqEscapeHtml(String(p.name || '未命名')) + '</span>' +
+          (act ? '<span class="eq-check"></span>' : '') +
+          '</button>';
+      }
+      list.innerHTML = html;
+    }
+  } catch (e) {}
+}
+// 供 setEqMode 使用：取当前播放本地歌曲的真实路径（在播放核心已缓存）
+var currentLocalPathForEq = null;
+function getCurrentLocalPathForEq() { return currentLocalPathForEq || null; }
+// ---- 自定义 EQ 编辑器（视觉控制台 · 高级参数）----
+var eqEditor = { name: '', gains: [0,0,0,0,0,0,0,0,0,0], saved: false }; // saved=false 表示新建草稿
+function eqEnsureEditor() { if (!Array.isArray(eqEditor.gains) || eqEditor.gains.length !== EQ_BANDS.length) eqEditor.gains = EQ_BANDS.map(function(){ return 0; }); }
+function eqNewPreset() {
+  eqEditor = { name: '', gains: EQ_BANDS.map(function(){ return 0; }), saved: false };
+  renderEqEditor();
+  var nameEl = document.getElementById('eq-editor-name');
+  if (nameEl) { nameEl.value = ''; nameEl.focus(); }
+}
+function eqSelectPreset(name) {
+  var list = loadCustomEqPresets();
+  for (var i = 0; i < list.length; i++) {
+    if (list[i].name === name) {
+      eqEditor = { name: name, gains: (list[i].gains || EQ_BANDS.map(function(){ return 0; })).slice(0, EQ_BANDS.length), saved: true };
+      while (eqEditor.gains.length < EQ_BANDS.length) eqEditor.gains.push(0);
+      break;
+    }
+  }
+  renderEqEditor();
+}
+function eqSaveCurrent() {
+  eqEnsureEditor();
+  var nameEl = document.getElementById('eq-editor-name');
+  var name = String((nameEl && nameEl.value) || eqEditor.name || '').trim();
+  if (!name) { setEqEditorHint('请输入预设名称'); return; }
+  var list = loadCustomEqPresets();
+  var idx = -1;
+  for (var i = 0; i < list.length; i++) if (list[i].name === name) { idx = i; break; }
+  if (idx >= 0) list[idx].gains = eqEditor.gains.slice();
+  else list.push({ name: name, gains: eqEditor.gains.slice() });
+  saveCustomEqPresets(list);
+  eqEditor = { name: name, gains: eqEditor.gains.slice(), saved: true };
+  if (nameEl) nameEl.value = name;
+  renderEqEditor();
+  renderEqPopover();
+  setEqEditorHint('已保存预设「' + name + '」');
+  // 若播放栏当前正用该预设，立即应用
+  if (eqModeSetting === name) {
+    applyEqGainArray(eqEditor.gains, 0.9);
+  }
+}
+// 打开自定义 EQ 编辑弹窗。autoNew=true 时先新建一个空白预设草稿
+function openEqModal(autoNew) {
+  if (autoNew || !eqEditor || !eqEditor.saved) eqNewPreset();
+  renderEqEditor();
+  var modal = document.getElementById('eq-editor-modal');
+  if (modal) {
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+  }
+  var sub = document.getElementById('eq-modal-sub');
+  if (sub) sub.textContent = eqEditor.name
+    ? '正在编辑：' + eqEditor.name
+    : '拖动滑杆调节频段增益，保存后可在播放栏「均衡器」里切换';
+  setTimeout(function () {
+    var nameEl = document.getElementById('eq-editor-name');
+    if (nameEl) { try { nameEl.focus(); nameEl.select(); } catch (e) {} }
+  }, 120);
+}
+function closeEqModal() {
+  var modal = document.getElementById('eq-editor-modal');
+  if (modal) {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+}
+function eqDeletePreset() {
+  eqEnsureEditor();
+  if (!eqEditor.name) { setEqEditorHint('请先选择要删除的预设'); return; }
+  var list = loadCustomEqPresets().filter(function (p) { return p.name !== eqEditor.name; });
+  saveCustomEqPresets(list);
+  if (eqModeSetting === eqEditor.name) { eqModeSetting = 'flat'; persistEqMode(); applyEqGainArray(GENERIC_EQ_PRESETS.Flat, 0.9); }
+  eqEditor = { name: '', gains: EQ_BANDS.map(function(){ return 0; }), saved: false };
+  renderEqEditor();
+  renderEqPopover();
+  setEqEditorHint('已删除预设');
+}
+function renderEqEditor() {
+  try {
+    eqEnsureEditor();
+    var list = loadCustomEqPresets();
+    var listEl = document.getElementById('eq-editor-list');
+    if (listEl) {
+      var html = '';
+      for (var i = 0; i < list.length; i++) {
+        var p = list[i];
+        var act = eqEditor.name === p.name ? ' active' : '';
+        html += '<button type="button" class="eq-editor-chip' + act + '" data-n="' + eqEscapeHtml(String(p.name)) + '" onclick="eqSelectPreset(this.getAttribute(\'data-n\'))">' + eqEscapeHtml(String(p.name || '未命名')) + '</button>';
+      }
+      listEl.innerHTML = html;
+    }
+    var nameEl = document.getElementById('eq-editor-name');
+    if (nameEl) nameEl.value = eqEditor.name || '';
+    var slidersEl = document.getElementById('eq-editor-sliders');
+    if (slidersEl) {
+      var sv = '';
+      for (var b = 0; b < EQ_BANDS.length; b++) {
+        var band = EQ_BANDS[b];
+        var lbl = band >= 1000 ? (band / 1000) + 'k' : String(band);
+        sv += '<div class="eq-slider"><span class="eq-slider-band">' + lbl + ' Hz</span>' +
+          '<input type="range" min="-12" max="12" step="0.5" value="' + (Number(eqEditor.gains[b]) || 0) + '" data-b="' + b + '" oninput="eqSlide(this)">' +
+          '<span class="eq-slider-val" id="eq-val-' + b + '">' + (Number(eqEditor.gains[b]) >= 0 ? '+' : '') + (Number(eqEditor.gains[b]) || 0) + '</span></div>';
+      }
+      slidersEl.innerHTML = sv;
+    }
+  } catch (e) {}
+}
+function eqSlide(input) {
+  eqEnsureEditor();
+  var b = Number(input && input.getAttribute && input.getAttribute('data-b')) || 0;
+  var v = Number(input.value) || 0;
+  if (b >= 0 && b < EQ_BANDS.length) eqEditor.gains[b] = v;
+  var val = document.getElementById('eq-val-' + b);
+  if (val) val.textContent = (v >= 0 ? '+' : '') + v;
+  // 若当前模式正用正在编辑的已保存预设，实时预览
+  if (eqEditor.saved && eqEditor.name && eqModeSetting === eqEditor.name) {
+    applyEqGainArray(eqEditor.gains.slice(), 0.25);
+  }
+}
+function setEqEditorHint(msg) {
+  try {
+    var el = document.getElementById('eq-editor-hint');
+    if (el) el.textContent = msg || '';
+  } catch (e) {}
+}
+
+
+
 
 function ensureUiSfxContext() {
   var AudioContextCtor = window.AudioContext || window.webkitAudioContext;
@@ -16886,6 +17389,10 @@ async function playQueueAt(idx, opts) {
     }
     var proxyAudioUrl = data.url; /* online audio proxy API removed */
     audio.src = proxyAudioUrl;
+    if (isLocalPlayback && song && song.localPath) {
+      currentLocalPathForEq = song.localPath;
+      runAutoEqForTrack(song.localPath);
+    }
     updatePlaybackProgressUi();
     audio.onended = function(){
       if (token !== trackSwitchToken) return;
@@ -20922,6 +21429,7 @@ function setSonicWorkshopRegionColorFromPicker(id, color, silent) {
 function bindFxPanel() {
   liftFxFloatingPopups();
   organizeFxPanel();
+  bindLocalMusicRootControl();
   if (typeof initFxConsoleSearchAndHistory === 'function') initFxConsoleSearchAndHistory();
   relabelFxPanelControls();
   bindHotkeySettings();
@@ -22224,7 +22732,7 @@ function loadLocalData() {
   hero.innerHTML = '<div class="home-hero-inner home-construction-inner" style="height:100%"><div id="ll" style="width:100%;height:100%;overflow-y:auto;padding-right:4px"></div></div>';
   if (rail) rail.innerHTML = '';
   document.getElementById('ll').textContent = 'loading...';
-  apiJson('/api/local/scan?path=E:\\MyMusic').then(function(d) {
+  apiJson('/api/local/scan?path=' + localMusicRootQuery()).then(function(d) {
     localAllSongs = d.songs || [];
     renderHome(hero, grid, rail);
   }).catch(function() {
@@ -22651,9 +23159,9 @@ function integrateFromHome() {
   if (musicTaskInProgress) return;
   musicTaskInProgress = true;
   showToast('\u6574\u5408\u97f3\u4e50\u5f00\u59cb...');
-  apiJson('/api/local/organize?path=E:\\MyMusic').then(function() {
+  apiJson('/api/local/organize?path=' + localMusicRootQuery()).then(function() {
     window.__localMusicCache = null;
-    return apiJson('/api/local/scan?path=E:\\MyMusic');
+    return apiJson('/api/local/scan?path=' + localMusicRootQuery());
   }).then(function(scanData) {
     var songs = scanData.songs || [];
     localAllSongs = songs;
@@ -25091,6 +25599,20 @@ document.addEventListener('DOMContentLoaded', function(){
   markAppPerf('dom-content-loaded');
   armSplashSoundFallback();
   prewarmHomeWallpaperPreview();
+  // 初始化自动 EQ：加载模式与自定义预设列表，注册外部点击关闭弹层
+  loadEqModeSetting();
+  renderEqPopover();
+  renderEqEditor();
+  bindEqControls();
+  document.addEventListener('click', function (e) {
+    var wrap = document.querySelector('.eq-wrap');
+    if (wrap && wrap.contains(e.target)) return;
+    closeEqPopover();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeEqPopover();
+    if (e.key === 'Escape') closeEqModal();
+  });
   function requestSplashEnter() {
     playMineradioIntroSound();
     if (splashReadyToEnter) dismissSplash();

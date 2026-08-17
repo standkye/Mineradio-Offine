@@ -10,7 +10,7 @@ var FX_CONSOLE_LAYOUT = [
   {
     key: "home",
     groups: [
-      { key: "presets", title: "视觉预设", hint: "先选整体风格，再进入细节调整", open: true, items: [
+      { key: "presets", title: "视觉预设", hint: "先选整体风格，再进入细节调整", open: false, items: [
         fxConsoleItem("preset-grid", "视觉预设", "风格 场景 Emily 安魂 音域 星河 唱片 星球 滚筒 虚空")
       ] },
       { key: "archives", title: "用户存档", hint: "保存、应用和分享整套视觉参数", items: [
@@ -24,7 +24,7 @@ var FX_CONSOLE_LAYOUT = [
   {
     key: "interface",
     groups: [
-      { key: "background", title: "背景媒体", hint: "颜色、封面、图片、视频与 Wallpaper Engine", open: true, items: [
+      { key: "background", title: "背景媒体", hint: "颜色、封面、图片、视频与 Wallpaper Engine", open: false, items: [
         fxConsoleItem("bg-color-picker", "背景颜色", "纯色 封面取色"),
         fxConsoleItem({ selector: ".image-pick-row" }, "背景媒体", "封面 图片 视频 上传 裁切 清除", false),
         fxConsoleItem("wallpaper-engine-value", "Wallpaper Engine", "壁纸库 识别 导入 恢复原背景", false),
@@ -54,7 +54,7 @@ var FX_CONSOLE_LAYOUT = [
   {
     key: "lyrics",
     groups: [
-      { key: "display", title: "显示与翻译", hint: "歌词来源、行数和双语译文", open: true, items: [
+      { key: "display", title: "显示与翻译", hint: "歌词来源、行数和双语译文", open: false, items: [
         fxConsoleItem("lyric-source-seg", "歌词来源", "原词 自定义歌词", false)
       ] },
       { key: "colors", title: "颜色与光效", hint: "文字、高亮、溢光和亮底可读性", items: [
@@ -97,7 +97,7 @@ var FX_CONSOLE_LAYOUT = [
   {
     key: "motion",
     groups: [
-      { key: "base", title: "基础画面", hint: "整体律动、景深、封面和电影镜头", open: true, items: [
+      { key: "base", title: "基础画面", hint: "整体律动、景深、封面和电影镜头", open: false, items: [
         fxConsoleItem("fx-intensity", "律动强度", "音乐响应 节奏"),
         fxConsoleItem("fx-depth", "画面景深", "立体感 深度"),
         fxConsoleItem("fx-coverres", "封面清晰度", "粒子数量 分辨率"),
@@ -166,7 +166,7 @@ var FX_CONSOLE_LAYOUT = [
   {
     key: "shelf",
     groups: [
-      { key: "display", title: "显示方式", hint: "模式、镜头、常驻状态和内容来源", open: true, items: [
+      { key: "display", title: "显示方式", hint: "模式、镜头、常驻状态和内容来源", open: false, items: [
         fxConsoleItem("shelf-seg", "3D 歌单架", "关闭 侧栏 舞台"),
         fxConsoleItem("shelf-camera-seg", "歌单架镜头", "动态镜头 静态镜头"),
         fxConsoleItem("shelf-presence-seg", "歌单架显示", "自动隐藏 常驻"),
@@ -217,10 +217,16 @@ var FX_CONSOLE_LAYOUT = [
   {
     key: "system",
     groups: [
-      { key: "startup", title: "启动与退出", hint: "启动自动播放与秒启动跳过启动页", open: true, items: [
+      { key: "startup", title: "启动与退出", hint: "启动自动播放与秒启动跳过启动页", open: false, items: [
         fxConsoleItem("t-startupAutoplay", "启动自动播放", "打开软件 自动播放 恢复进度"),
         fxConsoleItem("t-startupFastSkip", "秒启动跳过启动页", "秒启动 跳过 启动动画"),
         fxConsoleItem("startup-resume-mode-seg", "恢复播放位置", "按上次进度 重播整首")
+      ] },
+      { key: "eq", title: "自定义 EQ", hint: "按流派预设与自定义均衡器", open: false, items: [
+        fxConsoleItem({ element: null, selector: "#eq-editor-section" }, "自定义EQ", "均衡器 预设 滑杆 增益 保存 删除 改名", true)
+      ] },
+      { key: "library", title: "本地音乐", hint: "设置音乐文件扫描与存放目录", open: false, items: [
+        fxConsoleItem("local-music-root-control", "文件存放地址", "本地音乐 文件夹 路径 扫描目录 MyMusic")
       ] },
       { key: "output", title: "播放输出", hint: "播放输出设备切换", items: [
         fxConsoleItem("audio-output-panel", "播放输出设备", "输出 设备 切换 刷新")

@@ -70,3 +70,7 @@ tmp/
 *.png.tmp
 verification/
 screenshots/
+
+# Machine-learning model artifacts (large, user-downloaded at runtime)
+# 自动 EQ 模型：用户从官网下载后放到此目录，不入版本库
+public/vendor/models/
