@@ -15,7 +15,7 @@ const HOST = process.env.HOST || '127.0.0.1';
 const UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
 const BEATMAP_CACHE_DIR =
-  process.env.MINERADIO_BEAT_CACHE_DIR || path.join(__dirname, '..', 'MineradioCache', 'beatmaps');
+  process.env.MINERADIO_BEAT_CACHE_DIR || path.join(__dirname, 'MineradioCache', 'beatmaps');
 const APP_PACKAGE = readPackageInfo();
 const APP_VERSION = process.env.MINERADIO_VERSION || APP_PACKAGE.version || '0.9.11';
 
@@ -230,7 +230,7 @@ function imagePixelWidth(buf) {
 // ---------- 在线元数据（专辑封面 / 歌手照片） ----------
 // 数据源优先级：Spotify（需配置）→ iTunes（免Key）→ Deezer（免Key）
 const META_CACHE_DIR =
-  process.env.MINERADIO_META_CACHE_DIR || path.join(__dirname, '..', 'MineradioCache', 'onlinemeta');
+  process.env.MINERADIO_META_CACHE_DIR || path.join(__dirname, 'MineradioCache', 'onlinemeta');
 const META_CACHE_MAX_AGE = 30 * 24 * 3600 * 1000; // 30 天
 let spotifyTokenCache = { token: '', expiresAt: 0 };
 

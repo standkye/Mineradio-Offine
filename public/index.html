@@ -1038,6 +1038,7 @@ var STARTUP_AUTOPLAY_STORE_KEY = 'mineradio-startup-autoplay-v1';
 var STARTUP_FAST_SKIP_STORE_KEY = 'mineradio-startup-fast-skip-v1';
 var STARTUP_RESUME_MODE_STORE_KEY = 'mineradio-startup-resume-mode-v1';
 var LOCAL_BEAT_PREF_STORE_KEY = 'mineradio-local-beatmap-prefs-v1';
+var PLAY_MODE_STORE_KEY = 'mineradio-play-mode-v1';
 var LOCAL_BEAT_COMBOS = ['', 'downbeat', 'push', 'drop', 'rebound', 'accent'];
 var HOTKEY_ACTIONS = [
   { key:'togglePlay', label:'播放 / 暂停', category:'播放', local:'Space', global:'Ctrl+Alt+Space' },
@@ -1109,7 +1110,15 @@ function installStartupLongTaskObserver() {
   } catch (e) {}
 }
 installStartupLongTaskObserver();
-var queueViewTab = 'queue', playMode = 'loop', miniQueueOpen = false;
+var queueViewTab = 'queue', miniQueueOpen = false;
+var playMode = 'loop';
+try {
+  var savedPlayMode = localStorage.getItem(PLAY_MODE_STORE_KEY);
+  if (savedPlayMode === 'loop' || savedPlayMode === 'shuffle' || savedPlayMode === 'single') playMode = savedPlayMode;
+} catch (e) {}
+function savePlayModePreference() {
+  try { localStorage.setItem(PLAY_MODE_STORE_KEY, playMode); } catch (e) {}
+}
 var miniQueueRenderSeq = 0, queueRenderSeq = 0, playlistRenderSeq = 0;
 var queuePanelDirty = false;
 var PLAYLIST_PANEL_BATCH_SIZE = 28;
@@ -2483,6 +2492,7 @@ function updateFreeCamera(dt) {
 function flushPersistentVisualState() {
   try { saveLyricLayout(); } catch (e) {}
   try { saveFreeCameraState(); } catch (e) {}
+  try { savePlayModePreference(); } catch (e) {}
 }
 window.addEventListener('beforeunload', flushPersistentVisualState);
 window.addEventListener('pagehide', flushPersistentVisualState);
@@ -15209,6 +15219,17 @@ async function toggleLikeSong(song) {
           });
         }
       } catch(e) {}
+      // 手动更新左侧大卡片列表红心样式
+      try {
+        var lsc = document.getElementById('ls-cont');
+        if (lsc) {
+          lsc.querySelectorAll('.ls-like[data-key]').forEach(function(btn) {
+            if (btn.getAttribute('data-key') === key) {
+              btn.classList.toggle('liked', next);
+            }
+          });
+        }
+      } catch(e) {}
       refreshSearchResultActionStates();
       showToast(next ? '已加入红心喜欢' : '已取消红心');
     } else {
@@ -17151,6 +17172,7 @@ function cyclePlayMode() {
   var modes = ['loop', 'shuffle', 'single'];
   var idx = modes.indexOf(playMode);
   playMode = modes[(idx + 1) % modes.length];
+  savePlayModePreference();
   updatePlayModeButton(true);
   showToast('播放模式: ' + playModeLabel(playMode));
 }
@@ -22341,7 +22363,7 @@ function renderSongList(filter, fv) {
     html += '<div class="ls-row" data-key="'+key.replace(/"/g,'&quot;')+'" data-idx="'+idx+'" style="display:flex;align-items:center;gap:10px;padding:9px 8px;border-radius:8px;cursor:pointer" onclick="playLocalSongByKey(\''+escKey+'\')">'+
       img+'<div class="ls-info" style="flex:1;min-width:0;pointer-events:none"><div class="ls-name" style="font-size:13px;font-weight:500;color:rgba(255,255,255,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+escHtml(s.name)+'</div><div class="ls-artist" style="font-size:11px;color:rgba(255,255,255,.35);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px">'+escHtml(s.artist||'')+'</div></div>'+
       '<div class="ls-like'+(liked?' liked':'')+'" data-key="'+key.replace(/"/g,'&quot;')+'" style="width:26px;height:26px;border-radius:50%;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0" onclick="event.stopPropagation();toggleLocalLike(this,\''+escKey+'\')">'+heartIconSvg()+'</div>'+
-      '<div class="ls-add" data-key="'+key.replace(/"/g,'&quot;')+'" style="width:22px;height:22px;border-radius:50%;border:1px solid rgba(255,255,255,.1);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:rgba(255,255,255,.3)" onclick="event.stopPropagation();this.classList.remove(\'add-pop\');void this.offsetWidth;this.classList.add(\'add-pop\');showPlaylistPicker(\''+escKey+'\')">+</div></div>';
+      '<div class="ls-add" data-key="'+key.replace(/"/g,'&quot;')+'" style="width:22px;height:22px;border-radius:50%;border:1px solid rgba(255,255,255,.1);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:rgba(255,255,255,.3)" onclick="event.stopPropagation();this.classList.remove(\'add-pop\');void this.offsetWidth;this.classList.add(\'add-pop\');showPlaylistPicker(\''+escKey+'\')"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5.5v13"/><path d="M5.5 12h13"/></svg></div></div>';
   });
   html += '</div>';
   if (!songs.length) html = '<div style="padding:30px;text-align:center;color:rgba(255,255,255,.2);font-size:13px">No songs</div>';
@@ -22379,6 +22401,23 @@ function toggleLocalLike(btn, key) {
   void btn.offsetWidth; // force reflow
   btn.classList.add('heart-pop');
   saveLL();
+  // 同步播放栏红心（当前正在播放这首歌时）
+  try { updateLikeButtons(); } catch (e) {}
+  // 同步队列红心样式
+  try {
+    var ql = document.getElementById('queue-list');
+    if (ql) {
+      ql.querySelectorAll('[data-qi-like]').forEach(function(qbtn) {
+        var idx = parseInt(qbtn.getAttribute('data-qi-like'));
+        var qs = !isNaN(idx) && playQueue[idx] ? playQueue[idx] : null;
+        if (qs && (qs.localPath || qs.localUrl) === key) {
+          qbtn.classList.toggle('liked', !!localLikedSongs[key]);
+          qbtn.title = localLikedSongs[key] ? '取消红心' : '红心喜欢';
+        }
+      });
+    }
+  } catch (e) {}
+  try { refreshSearchResultActionStates(); } catch (e) {}
 }
 function playLocalSong(song) {
   if (!song) return;

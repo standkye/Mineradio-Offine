@@ -538,7 +538,7 @@ body.home-controls-locked #bottom-bar{opacity:0!important;pointer-events:none!im
 .ls-like.heart-pop{animation:heart-pop-anim .38s cubic-bezier(.16,1,.3,1)}
 @keyframes heart-pop-anim{0%{transform:scale(1)}32%{transform:scale(1.28)}68%{transform:scale(.92)}100%{transform:scale(1)}}
 /* 鏈湴闊充箰鍒楄〃鍔犲彿鎸夐挳 */
-.ls-add{transition:all .22s cubic-bezier(.16,1,.3,1);color:rgba(255,255,255,.3);border-color:rgba(255,255,255,.1)!important;font-size:14px;line-height:1;text-align:center;text-indent:1px;padding:0 0 2px 0}
+.ls-add{transition:all .22s cubic-bezier(.16,1,.3,1);color:rgba(255,255,255,.3);border-color:rgba(255,255,255,.1)!important;font-size:14px;line-height:1;text-align:center;padding:0}
 .ls-add:hover{transform:scale(1.18);color:rgba(0,245,212,.9)!important;border-color:rgba(0,245,212,.4)!important;background:rgba(0,245,212,.08)!important}
 .ls-add.add-pop{animation:add-pop-anim .35s cubic-bezier(.16,1,.3,1)}
 /* 鏈湴姝屽崟鍒犻櫎鎸夐挳 */
@@ -1414,6 +1414,7 @@ html.control-glass-svg-ok .icon-btn,html.control-glass-svg-ok #fx-fab,html.contr
 #playlist-panel .qi-act button{background:rgba(255,255,255,.06)!important;border:0!important;box-shadow:none!important;color:rgba(255,255,255,.55)!important}
 #playlist-panel .qi-act button.liked{color:#ff6b81!important;background:rgba(255,107,129,.1)!important}
 #playlist-panel .qi-act button:hover{background:rgba(255,255,255,.15)!important;color:#fff!important}
+#playlist-panel .qi-act button.liked:hover{color:#ff8a9e!important;background:rgba(255,107,129,.18)!important}
 #playlist-panel .qi-act button.queue-next:hover{background:rgba(var(--fc-accent-rgb),.14)!important;color:#fff!important}
 
 .home-card[data-home-tone],.home-tile[data-home-tone]{--tone-a:var(--home-accent);--tone-b:color-mix(in srgb,var(--home-accent) 58%,#2442ff);--tone-c:color-mix(in srgb,var(--home-accent) 42%,#f8f4ee)}
