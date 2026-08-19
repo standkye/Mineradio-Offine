@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, shell, screen, session, globalShortcut, dialog, protocol, desktopCapturer } = require('electron');
+const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, shell, screen, session, globalShortcut, dialog, protocol, desktopCapturer } = require('electron');
 const net = require('net');
 const path = require('path');
 const fs = require('fs');
@@ -13,6 +13,7 @@ const audioEqEngine = require('./audio-eq-engine');
 registerWallpaperEngineScheme(protocol);
 
 let mainWindow = null;
+let mineradioTray = null;
 let wallpaperEngineBridge = null;
 let appQuitCleanupStarted = false;
 let localServer = null;
@@ -324,6 +325,27 @@ function focusMainWindow() {
   mainWindow.focus();
   sendWindowState(mainWindow);
   return true;
+}
+
+function createMineradioTray() {
+  if (mineradioTray && !mineradioTray.isDestroyed()) return mineradioTray;
+  const icon = fs.existsSync(APP_ICON_ICO) ? APP_ICON_ICO : path.join(__dirname, '..', 'build', 'icon.png');
+  try {
+    mineradioTray = new Tray(nativeImage.createFromPath(icon));
+    mineradioTray.setToolTip(APP_NAME + ' · 后台播放');
+    mineradioTray.setContextMenu(Menu.buildFromTemplate([
+      { label: '显示 Mineradio', click: () => focusMainWindow() },
+      { label: '后台播放', click: () => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.hide(); } },
+      { type: 'separator' },
+      { label: '退出 Mineradio', click: () => app.quit() },
+    ]));
+    mineradioTray.on('click', () => focusMainWindow());
+    mineradioTray.on('double-click', () => focusMainWindow());
+  } catch (e) {
+    console.warn('Mineradio tray initialization failed:', e.message);
+    mineradioTray = null;
+  }
+  return mineradioTray;
 }
 
 function shouldEnsureDesktopShortcut() {
@@ -1218,6 +1240,13 @@ ipcMain.handle('desktop-window-minimize', (event) => {
   win?.minimize();
 });
 
+ipcMain.handle('desktop-window-hide', (event) => {
+  if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
+  const win = getSenderWindow(event);
+  if (win && !win.isDestroyed()) win.hide();
+  return { ok: true, hidden: true };
+});
+
 ipcMain.handle('desktop-window-toggle-maximize', (event) => {
   if (!isTrustedRendererSender(event)) return { ok: false, error: 'FORBIDDEN' };
   const win = getSenderWindow(event);
@@ -1521,10 +1550,16 @@ async function createWindow() {
 
   mainWindow.on('maximize', () => sendWindowState(mainWindow));
   mainWindow.on('unmaximize', () => sendWindowState(mainWindow));
-  mainWindow.on('minimize', () => sendWindowState(mainWindow));
+  mainWindow.on('minimize', () => {
+    sendWindowState(mainWindow);
+    scheduleBackgroundAppTrim('minimize');
+  });
   mainWindow.on('restore', () => sendWindowState(mainWindow));
   mainWindow.on('show', () => sendWindowState(mainWindow));
-  mainWindow.on('hide', () => sendWindowState(mainWindow));
+  mainWindow.on('hide', () => {
+    sendWindowState(mainWindow);
+    scheduleBackgroundAppTrim('hide');
+  });
   mainWindow.on('focus', () => sendWindowState(mainWindow));
   mainWindow.on('blur', () => sendWindowState(mainWindow));
   mainWindow.on('move', () => scheduleWindowStateSend(mainWindow));
@@ -1599,6 +1634,7 @@ if (!gotSingleInstanceLock) {
       scheduleWindowStateSend(mainWindow);
     });
     await createWindow();
+    createMineradioTray();
   }).catch((e) => {
     console.error('Mineradio main window initialization failed:', e);
     app.quit();
@@ -1631,6 +1667,14 @@ if (!gotSingleInstanceLock) {
     } catch (e) {
       return false;
     }
+  }
+
+  function scheduleBackgroundAppTrim(reason) {
+    if (!memoryAutoState.appTrimEnabled || !memoryAutoState.backgroundTrimEnabled) return;
+    setTimeout(() => {
+      if (isMainWindowForegroundVisible()) return;
+      trimAppMemoryNow(reason || 'background').catch(() => { });
+    }, 800);
   }
 
   async function trimAppMemoryNow(reason) {
@@ -1817,6 +1861,10 @@ if (!gotSingleInstanceLock) {
     unregisterMineradioGlobalHotkeys();
     closeOverlayWindows();
     if (localServer && localServer.close) localServer.close();
+    if (mineradioTray && !mineradioTray.isDestroyed()) {
+      mineradioTray.destroy();
+      mineradioTray = null;
+    }
     if (wallpaperEngineBridge && !appQuitCleanupStarted) {
       event.preventDefault();
       appQuitCleanupStarted = true;
