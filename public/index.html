@@ -45,6 +45,19 @@ try {
     </button>
   </div>
 </div>
+<div id="close-behavior-modal" class="modal-mask close-behavior-modal" role="dialog" aria-modal="true" aria-labelledby="close-behavior-title" hidden>
+  <div class="close-behavior-card">
+    <div class="close-behavior-kicker">MINERADIO</div>
+    <h2 id="close-behavior-title">关闭软件</h2>
+    <p>你想让 Mineradio 在后台播放，还是直接退出？</p>
+    <label class="close-behavior-check"><input id="close-behavior-remember" type="checkbox"><span>不再提示，记住我的选择</span></label>
+    <div class="close-behavior-actions">
+      <button type="button" class="modal-btn" onclick="cancelDesktopWindowClose()">取消</button>
+      <button type="button" class="modal-btn" onclick="resolveDesktopWindowClose('background')">后台播放</button>
+      <button type="button" class="modal-btn primary" onclick="resolveDesktopWindowClose('exit')">直接退出</button>
+    </div>
+  </div>
+</div>
 <div id="fullscreen-diy-zone" aria-hidden="true">
   <button id="fullscreen-diy-btn" class="desktop-mode-btn" type="button" onclick="toggleDiyMode()" title="DIY" aria-label="DIY" aria-pressed="false">DIY</button>
 </div>
@@ -405,7 +418,7 @@ try {
         <div class="fx-toggle" id="t-desktopLyricsClickThrough" onclick="toggleFx('desktopLyricsClickThrough')" title="锁定后防误触；鼠标移到桌面歌词上按中键可锁定/解锁"><span>桌面歌词锁定</span><span class="dot"></span></div>
         <div class="fx-toggle" id="t-desktopLyricsCinema" onclick="toggleFx('desktopLyricsCinema')" title="桌面歌词绑定鼓点电影震动，基础漂浮始终保留"><span>桌面歌词电影震动</span><span class="dot"></span></div>
         <div class="fx-toggle" id="t-desktopLyricsHighlight" onclick="toggleFx('desktopLyricsHighlight')" title="桌面歌词按播放进度高亮"><span>桌面歌词高亮跟随</span><span class="dot"></span></div>
-        <div class="fx-toggle dev-locked" id="t-wallpaperMode" onclick="toggleFx('wallpaperMode')" title="开发中，暂不可用"><span>壁纸模式<em class="fx-dev-badge">开发中</em></span><span class="dot"></span></div>
+        <div class="fx-toggle" id="t-wallpaperMode" onclick="toggleFx('wallpaperMode')" title="隐藏其它界面，只保留可唤出的播放器栏"><span>壁纸模式</span><span class="dot"></span></div>
       </div>
       <div class="fx-section-label">桌面 / 壁纸</div>
       <div class="fx-slider"><label>桌面歌词大小</label><input id="fx-desktoplyricssize" type="range" min="0.72" max="1.55" step="0.01"><output></output></div>
@@ -419,7 +432,7 @@ try {
         <button data-desktop-lyrics-fps="120">120</button>
         <button data-desktop-lyrics-fps="0">无上限</button>
       </div>
-      <div class="fx-slider dev-locked"><label>壁纸透明度</label><input id="fx-wallpaperopacity" type="range" min="0.35" max="1" step="0.01" disabled><output></output></div>
+      <div class="fx-slider"><label>壁纸透明度</label><input id="fx-wallpaperopacity" type="range" min="0.35" max="1" step="0.01"><output></output></div>
     </div>
   </div>
 
@@ -486,6 +499,11 @@ try {
         <button data-startup-resume-mode="resume">按上次进度</button>
         <button data-startup-resume-mode="restart">重播整首</button>
       </div>
+      <div class="fx-seg window-close-behavior-seg" id="window-close-behavior-seg" title="控制点击右上角关闭按钮时的动作">
+        <button data-window-close-behavior="ask">每次询问</button>
+        <button data-window-close-behavior="background">后台播放</button>
+        <button data-window-close-behavior="exit">直接退出</button>
+      </div>
       <div class="local-music-root-control" id="local-music-root-control">
         <div class="local-music-root-title">文件存放地址</div>
         <div class="local-music-root-row">
@@ -515,14 +533,6 @@ try {
         <button class="fx-mini-btn ghost" type="button" onclick="runAppMemoryTrim('manual')">压缩播放器</button>
         <button class="fx-mini-btn ghost" type="button" onclick="runSystemMemoryPurge(false)">系统释放</button>
         <button class="fx-mini-btn ghost" type="button" onclick="runSystemMemoryPurge(true)">提权释放</button>
-      </div>
-      <div class="fx-section-label">输出接口</div>
-      <div class="audio-output-section" id="audio-output-panel">
-        <div class="quality-output-head"><span>播放输出设备</span><span class="quality-output-actions">
-          <button class="quality-output-refresh" type="button" id="audio-output-refresh">刷新</button>
-          <button class="quality-output-refresh" type="button" id="audio-output-default">系统默认</button>
-        </span></div>
-        <div id="audio-output-device-list"><div class="fx-sub audio-output-empty">读取中...</div></div>
       </div>
       <div class="fx-section-label">音域地形</div>
       <div class="fx-slider"><label>地面起伏</label><input id="fx-sonicamp" type="range" min="0" max="100" step="1"><output></output></div>
@@ -818,6 +828,7 @@ try {
     <button id="mini-queue-btn" class="ctrl-btn" onclick="toggleMiniQueue(event)" title="当前队列"><svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 5h13"/><path d="M5 11h13"/><path d="M5 17h13"/><path d="M1 5h.01"/><path d="M1 11h.01"/><path d="M1 17h.01"/></svg></button>
     </div>
     <div class="control-cluster modes">
+    <button id="wallpaper-exit-btn" class="ctrl-btn wallpaper-exit-btn" onclick="toggleFx('wallpaperMode')" title="退出电脑壁纸模式" aria-label="退出电脑壁纸模式"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><path d="M9 5 4 12l5 7"/><path d="M4 12h11a5 5 0 0 1 5 5v2"/></svg></button>
     <button class="ctrl-btn lyrics-toggle-btn" onclick="toggleLyricsPanel()" title="歌词"><span class="lyrics-word-icon">词</span></button>
     <div id="volume-control" class="volume-control">
       <button id="volume-btn" class="ctrl-btn" onclick="toggleVolumePanel(event)" title="音量 / 静音"><svg id="volume-icon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15 9.5a4 4 0 0 1 0 5"/></svg></button>
@@ -1119,6 +1130,7 @@ var HOTKEY_ACTIONS = [
   { key:'volumeUp', label:'音量增加', category:'音量', local:'ArrowUp', global:'Ctrl+Alt+ArrowUp' },
   { key:'volumeDown', label:'音量降低', category:'音量', local:'ArrowDown', global:'Ctrl+Alt+ArrowDown' },
   { key:'toggleFullscreen', label:'全屏', category:'窗口', local:'KeyF', global:'Ctrl+Alt+KeyF' },
+  { key:'goHome', label:'Home / 回到主页', category:'导航', local:'Tab', global:'' },
   { key:'toggleDesktopLyrics', label:'桌面歌词', category:'歌词', local:'Alt+KeyL', global:'Ctrl+Alt+KeyL' }
 ];
 var hotkeyCaptureState = null;
@@ -1651,6 +1663,7 @@ var fxDefaults = {
   desktopLyricsFps: 60,
   wallpaperMode: false,
   wallpaperOpacity: 1,
+  windowCloseBehavior: 'ask',
   floatLayer: false, cinema: true, edge: false, aiDepth: false, bloom: false, lyricGlow: true,
   lyricGlowBeat: true,
   lyricGlowParticles: false,
@@ -1858,15 +1871,12 @@ function clonePackagedDefaultFxSnapshot() {
 function packagedDefaultLyricLayoutRaw() {
   return Object.assign({ desktopLyricsSchema: 'desktop-lyrics-v3' }, clonePackagedDefaultFxSnapshot());
 }
-var DEVELOPMENT_LOCKED_FX = {
-  wallpaperMode: true
-};
+var DEVELOPMENT_LOCKED_FX = {};
 function isDevelopmentLockedFx(key) {
   return !!DEVELOPMENT_LOCKED_FX[key];
 }
 function normalizeDevelopmentLockedFxState() {
   if (!fx) return;
-  fx.wallpaperMode = false;
 }
 function readSavedPlaybackVisualPreset() {
   try {
@@ -1920,6 +1930,80 @@ function bindStartupResumeModeControls() {
   syncStartupResumeModeUi();
 }
 if (typeof bindStartupResumeModeControls === 'function') bindStartupResumeModeControls();
+function normalizeWindowCloseBehavior(v) {
+  var value = String(v || '');
+  if (value === 'minimize') value = 'background';
+  return /^(ask|background|exit)$/.test(value) ? value : 'ask';
+}
+function syncWindowCloseBehaviorUi() {
+  var value = normalizeWindowCloseBehavior(fx && fx.windowCloseBehavior);
+  document.querySelectorAll('#window-close-behavior-seg [data-window-close-behavior]').forEach(function (btn) {
+    btn.classList.toggle('active', btn.getAttribute('data-window-close-behavior') === value);
+  });
+}
+function setWindowCloseBehavior(value) {
+  fx.windowCloseBehavior = normalizeWindowCloseBehavior(value);
+  saveLyricLayout();
+  syncWindowCloseBehaviorUi();
+  showToast(fx.windowCloseBehavior === 'ask' ? '关闭时将每次询问' : (fx.windowCloseBehavior === 'background' ? '关闭时将在后台播放' : '关闭时将直接退出'));
+}
+function bindWindowCloseBehaviorControls() {
+  var seg = document.getElementById('window-close-behavior-seg');
+  if (!seg || seg._mineradioCloseBehaviorBound) return;
+  seg._mineradioCloseBehaviorBound = true;
+  seg.querySelectorAll('[data-window-close-behavior]').forEach(function (btn) {
+    btn.addEventListener('click', function () { setWindowCloseBehavior(btn.getAttribute('data-window-close-behavior')); });
+  });
+  syncWindowCloseBehaviorUi();
+}
+if (typeof bindWindowCloseBehaviorControls === 'function') bindWindowCloseBehaviorControls();
+var closeBehaviorModalOpen = false;
+function hideDesktopWindowClosePrompt() {
+  var modal = document.getElementById('close-behavior-modal');
+  if (!modal) return;
+  closeBehaviorModalOpen = false;
+  modal.classList.remove('show');
+  modal.setAttribute('hidden', '');
+}
+function showDesktopWindowClosePrompt() {
+  var modal = document.getElementById('close-behavior-modal');
+  var check = document.getElementById('close-behavior-remember');
+  if (!modal) return;
+  closeBehaviorModalOpen = true;
+  if (check) check.checked = false;
+  modal.removeAttribute('hidden');
+  modal.classList.add('show');
+  var exitBtn = modal.querySelector('.close-behavior-actions .primary');
+  if (exitBtn) setTimeout(function () { exitBtn.focus(); }, 0);
+}
+function cancelDesktopWindowClose() {
+  hideDesktopWindowClosePrompt();
+}
+function resolveDesktopWindowClose(action) {
+  var choice = normalizeWindowCloseBehavior(action);
+  var check = document.getElementById('close-behavior-remember');
+  if (check && check.checked) {
+    fx.windowCloseBehavior = choice;
+    saveLyricLayout();
+    syncWindowCloseBehaviorUi();
+  }
+  hideDesktopWindowClosePrompt();
+  if (choice === 'background') {
+    if (window.desktopWindow && typeof window.desktopWindow.hide === 'function') window.desktopWindow.hide();
+  } else if (window.desktopWindow && typeof window.desktopWindow.close === 'function') {
+    window.desktopWindow.close();
+  }
+}
+function requestDesktopWindowClose() {
+  var behavior = normalizeWindowCloseBehavior(fx && fx.windowCloseBehavior);
+  if (behavior === 'background') {
+    if (window.desktopWindow && typeof window.desktopWindow.hide === 'function') window.desktopWindow.hide();
+  } else if (behavior === 'exit') {
+    if (window.desktopWindow && typeof window.desktopWindow.close === 'function') window.desktopWindow.close();
+  } else {
+    showDesktopWindowClosePrompt();
+  }
+}
 var controlsHovering = false;
 var controlsHideTimer = null;
 var controlsHandleDimTimer = null;
@@ -4128,6 +4212,17 @@ window.addEventListener('mousedown', function(e){
   beginParticlePointerDrag(e);
 }, true);
 window.addEventListener('mousemove', function(e){
+  if (fx && fx.wallpaperMode && window.desktopWindow && window.desktopWindow.updateDesktopPointerRoute) {
+    var wallpaperBar = document.getElementById('bottom-bar');
+    var wallpaperHandle = document.getElementById('bottom-handle');
+    var wallpaperBarRect = wallpaperBar && wallpaperBar.getBoundingClientRect();
+    var wallpaperHandleRect = wallpaperHandle && wallpaperHandle.getBoundingClientRect();
+    var overWallpaperControls = !!(
+      (wallpaperBarRect && e.clientX >= wallpaperBarRect.left - 18 && e.clientX <= wallpaperBarRect.right + 18 && e.clientY >= wallpaperBarRect.top - 18 && e.clientY <= wallpaperBarRect.bottom + 18) ||
+      (wallpaperHandleRect && e.clientX >= wallpaperHandleRect.left - 18 && e.clientX <= wallpaperHandleRect.right + 18 && e.clientY >= wallpaperHandleRect.top - 14 && e.clientY <= wallpaperHandleRect.bottom + 14)
+    );
+    window.desktopWindow.updateDesktopPointerRoute({ overSoftwareUi: overWallpaperControls, overDesktopControls: overWallpaperControls });
+  }
   updateControlsAutoHideFromPointer(e.clientX, e.clientY);
   idleGuidePointerMove(e);
   if (freeCamera && freeCamera.active) {
@@ -6160,8 +6255,9 @@ function readSavedLyricLayout() {
       performanceBackground: normalizePerformanceBackgroundMode(raw.performanceBackground, raw.liveBackgroundKeep === true),
       performanceQuality: normalizePerformanceQuality(raw.performanceQuality),
       liveBackgroundKeep: normalizePerformanceBackgroundMode(raw.performanceBackground, raw.liveBackgroundKeep === true) === 'keep',
-      wallpaperMode: false,
+      wallpaperMode: raw.wallpaperMode === true,
       wallpaperOpacity: clampRange(raw.wallpaperOpacity == null ? fxDefaults.wallpaperOpacity : Number(raw.wallpaperOpacity), 0.35, 1),
+      windowCloseBehavior: normalizeWindowCloseBehavior(raw.windowCloseBehavior || fxDefaults.windowCloseBehavior),
       coverResolution: normalizeCoverResolution(raw.coverResolution),
       shelf: /^(off|side|stage)$/.test(String(raw.shelf || '')) ? raw.shelf : fxDefaults.shelf,
       shelfCameraMode: savedShelfCameraMode,
@@ -6287,8 +6383,9 @@ function saveLyricLayout() {
       performanceBackground: normalizePerformanceBackgroundMode(fx.performanceBackground, fx.liveBackgroundKeep === true),
       performanceQuality: normalizePerformanceQuality(fx.performanceQuality),
       liveBackgroundKeep: normalizePerformanceBackgroundMode(fx.performanceBackground, fx.liveBackgroundKeep === true) === 'keep',
-      wallpaperMode: false,
+      wallpaperMode: fx.wallpaperMode === true,
       wallpaperOpacity: clampRange(fx.wallpaperOpacity == null ? fxDefaults.wallpaperOpacity : Number(fx.wallpaperOpacity), 0.35, 1),
+      windowCloseBehavior: normalizeWindowCloseBehavior(fx.windowCloseBehavior || fxDefaults.windowCloseBehavior),
       coverResolution: normalizeCoverResolution(fx.coverResolution),
       shelf: /^(off|side|stage)$/.test(String(fx.shelf || '')) ? fx.shelf : fxDefaults.shelf,
       shelfCameraMode: normalizeShelfCameraMode(fx.shelfCameraMode || fxDefaults.shelfCameraMode),
@@ -17306,7 +17403,8 @@ async function playQueueAt(idx, opts) {
     var coverOpts = { trackToken: token, deferHeavy: true, delay: firstVisualPlay ? 380 : 680, timeout: firstVisualPlay ? 1400 : 1900 };
     if (customCover) applyCoverDataUrl(customCover, coverOpts);
     else if (song.provider === 'local' || song.source === 'local' || song.type === 'local') {
-      var localCoverPath = song.coverPath || (song.hasCover && (song.localPath || song.localUrl) ? (song.localPath || song.localUrl) : '');
+      // 启动恢复的旧快照可能没有保存 hasCover；这时也尝试从本地音频文件读取内嵌封面。
+      var localCoverPath = song.coverPath || (song.hasCover !== false && (song.localPath || song.localUrl) ? (song.localPath || song.localUrl) : '');
       if (localCoverPath) loadCoverFromUrl('/api/local/cover?path=' + encodeURIComponent(localCoverPath), coverOpts);
       else {
         loadCoverFromUrl('', coverOpts);
@@ -21090,6 +21188,7 @@ function executeHotkeyAction(actionKey, source) {
   if (actionKey === 'volumeUp') return adjustVolumeByKeyboard(0.05);
   if (actionKey === 'volumeDown') return adjustVolumeByKeyboard(-0.05);
   if (actionKey === 'toggleFullscreen') return toggleFullscreen();
+  if (actionKey === 'goHome') return goHome();
   if (actionKey === 'toggleDesktopLyrics') return toggleFx('desktopLyrics');
 }
 function handleConfiguredLocalHotkey(e) {
@@ -24539,13 +24638,13 @@ window.addEventListener('resize', function(){
 });
 document.addEventListener('keydown', function(e){
   if (isTypingTarget(e.target)) return;
+  if (handleConfiguredLocalHotkey(e)) return;
   if (e.code === 'Tab') {
     // 阻止默认焦点循环：Tab 会聚焦到屏幕外元素（canvas/视觉控制台面板），
     // 触发浏览器自动滚动导致页面只剩一半
     e.preventDefault();
     return;
   }
-  if (handleConfiguredLocalHotkey(e)) return;
   if (shouldSuppressDefaultConfiguredHotkey(e)) return;
   if (e.code === 'Space') {
     if (freeCamera && freeCamera.active) { e.preventDefault(); return; }
@@ -25538,7 +25637,7 @@ var startupAutoplayAttempted = false;
 function startupSongSnapshotSafe(song) {
   if (!song || typeof song !== 'object') return null;
   var out = {};
-  ['id','key','name','title','artist','ar','author','album','cover','source','provider','type','url','localPath','localUrl','radioId','radioContext','duration','dur','lyric','lrcUrl'].forEach(function (k) {
+  ['id','key','name','title','artist','ar','author','album','cover','coverPath','hasCover','source','provider','type','url','localPath','localUrl','radioId','radioContext','duration','dur','lyric','lrcUrl'].forEach(function (k) {
     if (song[k] !== undefined) out[k] = song[k];
   });
   return Object.keys(out).length ? out : null;
@@ -25858,21 +25957,54 @@ function pushWallpaperState(force) {
   api.updateWallpaperMode(payload).catch(function(e){ console.warn('wallpaper update failed:', e); });
 }
 function applyWallpaperModeState(force) {
-  var api = getDesktopWindowApi();
-  if (!api) return;
   normalizeDevelopmentLockedFxState();
-  var payload = wallpaperPayload();
-  if (typeof api.setWallpaperMode === 'function') {
-    api.setWallpaperMode(!!payload.enabled, payload).catch(function(e){ console.warn('wallpaper state failed:', e); });
+  var enabled = !!fx.wallpaperMode;
+  document.body.classList.toggle('wallpaper-mode', enabled);
+  if (enabled) {
+    controlsAutoHide = true;
+    syncControlsAutoHideButton();
+    var desktopApi = window.desktopWindow;
+    if (!desktopApi || typeof desktopApi.setFullDesktopMode !== 'function') {
+      fx.wallpaperMode = false;
+      document.body.classList.remove('wallpaper-mode');
+      saveLyricLayout();
+      showToast('电脑壁纸模式不可用：桌面挂载接口未接入');
+      return;
+    }
+    desktopApi.setFullDesktopMode(true, { reason: 'wallpaper-mode', interactive: true }).then(function (result) {
+      if (!result || result.ok !== true || result.enabled !== true) {
+        fx.wallpaperMode = false;
+        document.body.classList.remove('wallpaper-mode');
+        saveLyricLayout();
+        showToast('电脑壁纸模式启动失败');
+        return;
+      }
+      document.body.classList.add('wallpaper-mode');
+      if (desktopApi.setDesktopIconsVisible) desktopApi.setDesktopIconsVisible(true).catch(function () {});
+      if (desktopApi.setDesktopSoftwareLocked) desktopApi.setDesktopSoftwareLocked(true).catch(function () {});
+      revealBottomControls(1200);
+      showToast('已挂到电脑桌面壁纸层 · Esc 退出');
+    }).catch(function (error) {
+      fx.wallpaperMode = false;
+      document.body.classList.remove('wallpaper-mode');
+      saveLyricLayout();
+      showToast('电脑壁纸模式失败: ' + String(error && error.message || error).slice(0, 60));
+    });
+  } else {
+    document.body.classList.remove('wallpaper-mode');
+    var desktopApiOff = window.desktopWindow;
+    if (desktopApiOff && typeof desktopApiOff.setFullDesktopMode === 'function') {
+      if (desktopApiOff.setDesktopSoftwareLocked) desktopApiOff.setDesktopSoftwareLocked(false).catch(function () {});
+      desktopApiOff.setFullDesktopMode(false, { reason: 'wallpaper-mode-off' }).catch(function () {});
+    }
+    if (typeof revealBottomControls === 'function') revealBottomControls(500);
   }
-  pushWallpaperState(!!force);
 }
 function syncDesktopOverlayState() {
   if (fx.desktopLyrics) pushDesktopLyricsState(false);
-  if (fx.wallpaperMode) pushWallpaperState(false);
 }
 setInterval(function(){
-  if (fx && (fx.desktopLyrics || fx.wallpaperMode)) syncDesktopOverlayState();
+  if (fx && fx.desktopLyrics) syncDesktopOverlayState();
 }, 320);
 
 // 全屏
@@ -25954,7 +26086,7 @@ function toggleFullscreen() {
       var action = btn.getAttribute('data-window-action');
       if (action === 'minimize') api.minimize();
       if (action === 'maximize') toggleFullscreen();
-      if (action === 'close') api.close();
+      if (action === 'close') requestDesktopWindowClose();
     });
   });
 
@@ -26425,7 +26557,6 @@ animate();
 </script>
 <script src="js/wallpaper-engine-library.js"></script>
 <script src="js/system-memory-controls.js"></script>
-<script src="js/audio-output-controls.js"></script>
 <script>
 function toggleFullDesktopMode(btn) {
   var api = window.desktopWindow;

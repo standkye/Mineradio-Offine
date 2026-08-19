@@ -220,16 +220,14 @@ var FX_CONSOLE_LAYOUT = [
       { key: "startup", title: "启动与退出", hint: "启动自动播放与秒启动跳过启动页", open: false, items: [
         fxConsoleItem("t-startupAutoplay", "启动自动播放", "打开软件 自动播放 恢复进度"),
         fxConsoleItem("t-startupFastSkip", "秒启动跳过启动页", "秒启动 跳过 启动动画"),
-        fxConsoleItem("startup-resume-mode-seg", "恢复播放位置", "按上次进度 重播整首")
+        fxConsoleItem("startup-resume-mode-seg", "恢复播放位置", "按上次进度 重播整首"),
+        fxConsoleItem("window-close-behavior-seg", "关闭软件时", "每次询问 后台播放 直接退出")
       ] },
       { key: "eq", title: "自定义 EQ", hint: "按流派预设与自定义均衡器", open: false, items: [
         fxConsoleItem({ element: null, selector: "#eq-editor-section" }, "自定义EQ", "均衡器 预设 滑杆 增益 保存 删除 改名", true)
       ] },
       { key: "library", title: "本地音乐", hint: "设置音乐文件扫描与存放目录", open: false, items: [
         fxConsoleItem("local-music-root-control", "文件存放地址", "本地音乐 文件夹 路径 扫描目录 MyMusic")
-      ] },
-      { key: "output", title: "播放输出", hint: "播放输出设备切换", items: [
-        fxConsoleItem("audio-output-panel", "播放输出设备", "输出 设备 切换 刷新")
       ] },
       { key: "performance", title: "性能与后台", hint: "画质档位、后台渲染和直播保持", items: [
         fxConsoleItem("performance-quality-seg", "画质档位", "低配 中 高 超高 渲染质量"),

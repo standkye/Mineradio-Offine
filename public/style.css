@@ -55,6 +55,10 @@ body.visual-guide-active #fullscreen-diy-zone{opacity:0;pointer-events:none!impo
 body.visual-guide-active #fullscreen-diy-btn{opacity:0!important;pointer-events:none!important;transform:translateY(-18px) scale(.96)!important}
 body.desktop-shell.desktop-fullscreen #desktop-titlebar,html:fullscreen body.desktop-shell #desktop-titlebar{display:none!important}
 body.desktop-shell.desktop-fullscreen #fullscreen-diy-zone,html:fullscreen body.desktop-shell #fullscreen-diy-zone{display:flex}
+body.desktop-shell.desktop-fullscreen #home-btn,
+body.desktop-shell.desktop-fullscreen #home-btn-hide-btn,
+html:fullscreen body.desktop-shell #home-btn,
+html:fullscreen body.desktop-shell #home-btn-hide-btn{display:none!important}
 body.fullscreen-diy-peek #fullscreen-diy-zone,#fullscreen-diy-zone:hover{pointer-events:auto}
 body.fullscreen-diy-peek #fullscreen-diy-btn,#fullscreen-diy-zone:hover #fullscreen-diy-btn{opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
 body.desktop-shell.desktop-fullscreen #search-area.peek{top:24px}
@@ -504,6 +508,7 @@ body.home-controls-locked #bottom-bar{opacity:0!important;pointer-events:none!im
 .control-cluster.modes{grid-column:3;justify-content:flex-end}
 .control-divider{display:none}
 .control-track{display:flex;align-items:center;gap:12px;min-width:0;flex:1}
+.wallpaper-exit-btn{display:none!important}
 .control-cluster.actions #quality-control{flex:0 0 auto;margin-left:-2px}
 .control-cover{width:52px;height:52px;border-radius:12px;background-size:cover;background-position:center;background-color:rgba(255,255,255,.070);border:0;box-shadow:0 10px 28px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.20),inset 0 0 0 1px rgba(255,255,255,.08);transition:transform .18s ease,opacity .2s ease,box-shadow .2s ease;flex:0 0 auto}
 .control-cover.cover-empty{background-image:radial-gradient(circle at 35% 28%,rgba(255,255,255,.18),transparent 24%),linear-gradient(135deg,rgba(255,255,255,.10),rgba(255,255,255,.025));box-shadow:inset 0 1px 0 rgba(255,255,255,.055),0 8px 22px rgba(0,0,0,.22)}
@@ -820,6 +825,72 @@ body.immersive-mode #time-display{display:flex;height:40px;align-items:center;ju
 @media (max-width: 420px){body.immersive-mode #time-display{display:none}}
 body.immersive-mode::after{content:'';position:fixed;left:0;right:0;bottom:0;height:118px;z-index:5;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.16))}
 
+/* 壁纸模式：只保留粒子/封面视觉层；播放器栏通过底部热区唤出。 */
+body.wallpaper-mode #desktop-titlebar,
+body.wallpaper-mode #search-area,
+body.wallpaper-mode #top-right,
+body.wallpaper-mode #playlist-panel,
+body.wallpaper-mode #thumb-wrap,
+body.wallpaper-mode #empty-home,
+body.wallpaper-mode #fx-fab,
+body.wallpaper-mode #fx-fab-hide-btn,
+body.wallpaper-mode #fx-panel,
+body.wallpaper-mode #fullscreen-diy-zone,
+body.wallpaper-mode #trial-banner,
+body.wallpaper-mode #ai-depth-chip,
+body.wallpaper-mode #beat-chip,
+body.wallpaper-mode #gesture-hud,
+body.wallpaper-mode #hand-canvas,
+body.wallpaper-mode #hint,
+body.wallpaper-mode #upload-tip,
+body.wallpaper-mode #drop-overlay,
+body.wallpaper-mode #idle-guide-canvas,
+body.wallpaper-mode #login-guide-canvas,
+body.wallpaper-mode #toast,
+body.wallpaper-mode #source-fallback-notice,
+body.wallpaper-mode .modal-mask,
+body.wallpaper-mode #mini-queue-popover {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+body.wallpaper-mode #bottom-handle {
+  z-index: 40;
+  opacity: .18;
+  pointer-events: auto;
+  bottom: 10px;
+}
+body.wallpaper-mode #bottom-handle:hover,
+body.wallpaper-mode.controls-handle-awake #bottom-handle {
+  opacity: .9;
+}
+body.wallpaper-mode #bottom-bar {
+  z-index: 42;
+}
+body.wallpaper-mode #bottom-bar.visible .wallpaper-exit-btn {
+  display:flex!important;
+}
+body.wallpaper-mode #bottom-bar.visible {
+  width: min(760px, calc(100vw - 44px));
+  bottom: 18px;
+}
+body.wallpaper-mode #bottom-bar.visible #controls {
+  grid-template-columns: 1fr auto 1fr;
+}
+body.wallpaper-mode #bottom-bar.visible .control-cluster.actions {
+  opacity: .72;
+}
+body.wallpaper-mode #bottom-bar.visible .control-cluster.actions,
+body.wallpaper-mode #bottom-bar.visible .control-cluster.modes {
+  min-width: 0;
+}
+body.wallpaper-mode #bottom-bar.visible .control-cluster.actions {
+  justify-content: flex-start;
+}
+body.wallpaper-mode #bottom-bar.visible .control-cluster.modes {
+  justify-content: flex-end;
+}
+
 /* ---------- 璇曞惉鎻愰啋 ---------- */
 #trial-banner{position:fixed;z-index:8;top:80px;left:50%;transform:translateX(-50%) translateY(-10px);background:rgba(244,210,138,0.11);border:1px solid rgba(244,210,138,0.40);color:var(--champagne);padding:10px 18px 10px 14px;border-radius:12px;font-size:12px;letter-spacing:.3px;backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;align-items:center;gap:10px;opacity:0;pointer-events:none;transition:opacity .5s,transform .5s;max-width:90vw}
 #trial-banner.show{opacity:1;transform:translateX(-50%) translateY(0);pointer-events:auto}
@@ -1087,6 +1158,9 @@ body.desktop-shell.diy-mode #fx-fab{bottom:24px}
 body.desktop-shell.diy-mode #fx-fab-hide-btn{bottom:37px}
 body.controls-visible #fx-fab,
 body.desktop-shell.diy-mode.controls-visible #fx-fab{bottom:126px}
+/* 视觉控制台按钮独立于播放栏，始终固定在右下角。 */
+body.controls-visible #fx-fab{bottom:24px!important}
+body.controls-visible #fx-fab-hide-btn{bottom:37px!important}
 body.desktop-shell.diy-mode #bottom-bar,
 body.desktop-shell.diy-mode #bottom-bar.stage-mode{left:50%;width:min(1080px,calc(100vw - 72px))}
 @media (max-height:760px){
@@ -1291,7 +1365,8 @@ body.desktop-shell.diy-mode #bottom-bar.stage-mode{left:50%;width:min(1080px,cal
 
 .hotkey-modal{position:fixed;inset:0;z-index:1450;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(0,0,0,.48);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
 .hotkey-modal.show{display:flex}
-.hotkey-dialog{width:min(760px,calc(100vw - 36px));max-height:min(720px,calc(100vh - 44px));overflow:auto;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,rgba(14,15,20,.96),rgba(5,6,8,.96));box-shadow:0 32px 110px rgba(0,0,0,.62),inset 0 1px 0 rgba(255,255,255,.08);padding:18px;color:#fff}
+.hotkey-dialog{width:min(760px,calc(100vw - 36px));max-height:min(720px,calc(100vh - 44px));overflow:auto;scrollbar-width:none;-ms-overflow-style:none;border-radius:18px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(180deg,rgba(14,15,20,.96),rgba(5,6,8,.96));box-shadow:0 32px 110px rgba(0,0,0,.62),inset 0 1px 0 rgba(255,255,255,.08);padding:18px;color:#fff}
+.hotkey-dialog::-webkit-scrollbar{width:0;height:0}
 .hotkey-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.08)}
 .hotkey-title{font-size:16px;font-weight:800;letter-spacing:.04em}
 .hotkey-sub{margin-top:5px;font-size:11.5px;line-height:1.5;color:rgba(255,255,255,.48)}
@@ -1922,4 +1997,124 @@ html.control-glass-svg-ok #visual-guide-btn:hover{
 #user-modal,
 #trial-banner {
   display: none !important;
+}
+
+/* 播放栏移动时，视觉控制台入口保持独立固定。 */
+body.controls-visible #fx-fab,
+body.desktop-shell.diy-mode.controls-visible #fx-fab,
+body.controls-visible #fx-fab-hide-btn,
+body.desktop-shell.diy-mode.controls-visible #fx-fab-hide-btn {
+  bottom: auto !important;
+}
+body.controls-visible #fx-fab,
+body.desktop-shell.diy-mode.controls-visible #fx-fab { top: auto !important; bottom: 24px !important; }
+body.controls-visible #fx-fab-hide-btn,
+body.desktop-shell.diy-mode.controls-visible #fx-fab-hide-btn { top: auto !important; bottom: 37px !important; }
+
+/* 内存管理：统一字体、行高和窄面板下的按钮布局，避免中文挤出边界。 */
+#fx-panel .memory-status-chip {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  font-family: var(--font-sans) !important;
+  font-size: 11px;
+  font-weight: 650;
+  line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+#fx-panel .memory-status-sub {
+  margin: 7px 1px 10px;
+  font-family: var(--font-sans) !important;
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1.5;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+#fx-panel .memory-mask-seg {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+}
+#fx-panel .memory-mask-seg button,
+#fx-panel .memory-action-row button {
+  min-width: 0;
+  box-sizing: border-box;
+  font-family: var(--font-sans) !important;
+  font-size: 10.5px;
+  font-weight: 650;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#fx-panel .memory-mask-seg button {
+  min-height: 32px;
+  padding: 6px 3px;
+}
+#fx-panel .memory-action-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+}
+#fx-panel .memory-action-row button {
+  width: 100%;
+  height: 32px;
+  padding: 0 6px;
+}
+
+/* 关闭确认：保留播放器的暗色玻璃风格，并让记忆选项清晰可点。 */
+.close-behavior-modal {
+  z-index: 1800;
+  background: rgba(3, 5, 9, .72);
+  backdrop-filter: blur(20px) saturate(1.15);
+  -webkit-backdrop-filter: blur(20px) saturate(1.15);
+}
+.close-behavior-card {
+  width: min(430px, calc(100vw - 36px));
+  box-sizing: border-box;
+  padding: 24px;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 18px;
+  background: linear-gradient(155deg, rgba(23,27,36,.97), rgba(8,10,15,.98));
+  box-shadow: 0 28px 90px rgba(0,0,0,.58), inset 0 1px 0 rgba(255,255,255,.08);
+  color: #fff;
+}
+.close-behavior-kicker {
+  color: var(--champagne);
+  font: 700 10px/1.2 var(--font-sans);
+  letter-spacing: .18em;
+  opacity: .78;
+}
+.close-behavior-card h2 {
+  margin: 8px 0 6px;
+  font: 750 20px/1.25 var(--font-sans);
+}
+.close-behavior-card p {
+  margin: 0;
+  color: rgba(255,255,255,.62);
+  font: 500 12px/1.55 var(--font-sans);
+}
+.close-behavior-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 20px;
+  color: rgba(255,255,255,.78);
+  font: 500 12px/1.3 var(--font-sans);
+  cursor: pointer;
+  user-select: none;
+}
+.close-behavior-check input { accent-color: var(--fc-accent); width: 15px; height: 15px; margin: 0; }
+.close-behavior-actions { display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+.close-behavior-actions .modal-btn { min-width: 76px; font-family: var(--font-sans); }
+#fx-panel .window-close-behavior-seg button { min-width: 0; padding-inline: 7px; white-space: nowrap; }
+@media (max-width: 520px) {
+  #fx-panel .memory-mask-seg { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #fx-panel .memory-action-row { grid-template-columns: 1fr; }
 }
